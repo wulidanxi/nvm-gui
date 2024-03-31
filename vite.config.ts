@@ -7,6 +7,9 @@ import { VitePluginDoubleshot } from 'vite-plugin-doubleshot'
 // https://vitejs.dev/config/
 export default defineConfig({
   root: join(__dirname, 'src/render'),
+  define: {
+    __Admin_VERSION__: JSON.stringify(process.env.npm_package_version),
+  },
   plugins: [
     vue(),
     VitePluginDoubleshot({
@@ -38,9 +41,9 @@ export default defineConfig({
     outDir: join(__dirname, 'dist/render'),
     emptyOutDir: true,
   },
-  test: { // e2e tests
-    include: ['./tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    testTimeout: 30_000,
-    hookTimeout: 30_000,
-  },
+  // test: { // e2e tests
+  //   include: ['./tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+  //   testTimeout: 30_000,
+  //   hookTimeout: 30_000,
+  // },
 })

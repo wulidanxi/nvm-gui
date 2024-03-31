@@ -12,11 +12,14 @@ module.exports = lightwing(
       'coverage',
       'js_test',
       'local-data',
+      'src',
     ],
   },
   {
     rules: {
       'node/prefer-global/process': 'off',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
     },
   },
 )

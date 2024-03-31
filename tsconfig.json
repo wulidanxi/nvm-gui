@@ -20,6 +20,9 @@
       ],
       "@common/*": [
         "src/common/*"
+      ],
+      "@preload":[
+        "src/preload/*"
       ]
     },
     "resolveJsonModule": true,
