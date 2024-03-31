@@ -1,0 +1,60 @@
+{
+  "name": "nvm-gui",
+  "version": "0.0.1",
+  "description": "Vite + Electron + Vue Nvm GUI",
+  "author": "wulidanxi@gmail.com",
+  "main": "dist/main/index.js",
+  "icon": "__dirname + 'logo.ico'",
+  "scripts": {
+    "dev": "rimraf dist && vite",
+    "debug": "rimraf dist && vite -- --dsb-debug",
+    "build": "rimraf dist && vue-tsc && vite build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "npm run test:main && npm run test:render",
+    "test:render": "vitest run -r src/render --passWithNoTests",
+    "test:main": "vitest run -r src/main --passWithNoTests",
+    "test:e2e": "vitest run",
+    "postinstall": "electron-builder install-app-deps",
+    "postuninstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "axios": "^1.6.8",
+    "einf": "^1.5.1",
+    "moment": "^2.30.1",
+    "vue": "^3.4.13",
+    "vue-router": "4"
+  },
+  "devDependencies": {
+    "@lightwing/eslint-config": "1.0.31",
+    "@vicons/fa": "^0.12.0",
+    "@vicons/ionicons5": "^0.12.0",
+    "@vitejs/plugin-vue": "5.0.4",
+    "@vue/compiler-sfc": "3.4.21",
+    "@vue/test-utils": "2.4.5",
+    "electron": "29.1.4",
+    "electron-builder": "24.13.3",
+    "eslint": "8.57.0",
+    "happy-dom": "13.9.0",
+    "lint-staged": "15.2.2",
+    "naive-ui": "^2.38.1",
+    "playwright": "1.42.1",
+    "rimraf": "5.0.5",
+    "simple-git-hooks": "2.11.0",
+    "tslib": "2.6.2",
+    "typescript": "5.4.2",
+    "vfonts": "^0.0.3",
+    "vite": "5.1.6",
+    "vite-plugin-doubleshot": "0.0.13",
+    "vitest": "1.4.0",
+    "vue-tsc": "2.0.6"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx,vue,md,json,yml}": [
+      "eslint --fix"
+    ]
+  }
+}
