@@ -9,6 +9,7 @@ const config = {
   appId: "com.nvm-sh.cn",
   win: {
     icon: "./nvm-logo-color-avatar.png", //"./nvm-logo-color.ico",
+    requestedExecutionLevel: "requireAdministrator",
   },
   publish: null,
   npmRebuild: false,
