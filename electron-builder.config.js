@@ -11,6 +11,10 @@ const config = {
     icon: "./nvm-logo-color-avatar.png", //"./nvm-logo-color.ico",
     requestedExecutionLevel: "requireAdministrator",
   },
+  nsis: {
+    oneClick: false,
+    allowToChangeInstallationDirectory: true,
+  },
   publish: null,
   npmRebuild: false,
 
