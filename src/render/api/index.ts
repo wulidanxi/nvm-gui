@@ -7,3 +7,7 @@ export function sendMsgToMainProcess(msg: string) {
 export function executeCmd(cmd: string) {
   return ipcInstance.send<string>('runCmd', cmd)
 }
+
+export function openUrl(url: string) { 
+  return ipcInstance.send('openUrl', url)
+}

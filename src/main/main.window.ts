@@ -7,12 +7,6 @@ export async function createWindow() {
   const win = new BrowserWindow({
     width: 1024,
     height: 768,
-    // titleBarStyle: 'hidden',
-    // titleBarOverlay: {
-    //   color: '#ffffff',
-    //   symbolColor: '#18A058',
-    //   height: 37
-    // },
     icon: join('./nvm-logo-color-avatar.png'),
     webPreferences: {
       nodeIntegration: false, // 尝试全局暴露node api
