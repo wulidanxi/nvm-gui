@@ -1,6 +1,7 @@
 import { exec } from 'node:child_process'
 import util from 'node:util'
 import { Controller, IpcHandle } from 'einf'
+import { shell } from 'electron'
 
 
 
@@ -12,5 +13,10 @@ export class AppController {
     const execFile = util.promisify(exec)
     const { stdout, stderr } = await execFile(cmd, {})
     return stdout
+  }
+
+  @IpcHandle('openUrl')
+  public async openUrl(url: string) { 
+    shell.openExternal(url)
   }
 }

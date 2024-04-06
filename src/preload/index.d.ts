@@ -5,7 +5,8 @@ declare global {
   interface Window {
     ipcRenderer: IpcRenderer,
     versions: any,
-    $message: MessageApiInjection
+    $message: MessageApiInjection,
+    $dialog:any
   }
 }
 

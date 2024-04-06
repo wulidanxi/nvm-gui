@@ -1,6 +1,6 @@
 {
   "name": "nvm-gui",
-  "version": "0.0.1",
+  "version": "0.0.1b",
   "description": "Vite + Electron + Vue Nvm GUI",
   "author": "wulidanxi@gmail.com",
   "main": "dist/main/index.js",

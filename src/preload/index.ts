@@ -1,5 +1,4 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { executeCmd } from "@render/api";
 
 contextBridge.exposeInMainWorld(
   'ipcRenderer',
