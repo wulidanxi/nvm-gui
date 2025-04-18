@@ -6,22 +6,22 @@
       </n-layout-header>
       <n-layout content-style="padding: 24px;">
         <n-flex size="large">
-          <n-flex vertical>
-            <n-button
-              :loading="loading"
-              tertiary
-              type="primary"
-              round
-              @click="detail('btn')"
-            >
-              <template #icon>
-                <n-icon>
-                  <SearchOutline />
-                </n-icon>
-              </template>
-              查询当前环境
-            </n-button>
-          </n-flex>
+<!--          <n-flex vertical>-->
+<!--            <n-button-->
+<!--              :loading="loading"-->
+<!--              tertiary-->
+<!--              type="primary"-->
+<!--              round-->
+<!--              @click="detail('btn')"-->
+<!--            >-->
+<!--              <template #icon>-->
+<!--                <n-icon>-->
+<!--                  <SearchOutline />-->
+<!--                </n-icon>-->
+<!--              </template>-->
+<!--              查询当前环境-->
+<!--            </n-button>-->
+<!--          </n-flex>-->
 
           <n-data-table
             v-model:checked-row-keys="checkedRowKeysRef"
@@ -40,7 +40,7 @@
 </template>
 
 <script lang="ts" setup>
-import { h, ref } from "vue";
+import {h, onMounted, ref} from "vue";
 import { DataTableColumns } from "naive-ui";
 import {
   NTag,
@@ -71,6 +71,11 @@ const pagination = ref({
 });
 
 const checkedRowKeysRef = ref([]);
+
+onMounted(() => {
+  detail("fnc");
+})
+
 // 设定列
 function createColumns(): DataTableColumns<RowData> {
   return [

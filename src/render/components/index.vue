@@ -14,8 +14,11 @@ import {
   NText,
   NDivider,
   NAvatar,
+  NConfigProvider,
+    darkTheme,
 } from "naive-ui";
-import { h, ref, Component, onMounted } from "vue";
+import type { GlobalTheme } from "naive-ui";
+import {h, ref, Component, onMounted, computed} from "vue";
 import {
   LogoNodejs as NodeIcon,
   LogoElectron as ElectronIcon,
@@ -25,6 +28,7 @@ import { useRouter } from "vue-router";
 import { executeCmd, openUrl } from "@render/api";
 import logoIcon from "@render/assets/nvm-logo-color-avatar.png";
 import config from "../../../package.json";
+import { useThemeStore } from "@render/stores/ThemeStore";
 
 const inverted = ref(false);
 const showModal = ref(false);
@@ -35,15 +39,20 @@ const nvmVersion = ref("");
 
 const router = useRouter();
 
+
+const store = useThemeStore();
+//const globalTheme = ref<GlobalTheme| null>(null);
+const globalTheme = computed(() => {
+  return  store.theme === 'dark' ? darkTheme : null;
+})
+
+
+
 function renderIcon(icon: Component) {
   return () => h(NIcon, null, { default: () => h(icon) });
 }
 
 const setOptions = [
-  {
-    label: "设置",
-    key: "setting",
-  },
   {
     label: "关于",
     key: "about",
@@ -66,9 +75,12 @@ const menuOptions = [
     key: "available",
     icon: renderIcon(NodeIcon),
   },
+  {
+    label: "设置", // 新增设置页面入口
+    key: "setting",
+    icon: renderIcon(SettingIcon),
+  },
 ];
-
-// const selectedKey = ref(["localNodeEnv"]);
 
 const handleUpdateValue = (key: string) => {
   router.push(`/${key}`);
@@ -94,9 +106,6 @@ async function getNvmVersion() {
 }
 
 const dropDownMenuClick = (key) => {
-  if (key === "setting") {
-    console.log("打开设置");
-  }
   if (key === "about") {
     showModal.value = true;
   }
@@ -108,6 +117,8 @@ onMounted(() => {
 </script>
 
 <template>
+  <n-config-provider :theme="globalTheme">
+
   <n-layout>
     <n-layout-header style="height: 5vh" bordered>
       <!-- <div>NVM GUI</div> -->
@@ -209,10 +220,11 @@ onMounted(() => {
         <n-text class="about-link" @click="onOpenOffice()">官方网站</n-text>
       </n-space>
       <div :style="{ color: `#000000` }" class="about-copyright">
-        Copyright © 2024 Wulidanxi All rights reserved
+        Copyright © 2025 Wulidanxi All rights reserved
       </div>
     </n-space>
   </n-modal>
+  </n-config-provider>
 </template>
 
 <style>
