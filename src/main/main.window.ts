@@ -3,11 +3,17 @@ import { BrowserWindow, app } from 'electron'
 
 const isDev = !app.isPackaged
 
+// 导出一个异步函数createWindow
 export async function createWindow() {
+  // 创建一个BrowserWindow实例
   const win = new BrowserWindow({
+    // 设置窗口宽度
     width: 1024,
+    // 设置窗口高度
     height: 768,
+    // 设置窗口图标
     icon: join('./nvm-logo-color-avatar.png'),
+    // 设置webPreferences
     webPreferences: {
       nodeIntegration: false, // 尝试全局暴露node api
       contextIsolation: true,

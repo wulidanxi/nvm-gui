@@ -1,4 +1,4 @@
-import { exec } from 'node:child_process'
+import { exec, execFile } from 'node:child_process'
 import util from 'node:util'
 import { Controller, IpcHandle } from 'einf'
 import { shell } from 'electron'
