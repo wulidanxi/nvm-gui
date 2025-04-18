@@ -58,7 +58,7 @@ if (platform == "linux") {
 const nodeVersion = ref("");
 
 async function getCurrentNodeVersion() {
-  nodeVersion.value = await executeCmd("node -v");
+  nodeVersion.value = await executeCmd("nvm current");
 }
 getCurrentNodeVersion();
 onBeforeMount(() => {
