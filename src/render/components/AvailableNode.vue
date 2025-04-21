@@ -23,6 +23,7 @@ const pagination = ref({
 });
 
 const installFlag = ref(false);
+const tableLoading = ref(false);
 
 const availableColumns = (): DataTableColumns<any> => {
   return [
@@ -220,6 +221,7 @@ onMounted(() => {
             :data="availableData"
             :pagination="pagination"
             :max-height="400"
+            :loading="tableLoading"
           />
         </n-flex>
       </n-layout>

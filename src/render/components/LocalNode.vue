@@ -30,6 +30,7 @@
             :columns="titleField"
             :data="data"
             :max-height="400"
+            :loading="loading"
             :pagination="pagination"
             @update:checked-row-keys="handleCheck"
           />
@@ -166,9 +167,9 @@ const uninstallNode = async (row: any) => {
 const titleField = ref(createColumns());
 // 获取当前node版本信息
 async function detail(action: string) {
-  if (action === "btn") {
+  //if (action === "btn") {
     loading.value = true;
-  }
+  //}
   const result = await executeCmd("nvm ls");
   const newVar = result.split("\n").filter((item) => {
     if (item.length > 0) return item;
@@ -200,6 +201,7 @@ async function detail(action: string) {
     loading.value = false;
     message.success("查询成功:" + moment().format("YYYY-MM-DD HH:mm:ss"));
   }
+  loading.value = false;
   return result;
 }
 // 切换node版本

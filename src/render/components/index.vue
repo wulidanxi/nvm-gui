@@ -15,20 +15,26 @@ import {
   NDivider,
   NAvatar,
   NConfigProvider,
-    darkTheme,
+  darkTheme,
+  NImage,
 } from "naive-ui";
-import type { GlobalTheme } from "naive-ui";
+import type {GlobalTheme} from "naive-ui";
 import {h, ref, Component, onMounted, computed} from "vue";
 import {
   LogoNodejs as NodeIcon,
   LogoElectron as ElectronIcon,
   SettingsOutline as SettingIcon,
 } from "@vicons/ionicons5";
-import { useRouter } from "vue-router";
-import { executeCmd, openUrl } from "@render/api";
-import logoIcon from "@render/assets/nvm-logo-color-avatar.png";
+import {useRouter} from "vue-router";
+import {executeCmd, openUrl} from "@render/api";
+import logoIconBlack from "@render/assets/nvm-logo-color-avatar.png";
+import logoIconWhite from "@render/assets/nvm-logo-white.svg"
 import config from "../../../package.json";
-import { useThemeStore } from "@render/stores/ThemeStore";
+import {useThemeStore} from "@render/stores/ThemeStore";
+import nodeIconBlack from "@render/assets/nodejsDark.svg";
+import nodeIconWhite from "@render/assets/nodejsWhite.svg";
+import {height, width} from "happy-dom/lib/PropertySymbol";
+import {max} from "moment";
 
 const inverted = ref(false);
 const showModal = ref(false);
@@ -43,13 +49,23 @@ const router = useRouter();
 const store = useThemeStore();
 //const globalTheme = ref<GlobalTheme| null>(null);
 const globalTheme = computed(() => {
-  return  store.theme === 'dark' ? darkTheme : null;
+  if (store.theme === 'dark') {
+    logoIcon.value = logoIconWhite;
+    nodeIcon.value = nodeIconWhite;
+    return darkTheme;
+  } else {
+    logoIcon.value = logoIconBlack;
+    nodeIcon.value = nodeIconBlack;
+    return null;
+  }
 })
 
+const logoIcon = ref(logoIconBlack);
+const nodeIcon = ref(nodeIconBlack);
 
 
 function renderIcon(icon: Component) {
-  return () => h(NIcon, null, { default: () => h(icon) });
+  return () => h(NIcon, null, {default: () => h(icon)});
 }
 
 const setOptions = [
@@ -119,111 +135,115 @@ onMounted(() => {
 <template>
   <n-config-provider :theme="globalTheme">
 
-  <n-layout>
-    <n-layout-header style="height: 5vh" bordered>
-      <!-- <div>NVM GUI</div> -->
-      <n-icon
-        size="20"
-        color="#18a058"
-        style="padding-left: 1vh; padding-top: 1vh"
-      >
-        <!-- <NodeIcon /> -->
-        <img
-          style="max-width: 80px; max-height: 80px"
-          src="../assets/nodejsDark.svg"
-        />
-      </n-icon>
-
-      <n-dropdown
-        trigger="click"
-        placement="left"
-        :options="setOptions"
-        :show-arrow="true"
-        @select="dropDownMenuClick"
-      >
+    <n-layout>
+      <n-layout-header style="height: 5vh" bordered>
+        <!-- <div>NVM GUI</div> -->
         <n-icon
-          size="20"
-          style="padding-right: 5vh; padding-top: 1vh; float: right"
+            size="20"
+            color="#18a058"
+            style="padding-left: 1vh; padding-top: 1vh"
+
         >
-          <SettingIcon />
+          <!--        <n-image :src="nodeIcon"></n-image>-->
+          <!-- <NodeIcon /> -->
+          <n-image
+              :object-fit="'cover'"
+              :height="'20px'"
+              :src="nodeIcon"
+          />
         </n-icon>
-      </n-dropdown>
-    </n-layout-header>
-    <n-layout has-sider>
-      <n-layout-sider
-        bordered
-        show-trigger
-        collapse-mode="width"
-        :collapsed-width="64"
-        :width="240"
-        :native-scrollbar="false"
-        :inverted="inverted"
-        style="height: 95vh"
-      >
-        <n-menu
-          :inverted="inverted"
-          :collapsed-width="64"
-          :collapsed-icon-size="22"
-          :options="menuOptions"
-          default-value=""
-          @update:value="handleUpdateValue"
-        />
-      </n-layout-sider>
-      <n-layout style="height: 95vh">
-        <RouterView />
+
+        <n-dropdown
+            trigger="click"
+            placement="left"
+            :options="setOptions"
+            :show-arrow="true"
+            @select="dropDownMenuClick"
+        >
+          <n-icon
+              size="20"
+              style="padding-right: 5vh; padding-top: 1vh; float: right"
+          >
+            <SettingIcon/>
+          </n-icon>
+        </n-dropdown>
+      </n-layout-header>
+      <n-layout has-sider>
+        <n-layout-sider
+            bordered
+            show-trigger
+            collapse-mode="width"
+            :collapsed-width="64"
+            :width="240"
+            :native-scrollbar="false"
+            :inverted="inverted"
+            style="height: 95vh"
+        >
+          <n-menu
+              :inverted="inverted"
+              :collapsed-width="64"
+              :collapsed-icon-size="22"
+              :options="menuOptions"
+              default-value=""
+              @update:value="handleUpdateValue"
+          />
+        </n-layout-sider>
+        <n-layout style="height: 95vh">
+          <RouterView/>
+        </n-layout>
       </n-layout>
     </n-layout>
-  </n-layout>
-  <n-message-provider>
-    <n-dialog-provider>
-      <useMessageComponents />
-    </n-dialog-provider>
-  </n-message-provider>
-  <n-modal
-    v-model:show="showModal"
-    :show-icon="false"
-    preset="dialog"
-    transform-origin="center"
-  >
-    <n-space
-      :size="10"
-      :wrap="false"
-      :wrap-item="false"
-      align="center"
-      vertical
+    <n-message-provider>
+      <n-dialog-provider>
+        <useMessageComponents/>
+      </n-dialog-provider>
+    </n-message-provider>
+    <n-modal
+        v-model:show="showModal"
+        :show-icon="false"
+        preset="dialog"
+        transform-origin="center"
     >
-      <n-avatar :size="120" :src="logoIcon" color="#0000"></n-avatar>
-      <div class="about-app-title">Node Version Manager GUI</div>
       <n-space
-        :size="5"
-        :wrap="false"
-        :wrap-item="false"
-        justify="space-between"
+          :size="10"
+          :wrap="false"
+          :wrap-item="false"
+          align="center"
+          vertical
       >
-        <n-text>插件版本:</n-text>
-        <n-text class="about-link" @click="onOpenPlugin()">{{
-          nvmVersion
-        }}</n-text>
+        <n-avatar :size="120" :src="logoIcon" color="#0000"></n-avatar>
+        <div class="about-app-title">Node Version Manager GUI</div>
+        <n-space
+            :size="5"
+            :wrap="false"
+            :wrap-item="false"
+            justify="space-between"
+        >
+          <n-text>插件版本:</n-text>
+          <n-text class="about-link" @click="onOpenPlugin()">{{
+              nvmVersion
+            }}
+          </n-text>
+        </n-space>
+        <n-space
+            :size="5"
+            :wrap="false"
+            :wrap-item="false"
+            justify="space-between"
+        >
+          <n-text>软件版本:</n-text>
+          <n-text>{{ version }}</n-text>
+        </n-space>
+        <n-space :size="5" :wrap="false" :wrap-item="false" justify="center">
+          <n-text class="about-link" @click="onOpenSource()">源码地址</n-text>
+          <n-divider vertical/>
+          <n-text class="about-link" @click="onOpenOffice()">官方网站</n-text>
+        </n-space>
+        <div class="about-copyright">
+          Copyright © 2025 Wulidanxi All rights reserved
+        </div>
       </n-space>
-      <n-space
-        :size="5"
-        :wrap="false"
-        :wrap-item="false"
-        justify="space-between"
-      >
-        <n-text>软件版本:</n-text>
-        <n-text>{{ version }}</n-text>
-      </n-space>
-      <n-space :size="5" :wrap="false" :wrap-item="false" justify="center">
-        <n-text class="about-link" @click="onOpenSource()">源码地址</n-text>
-        <n-divider vertical />
-        <n-text class="about-link" @click="onOpenOffice()">官方网站</n-text>
-      </n-space>
-      <div :style="{ color: `#000000` }" class="about-copyright">
-        Copyright © 2025 Wulidanxi All rights reserved
-      </div>
-    </n-space>
-  </n-modal>
+    </n-modal>
   </n-config-provider>
 </template>
 
@@ -232,6 +252,7 @@ onMounted(() => {
   background-color: #18a058;
   padding: 1vh;
 }
+
 .about-app-title {
   font-weight: bold;
   font-size: 18px;

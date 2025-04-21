@@ -1,6 +1,6 @@
 {
   "name": "nvm-gui",
-  "version": "0.0.2",
+  "version": "0.0.2b",
   "description": "Vite + Electron + Vue Nvm GUI",
   "author": "wulidanxi@gmail.com",
   "main": "dist/main/index.js",
@@ -36,7 +36,7 @@
     "electron": "29.1.4",
     "electron-builder": "24.13.3",
     "eslint": "8.57.0",
-    "happy-dom": "13.10.1",
+    "happy-dom": "15.10.2",
     "lint-staged": "15.2.2",
     "naive-ui": "^2.41.0",
     "playwright": "1.42.1",
