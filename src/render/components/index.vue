@@ -33,8 +33,6 @@ import config from "../../../package.json";
 import {useThemeStore} from "@render/stores/ThemeStore";
 import nodeIconBlack from "@render/assets/nodejsDark.svg";
 import nodeIconWhite from "@render/assets/nodejsWhite.svg";
-import {height, width} from "happy-dom/lib/PropertySymbol";
-import {max} from "moment";
 
 const inverted = ref(false);
 const showModal = ref(false);

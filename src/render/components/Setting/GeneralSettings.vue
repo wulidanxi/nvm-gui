@@ -1,20 +1,27 @@
 <template>
   <div class="general-settings">
     <!-- 新增主题色切换功能 -->
-    <n-flex vertical>
-      <n-select
-          v-model:value="selectedTheme"
-          :options="themeOptions"
-          placeholder="选择主题色"
-          @update:value="handleThemeChange"
-      />
-    </n-flex>
+    <n-card :bordered="false" size="small">
+      <n-form
+          label-placement="left"
+          label-width="auto"
+      >
+        <n-form-item label="主题色：">
+          <n-select
+              v-model:value="selectedTheme"
+              :options="themeOptions"
+              placeholder="选择主题色"
+              @update:value="handleThemeChange"
+          />
+        </n-form-item>
+      </n-form>
+    </n-card>
   </div>
 </template>
 
 <script setup lang="ts">
 import {ref} from "vue";
-import { NFlex, NSelect} from "naive-ui";
+import {NCard, NFlex, NForm, NFormItem, NSelect} from "naive-ui";
 import {useThemeStore} from "@render/stores/ThemeStore";
 
 // 定义主题选项
@@ -30,11 +37,18 @@ const selectedTheme = ref<string>(localStorage.getItem("theme") || "light");
 
 // 主题切换事件处理
 const handleThemeChange = (value: string) => {
-  localStorage.setItem("theme", value); // 将主题色存储到本地存储
-  document.documentElement.setAttribute("data-theme", value); // 动态应用主题色
-  window.$message.success(`已切换到 ${value === "light" ? "亮色" : "暗色"} 主题`);
-  store.toggleTheme(value)
+  selectedTheme.value = value;
 };
+
+const saveSettings = () => {
+  // 这里可以添加保存逻辑，例如将当前设置保存到服务器或本地存储
+  store.toggleTheme(selectedTheme.value);
+};
+
+defineExpose({
+  saveSettings
+})
+
 </script>
 
 <style scoped>

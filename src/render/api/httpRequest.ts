@@ -1,7 +1,10 @@
 import request from '@render/utils/request'
+import { useNodeURLStore } from "@render/stores/NodeURLStore";
 
-export function getNodeReleaseRecord() : Promise<any> { 
+export function getNodeReleaseRecord() : Promise<any> {
+    const store = useNodeURLStore();
+    const url = store.nodeUrl;
     return request({
-        url:'https://nodejs.org/dist/index.json'
+        url:url
     })
 }
