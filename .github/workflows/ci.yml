@@ -27,7 +27,7 @@ jobs:
           cache: pnpm
 
       - name: Generate pnpm-lock.yaml
-        run: pnpm install --lockfile-only # 添加此步骤以生成锁定文件
+        run: pnpm install --frozen-lockfile # 修改此步骤以生成锁定文件
 
       - name: Install dependencies
         run: pnpm install
@@ -59,7 +59,7 @@ jobs:
           cache: pnpm
 
       - name: Generate pnpm-lock.yaml
-        run: pnpm install --lockfile-only # 添加此步骤以生成锁定文件
+        run: pnpm install --frozen-lockfile # 修改此步骤以生成锁定文件
 
       - name: Install dependencies
         run: pnpm install
