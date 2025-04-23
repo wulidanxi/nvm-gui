@@ -4,8 +4,6 @@
 
 # ⚡Vite + Electron
 
-
-
 ## How to use
 
 - In the project folder:

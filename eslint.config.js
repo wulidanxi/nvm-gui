@@ -20,6 +20,7 @@ module.exports = lightwing(
       'node/prefer-global/process': 'off',
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
+      'semi': 0,
     },
   },
 )

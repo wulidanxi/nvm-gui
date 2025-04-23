@@ -21,7 +21,7 @@
       "@common/*": [
         "src/common/*"
       ],
-      "@preload":[
+      "@preload": [
         "src/preload/*"
       ]
     },

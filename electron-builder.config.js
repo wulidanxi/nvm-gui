@@ -4,12 +4,12 @@
  */
 const config = {
   directories: {
-    output: "dist/electron",
+    output: 'dist/electron',
   },
-  appId: "com.nvm-sh.cn",
+  appId: 'com.nvm-sh.cn',
   win: {
-    icon: "./nvm-logo-color-avatar.png", //"./nvm-logo-color.ico",
-    requestedExecutionLevel: "requireAdministrator",
+    icon: './nvm-logo-color-avatar.png',
+    requestedExecutionLevel: 'requireAdministrator',
   },
   nsis: {
     oneClick: false,
@@ -18,7 +18,7 @@ const config = {
   publish: null,
   npmRebuild: false,
 
-  files: ["dist/main/**/*", "dist/preload/**/*", "dist/render/**/*"],
-};
+  files: ['dist/main/**/*', 'dist/preload/**/*', 'dist/render/**/*'],
+}
 
-module.exports = config;
+module.exports = config
