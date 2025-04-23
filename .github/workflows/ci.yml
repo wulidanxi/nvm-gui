@@ -15,25 +15,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3.0.0
-        with:
-          version: 8.6.12 # 指定 pnpm 版本
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18.x
-          cache: pnpm
-
-      - name: Generate pnpm-lock.yaml
-        run: pnpm install --frozen-lockfile # 修改此步骤以生成锁定文件
+          cache: yarn
 
       - name: Install dependencies
-        run: pnpm install
+        run: yarn
 
       - name: Run lint
-        run: pnpm run lint
+        run: yarn lint
 
   test:
     runs-on: ${{ matrix.os }}
@@ -47,25 +39,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3.0.0
-        with:
-          version: 8.6.12 # 指定 pnpm 版本
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node_version }}
-          cache: pnpm
-
-      - name: Generate pnpm-lock.yaml
-        run: pnpm install --frozen-lockfile # 修改此步骤以生成锁定文件
+          cache: yarn
 
       - name: Install dependencies
-        run: pnpm install
-
-      - name: Build project
-        run: pnpm run build
+        run: yarn
 
       - name: Run tests
-        run: pnpm run test
+        run: yarn test
