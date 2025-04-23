@@ -26,6 +26,9 @@ jobs:
           node-version: 18.x
           cache: pnpm
 
+      - name: Generate pnpm-lock.yaml
+        run: pnpm install --lockfile-only # 添加此步骤以生成锁定文件
+
       - name: Install dependencies
         run: pnpm install
 
@@ -54,6 +57,9 @@ jobs:
         with:
           node-version: ${{ matrix.node_version }}
           cache: pnpm
+
+      - name: Generate pnpm-lock.yaml
+        run: pnpm install --lockfile-only # 添加此步骤以生成锁定文件
 
       - name: Install dependencies
         run: pnpm install
