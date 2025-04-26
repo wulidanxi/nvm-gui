@@ -1,5 +1,5 @@
 <p align="center">
-    <img width="400" src="./nvm-logo-color-avatar.png" alt="logo">
+    <img width="400" src="[./nvm-logo-color-avatar.png](https://github.com/wulidanxi/nvm-gui/blob/main/nvm-logo-color-avatar.png)" alt="logo">
 </p>
 
 # ⚡Vite + Electron
