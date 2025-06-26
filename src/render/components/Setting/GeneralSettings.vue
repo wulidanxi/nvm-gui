@@ -23,6 +23,7 @@
 import {ref} from "vue";
 import {NCard, NFlex, NForm, NFormItem, NSelect} from "naive-ui";
 import {useThemeStore} from "@render/stores/ThemeStore";
+import {formToJSON} from "axios";
 
 // 定义主题选项
 const themeOptions = [
@@ -33,7 +34,7 @@ const themeOptions = [
 const store = useThemeStore();
 
 // 获取当前主题色
-const selectedTheme = ref<string>(localStorage.getItem("theme") || "light");
+const selectedTheme = ref<string>(JSON.parse(localStorage.getItem("theme")).theme || "light");
 
 // 主题切换事件处理
 const handleThemeChange = (value: string) => {

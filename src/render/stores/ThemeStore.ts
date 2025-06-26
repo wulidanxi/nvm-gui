@@ -12,4 +12,6 @@ export const useThemeStore = defineStore('theme', () => {
         theme, toggleTheme,
     }
 
+},{
+    persist: true,
 })
