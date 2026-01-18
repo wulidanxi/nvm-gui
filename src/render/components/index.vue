@@ -18,19 +18,19 @@ import {
   darkTheme,
   NImage,
 } from "naive-ui";
-import type {GlobalTheme} from "naive-ui";
-import {h, ref, Component, onMounted, computed} from "vue";
+import type { GlobalTheme } from "naive-ui";
+import { h, ref, onMounted, computed, type Component } from "vue";
 import {
   LogoNodejs as NodeIcon,
   LogoElectron as ElectronIcon,
   SettingsOutline as SettingIcon,
 } from "@vicons/ionicons5";
-import {useRouter} from "vue-router";
-import {executeCmd, openUrl} from "@render/api";
+import { useRouter } from "vue-router";
+import { executeCmd, openUrl } from "@render/api";
 import logoIconBlack from "@render/assets/nvm-logo-color-avatar.png";
-import logoIconWhite from "@render/assets/nvm-logo-white.svg"
+import logoIconWhite from "@render/assets/nvm-logo-white.svg";
 import config from "../../../package.json";
-import {useThemeStore} from "@render/stores/ThemeStore";
+import { useThemeStore } from "@render/stores/ThemeStore";
 import nodeIconBlack from "@render/assets/nodejsDark.svg";
 import nodeIconWhite from "@render/assets/nodejsWhite.svg";
 
@@ -43,11 +43,10 @@ const nvmVersion = ref("");
 
 const router = useRouter();
 
-
 const store = useThemeStore();
 //const globalTheme = ref<GlobalTheme| null>(null);
 const globalTheme = computed(() => {
-  if (store.theme === 'dark') {
+  if (store.theme === "dark") {
     logoIcon.value = logoIconWhite;
     nodeIcon.value = nodeIconWhite;
     return darkTheme;
@@ -56,14 +55,13 @@ const globalTheme = computed(() => {
     nodeIcon.value = nodeIconBlack;
     return null;
   }
-})
+});
 
 const logoIcon = ref(logoIconBlack);
 const nodeIcon = ref(nodeIconBlack);
 
-
 function renderIcon(icon: Component) {
-  return () => h(NIcon, null, {default: () => h(icon)});
+  return () => h(NIcon, null, { default: () => h(icon) });
 }
 
 const setOptions = [
@@ -132,109 +130,106 @@ onMounted(() => {
 
 <template>
   <n-config-provider :theme="globalTheme">
-
     <n-layout>
       <n-layout-header style="height: 5vh" bordered>
         <!-- <div>NVM GUI</div> -->
         <n-icon
-            size="20"
-            color="#18a058"
-            style="padding-left: 1vh; padding-top: 1vh"
-
+          size="20"
+          color="#18a058"
+          style="padding-left: 1vh; padding-top: 1vh"
         >
           <!--        <n-image :src="nodeIcon"></n-image>-->
           <!-- <NodeIcon /> -->
-          <n-image
-              :object-fit="'cover'"
-              :height="'20px'"
-              :src="nodeIcon"
-          />
+          <n-image :object-fit="'cover'" :height="'20px'" :src="nodeIcon" />
         </n-icon>
 
         <n-dropdown
-            trigger="click"
-            placement="left"
-            :options="setOptions"
-            :show-arrow="true"
-            @select="dropDownMenuClick"
+          trigger="click"
+          placement="left"
+          :options="setOptions"
+          :show-arrow="true"
+          @select="dropDownMenuClick"
         >
           <n-icon
-              size="20"
-              style="padding-right: 5vh; padding-top: 1vh; float: right"
+            size="20"
+            style="padding-right: 5vh; padding-top: 1vh; float: right"
           >
-            <SettingIcon/>
+            <SettingIcon />
           </n-icon>
         </n-dropdown>
       </n-layout-header>
       <n-layout has-sider>
         <n-layout-sider
-            bordered
-            show-trigger
-            collapse-mode="width"
-            :collapsed-width="64"
-            :width="240"
-            :native-scrollbar="false"
-            :inverted="inverted"
-            style="height: 95vh"
+          bordered
+          show-trigger
+          collapse-mode="width"
+          :collapsed-width="64"
+          :width="240"
+          :native-scrollbar="false"
+          :inverted="inverted"
+          style="height: 95vh"
         >
           <n-menu
-              :inverted="inverted"
-              :collapsed-width="64"
-              :collapsed-icon-size="22"
-              :options="menuOptions"
-              default-value=""
-              @update:value="handleUpdateValue"
+            :inverted="inverted"
+            :collapsed-width="64"
+            :collapsed-icon-size="22"
+            :options="menuOptions"
+            default-value=""
+            @update:value="handleUpdateValue"
           />
         </n-layout-sider>
         <n-layout style="height: 95vh">
-          <RouterView/>
+          <router-view v-slot="{ Component }">
+            <keep-alive>
+              <component :is="Component" />
+            </keep-alive>
+          </router-view>
         </n-layout>
       </n-layout>
     </n-layout>
     <n-message-provider>
       <n-dialog-provider>
-        <useMessageComponents/>
+        <useMessageComponents />
       </n-dialog-provider>
     </n-message-provider>
     <n-modal
-        v-model:show="showModal"
-        :show-icon="false"
-        preset="dialog"
-        transform-origin="center"
+      v-model:show="showModal"
+      :show-icon="false"
+      preset="dialog"
+      transform-origin="center"
     >
       <n-space
-          :size="10"
-          :wrap="false"
-          :wrap-item="false"
-          align="center"
-          vertical
+        :size="10"
+        :wrap="false"
+        :wrap-item="false"
+        align="center"
+        vertical
       >
         <n-avatar :size="120" :src="logoIcon" color="#0000"></n-avatar>
         <div class="about-app-title">Node Version Manager GUI</div>
         <n-space
-            :size="5"
-            :wrap="false"
-            :wrap-item="false"
-            justify="space-between"
+          :size="5"
+          :wrap="false"
+          :wrap-item="false"
+          justify="space-between"
         >
           <n-text>插件版本:</n-text>
-          <n-text class="about-link" @click="onOpenPlugin()">{{
-              nvmVersion
-            }}
+          <n-text class="about-link" @click="onOpenPlugin()"
+            >{{ nvmVersion }}
           </n-text>
         </n-space>
         <n-space
-            :size="5"
-            :wrap="false"
-            :wrap-item="false"
-            justify="space-between"
+          :size="5"
+          :wrap="false"
+          :wrap-item="false"
+          justify="space-between"
         >
           <n-text>软件版本:</n-text>
           <n-text>{{ version }}</n-text>
         </n-space>
         <n-space :size="5" :wrap="false" :wrap-item="false" justify="center">
           <n-text class="about-link" @click="onOpenSource()">源码地址</n-text>
-          <n-divider vertical/>
+          <n-divider vertical />
           <n-text class="about-link" @click="onOpenOffice()">官方网站</n-text>
         </n-space>
         <div class="about-copyright">

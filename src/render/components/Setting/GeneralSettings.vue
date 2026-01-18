@@ -2,16 +2,13 @@
   <div class="general-settings">
     <!-- 新增主题色切换功能 -->
     <n-card :bordered="false" size="small">
-      <n-form
-          label-placement="left"
-          label-width="auto"
-      >
+      <n-form label-placement="left" label-width="auto">
         <n-form-item label="主题色：">
           <n-select
-              v-model:value="selectedTheme"
-              :options="themeOptions"
-              placeholder="选择主题色"
-              @update:value="handleThemeChange"
+            v-model:value="selectedTheme"
+            :options="themeOptions"
+            placeholder="选择主题色"
+            @update:value="handleThemeChange"
           />
         </n-form-item>
       </n-form>
@@ -20,21 +17,20 @@
 </template>
 
 <script setup lang="ts">
-import {ref} from "vue";
-import {NCard, NFlex, NForm, NFormItem, NSelect} from "naive-ui";
-import {useThemeStore} from "@render/stores/ThemeStore";
-import {formToJSON} from "axios";
+import { ref } from "vue";
+import { NCard, NForm, NFormItem, NSelect } from "naive-ui";
+import { useThemeStore } from "@render/stores/ThemeStore";
 
 // 定义主题选项
 const themeOptions = [
-  {label: "亮色", value: "light"},
-  {label: "暗色", value: "dark"},
+  { label: "亮色", value: "light" },
+  { label: "暗色", value: "dark" },
 ];
 
 const store = useThemeStore();
 
 // 获取当前主题色
-const selectedTheme = ref<string>(JSON.parse(localStorage.getItem("theme")).theme || "light");
+const selectedTheme = ref<string>(store.theme || "light");
 
 // 主题切换事件处理
 const handleThemeChange = (value: string) => {
@@ -47,9 +43,8 @@ const saveSettings = () => {
 };
 
 defineExpose({
-  saveSettings
-})
-
+  saveSettings,
+});
 </script>
 
 <style scoped>

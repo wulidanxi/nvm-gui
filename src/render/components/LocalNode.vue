@@ -6,22 +6,22 @@
       </n-layout-header>
       <n-layout content-style="padding: 24px;">
         <n-flex size="large">
-<!--          <n-flex vertical>-->
-<!--            <n-button-->
-<!--              :loading="loading"-->
-<!--              tertiary-->
-<!--              type="primary"-->
-<!--              round-->
-<!--              @click="detail('btn')"-->
-<!--            >-->
-<!--              <template #icon>-->
-<!--                <n-icon>-->
-<!--                  <SearchOutline />-->
-<!--                </n-icon>-->
-<!--              </template>-->
-<!--              查询当前环境-->
-<!--            </n-button>-->
-<!--          </n-flex>-->
+          <!--          <n-flex vertical>-->
+          <!--            <n-button-->
+          <!--              :loading="loading"-->
+          <!--              tertiary-->
+          <!--              type="primary"-->
+          <!--              round-->
+          <!--              @click="detail('btn')"-->
+          <!--            >-->
+          <!--              <template #icon>-->
+          <!--                <n-icon>-->
+          <!--                  <SearchOutline />-->
+          <!--                </n-icon>-->
+          <!--              </template>-->
+          <!--              查询当前环境-->
+          <!--            </n-button>-->
+          <!--          </n-flex>-->
 
           <n-data-table
             v-model:checked-row-keys="checkedRowKeysRef"
@@ -41,7 +41,7 @@
 </template>
 
 <script lang="ts" setup>
-import {h, onMounted, ref} from "vue";
+import { h, onMounted, ref } from "vue";
 import { DataTableColumns } from "naive-ui";
 import {
   NTag,
@@ -52,30 +52,33 @@ import {
   NFlex,
   NIcon,
 } from "naive-ui";
-import { executeCmd } from "@render/api";
+import { executeNvmSafely, nvmList, nvmUse, nvmUninstall } from "@render/api";
+import { parseNvmList } from "@render/utils/nvmParser";
 import { SearchOutline as SearchOutline } from "@vicons/ionicons5";
-import moment from "moment";
+import dayjs from "dayjs";
 
 interface RowData {
   key: number;
   value: string;
   isCurrent: boolean;
+  loading?: boolean;
+  uninstallFlag?: boolean;
 }
 
 const loading = ref(false);
 
 // 设置表格值
-const data = ref([]);
+const data = ref<RowData[]>([]);
 const pagination = ref({
   pageSize: 10,
   picker: true,
 });
 
-const checkedRowKeysRef = ref([]);
+const checkedRowKeysRef = ref<number[]>([]);
 
 onMounted(() => {
   detail("fnc");
-})
+});
 
 // 设定列
 function createColumns(): DataTableColumns<RowData> {
@@ -105,7 +108,7 @@ function createColumns(): DataTableColumns<RowData> {
             },
             {
               default: () => "激活",
-            }
+            },
           );
         } else {
           return h(
@@ -120,7 +123,7 @@ function createColumns(): DataTableColumns<RowData> {
             },
             {
               default: () => "未激活",
-            }
+            },
           );
         }
       },
@@ -137,85 +140,106 @@ function createColumns(): DataTableColumns<RowData> {
             loading: row.loading || false,
             onClick: () => uninstallNode(row),
           },
-          { default: () => "卸载" }
+          { default: () => "卸载" },
         );
       },
     },
   ];
 }
 
-const uninstallNode = async (row: any) => {
-  data.value.map((item, index) => {
-    if (item === row) {
-      data.value[index].loading = true;
-    } else {
-      data.value[index].uninstallFlag = true;
-      data.value[index].loading = false;
+const uninstallNode = async (row: RowData) => {
+  // 设置 loading 状态
+  data.value = data.value.map((item) => {
+    if (item.key === row.key) {
+      return { ...item, loading: true };
     }
+    return { ...item, uninstallFlag: true }; // 禁用其他按钮
   });
-  var uninstallCmd = `nvm uninstall ${row.value}`;
-  await executeCmd(uninstallCmd);
-  await detail("fun");
-  data.value.map((item, index) => {
-    if (item === row) {
-      data.value[index].loading = false;
-    }
-    data.value[index].uninstallFlag = false;
-  });
+
+  try {
+    await nvmUninstall(row.value);
+    window.$message.success(`成功卸载 Node.js ${row.value}`);
+    await detail("fun");
+  } catch (error: any) {
+    window.$message.error(`卸载失败: ${error.message || "未知错误"}`);
+  } finally {
+    // 恢复状态
+    data.value = data.value.map((item) => ({
+      ...item,
+      loading: false,
+      uninstallFlag: false,
+    }));
+  }
 };
 
 const titleField = ref(createColumns());
+
 // 获取当前node版本信息
 async function detail(action: string) {
-  //if (action === "btn") {
-    loading.value = true;
-  //}
-  const result = await executeCmd("nvm ls");
-  const newVar = result.split("\n").filter((item) => {
-    if (item.length > 0) return item;
+  loading.value = true;
+  try {
+    const result = await nvmList();
+    const parsedVersions = parseNvmList(result);
 
-    return null;
-  });
-  data.value = newVar.map((value, index) => {
-    let isCurrent = false;
-    let newValue;
+    const newRowKeys: number[] = [];
 
-    if (value.includes("*")) {
-      checkedRowKeysRef.value = [index, 1];
-      isCurrent = true;
-      newValue = value
-        .substring(value.indexOf("*") + 1, value.indexOf("("))
-        .trim();
-    } else {
-      newValue = value.trim();
+    data.value = parsedVersions.map((v, index) => {
+      if (v.isCurrent) {
+        newRowKeys.push(index);
+      }
+      return {
+        key: index,
+        value: v.version,
+        isCurrent: v.isCurrent,
+        loading: false,
+        uninstallFlag: false,
+      };
+    });
+
+    checkedRowKeysRef.value = newRowKeys;
+
+    if (action === "btn") {
+      const message = window.$message;
+      message.success("查询成功:" + dayjs().format("YYYY-MM-DD HH:mm:ss"));
     }
-    const ob = {
-      key: index,
-      value: newValue,
-      isCurrent,
-    };
-    return ob;
-  });
-  if (action === "btn") {
-    const message = window.$message;
+  } catch (error: any) {
+    window.$message.error(
+      `获取 Node.js 列表失败: ${error.message || "未知错误"}`,
+    );
+    console.error(error);
+  } finally {
     loading.value = false;
-    message.success("查询成功:" + moment().format("YYYY-MM-DD HH:mm:ss"));
   }
-  loading.value = false;
-  return result;
 }
+
 // 切换node版本
 async function changVersion(version: string) {
-  const commandStr = `nvm use ${version}`;
-  await executeCmd(commandStr);
+  await nvmUse(version);
 }
+
 // 表格行选中逻辑
-async function handleCheck(rowKeys) {
+async function handleCheck(rowKeys: number[]) {
+  // 注意：单选模式下 rowKeys 应该是一个包含单个 key 的数组，或者直接是 key（取决于 Naive UI 版本和配置）
+  // 这里假设是数组
+  const key = Array.isArray(rowKeys) ? rowKeys[0] : rowKeys;
+
+  // 找到对应的行数据
+  const targetRow = data.value.find((item) => item.key === key);
+
+  if (!targetRow) return;
+
+  const nodeVersion = targetRow.value;
   const message = window.$message;
-  const nodeVersion = data.value[rowKeys].value;
-  await changVersion(nodeVersion);
-  await detail("Function");
-  message.success(`切换node版本==>${nodeVersion}`);
+
+  try {
+    await changVersion(nodeVersion);
+    message.success(`切换node版本==>${nodeVersion}`);
+    await detail("Function");
+  } catch (error: any) {
+    message.error(`切换失败: ${error.message || "未知错误"}`);
+    // 刷新列表以恢复正确状态
+    await detail("Function");
+  }
 }
 </script>
 

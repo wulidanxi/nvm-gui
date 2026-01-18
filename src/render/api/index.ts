@@ -1,10 +1,12 @@
 import { ipcInstance } from '@render/plugins';
-import util from "node:util";
 
 export function sendMsgToMainProcess(msg: string) {
   return ipcInstance.send<string>('send-msg', msg);
 }
 
+/**
+ * @deprecated Use specific nvm* methods instead
+ */
 export function executeCmd(cmd: string) {
   // 增加命令校验逻辑
   if (!cmd.startsWith('nvm ')) {
@@ -13,41 +15,69 @@ export function executeCmd(cmd: string) {
   return ipcInstance.send<string>('runCmd', cmd);
 }
 
-// 版本号格式校验（正则表达式）
-const VERSION_REGEX = /^[v]?\d+\.\d+\.\d+$/;
-
-function validateVersion(input: string): boolean {
-  return VERSION_REGEX.test(input);
+export function nvmList() {
+  return ipcInstance.send<string>('nvm-list');
 }
 
-// 允许的命令列表
-const ALLOWED_COMMANDS = ['install', 'use', 'uninstall'];
-
-function validateCommand(cmd: string): void {
-  if (!ALLOWED_COMMANDS.includes(cmd)) {
-    throw new Error(`禁止执行的操作: ${cmd}`);
-  }
+export function nvmUse(version: string) {
+  return ipcInstance.send<string>('nvm-use', version);
 }
 
-// 安全执行封装
+export function nvmInstall(version: string) {
+  return ipcInstance.send<string>('nvm-install', version);
+}
+
+export function nvmUninstall(version: string) {
+  return ipcInstance.send<string>('nvm-uninstall', version);
+}
+
+export function getNpmRegistry() {
+  return ipcInstance.send<string>('npm-get-registry');
+}
+
+export function setNpmRegistry(registry: string) {
+  return ipcInstance.send<string>('npm-set-registry', registry);
+}
+
+export function listGlobalPackages() {
+  return ipcInstance.send<string>('npm-list-global');
+}
+
+export function installGlobalPackage(pkg: string) {
+  return ipcInstance.send<string>('npm-install-global', pkg);
+}
+
+export function openDirectoryDialog() {
+  return ipcInstance.send<string | null>('open-directory-dialog');
+}
+
+export function checkNvmrc(path: string) {
+  return ipcInstance.send<string | null>('check-nvmrc', path);
+}
+
+
+export function openUrl(url: string) { 
+  return ipcInstance.send('openUrl', url);
+}
+
+// 安全执行封装 - 重构为使用新的 IPC 接口
 export async function executeNvmSafely(
     command: string,
     version: string
 ): Promise<string> {
-  // 双重校验
-  validateCommand(command);
-  if (!validateVersion(version)) {
+  // 版本号简单校验
+  if (!version || !/^v?\d+\.\d+\.\d+$/.test(version)) {
     throw new Error(`非法输入: ${version}`);
   }
 
-  try {
-    // 通过 IPC 与主进程通信执行命令
-    return await ipcInstance.send<string>('runCmd', `${command} ${version}`);
-  } catch (error) {
-    throw error;
+  switch (command) {
+    case 'install':
+      return nvmInstall(version);
+    case 'use':
+      return nvmUse(version);
+    case 'uninstall':
+      return nvmUninstall(version);
+    default:
+      throw new Error(`禁止执行的操作: ${command}`);
   }
-}
-
-export function openUrl(url: string) { 
-  return ipcInstance.send('openUrl', url);
 }

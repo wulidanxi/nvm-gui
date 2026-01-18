@@ -1,6 +1,7 @@
 import { app } from 'electron'
 import { createEinf } from 'einf'
 import { AppController } from './app.controller'
+import { ProjectController } from './project.controller'
 import { createWindow } from './main.window'
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
@@ -47,7 +48,7 @@ async function bootstrap() {
     // 创建Einf实例，传入窗口、控制器和注入对象
     await createEinf({
       window: createWindow,
-      controllers: [AppController],
+      controllers: [AppController, ProjectController],
       injects: [{
         name: 'IS_DEV',
         inject: !app.isPackaged,

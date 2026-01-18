@@ -6,10 +6,10 @@ import Dashboard from "@render/components/Dashboard.vue";
 import Setting from '../components/Setting.vue';
 
 const routes = [
-  { path: '/', component: Dashboard },
+  { path: '/dashboard', component: Dashboard },
   { path: '/local', component: LocalNode},
   { path: '/available', component: AvailableNode},
-  { path: '/setting', component: Setting }, // 新增设置页面路由
+  { path: '/setting', component: Setting },
 ];
 
 const router = createRouter({
@@ -18,12 +18,12 @@ const router = createRouter({
     {
       path: "/",
       component: Layout,
+      redirect: "/dashboard", // Explicit redirect at root level
       children: [
         {
-          path: "",
+          path: "dashboard",
           component: Dashboard
-        
-      },
+        },
         {
           path: "local",
           component: LocalNode

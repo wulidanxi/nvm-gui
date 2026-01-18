@@ -3,6 +3,8 @@
 
 <head>
     <meta charset="UTF-8" />
+    <!-- 宽松 CSP 用于调试：允许更多来源 -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: https: http: ws:;">
     <link rel="icon" href="@render/public/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Nvm GUI</title>

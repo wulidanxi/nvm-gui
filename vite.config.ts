@@ -1,7 +1,7 @@
 /// <reference types="vitest" />
 import { join } from 'node:path'
-import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { defineConfig } from 'vite'
 import { VitePluginDoubleshot } from 'vite-plugin-doubleshot'
 
 // https://vitejs.dev/config/
@@ -40,6 +40,15 @@ export default defineConfig({
   build: {
     outDir: join(__dirname, 'dist/render'),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'naive-ui': ['naive-ui'],
+          'vue-vendor': ['vue', 'vue-router', 'pinia', 'pinia-plugin-persistedstate'],
+          'utils': ['axios', 'dayjs'],
+        },
+      },
+    },
   },
   // test: { // e2e tests
   //   include: ['./tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],

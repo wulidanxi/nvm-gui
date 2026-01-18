@@ -11,7 +11,7 @@ import {
   NDataTable,
   DataTableColumns,
 } from "naive-ui";
-import moment from "moment";
+import dayjs from "dayjs";
 
 import { getNodeReleaseRecord } from "@render/api/httpRequest";
 
@@ -55,7 +55,7 @@ const availableColumns = (): DataTableColumns<any> => {
             },
             {
               default: () => row.lts,
-            }
+            },
           );
         } else {
           return h(
@@ -69,7 +69,7 @@ const availableColumns = (): DataTableColumns<any> => {
             },
             {
               default: () => "否",
-            }
+            },
           );
         }
       },
@@ -90,7 +90,7 @@ const availableColumns = (): DataTableColumns<any> => {
             loading: row.loading || false,
             onClick: () => installNode(row),
           },
-          { default: () => (!row.installed ? "安装" : "已安装") }
+          { default: () => (!row.installed ? "安装" : "已安装") },
         );
       },
     },
@@ -185,8 +185,8 @@ async function initData() {
           return Object.keys(item).length > 0;
         });
         newGroups.sort((a: any, b: any) => {
-          var aDate = moment(a.date).toDate;
-          var bDate = moment(b.date).toDate;
+          const aDate = dayjs(a.date).valueOf();
+          const bDate = dayjs(b.date).valueOf();
           return aDate > bDate ? -1 : 1;
         });
         tempData.push(newGroups[0]);

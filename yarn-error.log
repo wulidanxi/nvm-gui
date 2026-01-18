@@ -1,0 +1,91 @@
+Arguments: 
+  C:\program files\nodejs\node.exe C:\Users\wulid\AppData\Roaming\npm\node_modules\yarn\bin\yarn.js install
+
+PATH: 
+  c;D:\Users\wulid\.trae\sdks\workspaces\242f85f2\versions\node\current;c;D:\Users\wulid\.trae\sdks\versions\node\current;\c\Users\wulid\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\local\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\wulid\bin;C:\Users\wulid\.trae\sdks\workspaces\242f85f2\versions\node\current;C:\Users\wulid\.trae\sdks\versions\node\current;C:\program files\vandyke software\clients;C:\Program Files\Java\jdk1.8.0_261\bin;D:\app\wulid\product\21.0.0\client_1;C:\personal application\vmware\bin;C:\program files\java\jdk-17.0.5\jre\bin;C:\python310\scripts;C:\python310;D:\app\wulid\product\19.0.0\client_1;C:\program files\nvidia corporation\nvidia nvdlisr;C:\program files (x86)\java\jre6\bin;C:\program files\tortoisesvn\bin;C:\programdata\chocolatey\bin;C:\program files\git\cmd;C:\oracle\middleware\oracle_home;C:\users\wulid\appdata\local\micros;C:\program files\dotnet;C:\program files\docker\docker\resources\bin;C:\programdata\dockerdesktop\version-bin;C:\windows\system32;C:\windows;C:\windows\system32\wbem;C:\windows\system32\windowspowershell\v1.0;C:\windows\system32\openssh;D:\apache-maven-3.6.3\bin;C:\program files\nodejs;C:\python27\scripts;C:\python27;D:\devsuitehome\jdk\jre\bin\classic;D:\devsuitehome\jdk\jre\bin;D:\devsuitehome\jdk\jre\bin\client;D:\devsuitehome\jlib;D:\devsuitehome\bin;D:\devsuitehome\jre\1.4.2\bin\client;D:\devsuitehome\jre\1.4.2\bin;C:\windows\system32;C:\windows;C:\windows\system32\wbem;C:\windows\system32\windowspowershell\v1.0;C:\windows\system32\openssh;C:\personal application\netsarang\xshell 7;C:\personal application\netsarang\xftp 7;C:\personal application\nvm;C:\program files\nodejs;C:\program files\tortoisesvn\bin;C:\program files\dotnet;C:\program files\git\cmd;C:\windows\system32;C:\windows;C:\windows\system32\wbem;C:\windows\system32\windowspowershell\v1.0;C:\windows\system32\openssh;C:\Program Files\NVIDIA Corporation\NVIDIA app\NvDLISR;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files (x86)\NetSarang\Xftp 8;C:\Program Files (x86)\NetSarang\Xshell 8;C:\Program Files\Pandoc;C:\Personal Application\Trae\bin;C:\Users\wulid\AppData\Local\Microsoft\WindowsApps;C:\Personal Application\VSCode\Microsoft VS Code\bin;C:\Users\wulid\.dotnet\tools;C:\Users\wulid\AppData\Roaming\npm;C:\Personal Application\nvm;C:\Program Files\nodejs;C:\Users\wulid\AppData\Local\Microsoft\WindowsApps;C:\Program Files\Git\usr\bin\vendor_perl;C:\Program Files\Git\usr\bin\core_perl
+
+Yarn version: 
+  1.22.19
+
+Node version: 
+  24.13.0
+
+Platform: 
+  win32 x64
+
+Trace: 
+  Error: Client network socket disconnected before secure TLS connection was established
+      at TLSSocket.onConnectEnd (node:_tls_wrap:1702:19)
+      at TLSSocket.emit (node:events:520:35)
+      at endReadableNT (node:internal/streams/readable:1701:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+npm manifest: 
+  {
+    "name": "nvm-gui",
+    "version": "0.0.2c",
+    "description": "Vite + Electron + Vue Nvm GUI",
+    "author": "wulidanxi@gmail.com",
+    "main": "dist/main/index.js",
+    "icon": "__dirname + 'logo.ico'",
+    "scripts": {
+      "dev": "rimraf dist && vite",
+      "debug": "rimraf dist && vite -- --dsb-debug",
+      "build": "rimraf dist && vue-tsc && vite build",
+      "lint": "eslint .",
+      "lint:fix": "eslint . --fix",
+      "test": "npm run test:main && npm run test:render",
+      "test:render": "vitest run -r src/render --passWithNoTests",
+      "test:main": "vitest run -r src/main --passWithNoTests",
+      "test:e2e": "vitest run",
+      "postinstall": "electron-builder install-app-deps",
+      "postuninstall": "electron-builder install-app-deps"
+    },
+    "dependencies": {
+      "axios": "^1.13.2",
+      "dayjs": "^1.11.19",
+      "einf": "^1.5.3",
+      "pinia": "^3.0.4",
+      "pinia-plugin-persistedstate": "^4.7.1",
+      "vue": "^3.5.26",
+      "vue-router": "4"
+    },
+    "devDependencies": {
+      "@lightwing/eslint-config": "1.0.141",
+      "@vicons/fa": "^0.13.0",
+      "@vicons/ionicons5": "^0.13.0",
+      "@vitejs/plugin-vue": "6.0.3",
+      "@vue/compiler-sfc": "3.5.26",
+      "@vue/test-utils": "2.4.6",
+      "electron": "40.0.0",
+      "electron-builder": "26.4.0",
+      "eslint": "9.39.2",
+      "happy-dom": "20.3.1",
+      "lint-staged": "16.2.7",
+      "naive-ui": "^2.43.2",
+      "playwright": "1.57.0",
+      "rimraf": "6.1.2",
+      "simple-git-hooks": "2.13.1",
+      "tslib": "2.8.1",
+      "typescript": "5.9.3",
+      "vfonts": "^0.0.3",
+      "vite": "7.3.1",
+      "vite-plugin-doubleshot": "0.0.20",
+      "vitest": "4.0.17",
+      "vue-tsc": "3.2.2"
+    },
+    "simple-git-hooks": {
+      "pre-commit": "npx lint-staged"
+    },
+    "lint-staged": {
+      "*.{js,ts,tsx,vue,md,json,yml}": [
+        "eslint --fix"
+      ]
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
