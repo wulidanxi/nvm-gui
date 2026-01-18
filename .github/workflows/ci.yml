@@ -9,44 +9,103 @@ on:
       - main
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.x # 修改: 将 node-version 从 18.x 更新为 20.x
-          cache: yarn
-
-      - name: Install dependencies
-        run: yarn
-
-      - name: Run lint
-        run: yarn lint
-
-  test:
+  lint_and_test:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
     strategy:
       matrix:
-        node_version: [20.x, 22.x] # 修改: 将 node_version 从 [16.x, 18.x] 更新为 [20.x, 22.x]
-        os: [ubuntu-latest, windows-latest] # , macos-latest]
+        node: [20.x, 22.x]
+        os: [ubuntu-latest, windows-latest]
       fail-fast: false
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node_version }}
-          cache: yarn
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test
+      - name: Run coverage
+        run: npm run test:coverage
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}-${{ matrix.node }}
+          path: coverage/**
 
-      - name: Install dependencies
-        run: yarn
+  build_windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+      - name: Prepare caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            .cache/electron
+            .cache/electron-builder
+          key: electron-cache-${{ runner.os }}-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
+          restore-keys: |
+            electron-cache-${{ runner.os }}-
+      - run: npm ci
+      - name: Build
+        run: npm run build
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          ELECTRON_CACHE: ${{ github.workspace }}\.cache\electron
+          ELECTRON_BUILDER_CACHE: ${{ github.workspace }}\.cache\electron-builder
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: nvm-gui-installer
+          path: |
+            dist/electron/*.exe
+            dist/electron/*.exe.blockmap
 
-      - name: Run tests
-        run: yarn test
+  prepare_caches_linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+      - name: Prepare caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            .cache/electron
+            .cache/electron-builder
+          key: electron-cache-${{ runner.os }}-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
+          restore-keys: |
+            electron-cache-${{ runner.os }}-
+      - run: npm ci
+        env:
+          ELECTRON_CACHE: ${{ github.workspace }}/.cache/electron
+          ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.cache/electron-builder
+
+  prepare_caches_macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+      - name: Prepare caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            .cache/electron
+            .cache/electron-builder
+          key: electron-cache-${{ runner.os }}-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
+          restore-keys: |
+            electron-cache-${{ runner.os }}-
+      - run: npm ci
+        env:
+          ELECTRON_CACHE: ${{ github.workspace }}/.cache/electron
+          ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.cache/electron-builder

@@ -4,3 +4,6 @@ dist
 dist-ssr
 *.local
 .idea
+yarn-error.log
+npm-debug.log*
+pnpm-debug.log*

@@ -2,45 +2,26 @@
   "compilerOptions": {
     "target": "ESNext",
     "jsx": "preserve",
-    "lib": [
-      "esnext",
-      "dom"
-    ],
+    "lib": ["esnext", "dom"],
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "baseUrl": ".",
     "module": "ESNext",
     "moduleResolution": "node",
     "paths": {
-      "@render/*": [
-        "src/render/*"
-      ],
-      "@main/*": [
-        "src/main/*"
-      ],
-      "@common/*": [
-        "src/common/*"
-      ],
-      "@preload": [
-        "src/preload/*"
-      ]
+      "@render/*": ["src/render/*"],
+      "@main/*": ["src/main/*"],
+      "@common/*": ["src/common/*"],
+      "@preload": ["src/preload/*"]
     },
     "resolveJsonModule": true,
-    "types": [
-      "vite/client",
-      "./src/preload"
-    ],
-    "strict": false,
+    "types": ["vite/client", "./src/preload"],
+    "strict": true,
     "noImplicitAny": false,
     "noEmit": true,
     "sourceMap": true,
     "esModuleInterop": true,
     "skipLibCheck": true
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.d.ts",
-    "src/**/*.tsx",
-    "src/**/*.vue"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]
 }
