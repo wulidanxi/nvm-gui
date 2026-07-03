@@ -19,6 +19,13 @@ const config = {
   npmRebuild: false,
 
   files: ['dist/main/**/*', 'dist/preload/**/*', 'dist/render/**/*'],
+  extraResources: [
+    {
+      from: 'resources/nvm-windows/nvm-setup.exe',
+      to: 'nvm-manager/nvm-setup.exe',
+      filter: ['**/*'],
+    },
+  ],
 }
 
 module.exports = config

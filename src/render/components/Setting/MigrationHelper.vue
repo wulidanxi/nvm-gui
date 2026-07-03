@@ -69,7 +69,7 @@ const message = useMessage();
 const loading = ref(false);
 const installing = ref(false);
 const packages = ref<PackageInfo[]>([]);
-const checkedRowKeys = ref<string[]>([]);
+const checkedRowKeys = ref<(string | number)[]>([]);
 
 const columns: DataTableColumns<PackageInfo> = [
   { type: "selection" },
@@ -129,7 +129,7 @@ const refreshPackages = async () => {
   }
 };
 
-const handleCheck = (rowKeys: string[]) => {
+const handleCheck = (rowKeys: (string | number)[]) => {
   checkedRowKeys.value = rowKeys;
 };
 
@@ -142,7 +142,7 @@ const migratePackages = async () => {
 
   for (const pkgName of checkedRowKeys.value) {
     try {
-      await installGlobalPackage(pkgName);
+      await installGlobalPackage(String(pkgName));
       successCount++;
     } catch (error) {
       console.error(`Failed to install ${pkgName}`, error);

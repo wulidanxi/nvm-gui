@@ -26,7 +26,7 @@ import {
   SettingsOutline as SettingIcon,
 } from "@vicons/ionicons5";
 import { useRouter } from "vue-router";
-import { executeCmd, openUrl } from "@render/api";
+import { nvmVersion as getNvmCliVersion, openUrl } from "@render/api";
 import logoIconBlack from "@render/assets/nvm-logo-color-avatar.png";
 import logoIconWhite from "@render/assets/nvm-logo-white.svg";
 import config from "../../../package.json";
@@ -112,9 +112,7 @@ const onOpenOffice = () => {
 };
 
 async function getNvmVersion() {
-  const commandStr = "nvm -v";
-  const ver = await executeCmd(commandStr);
-  nvmVersion.value = ver;
+  nvmVersion.value = await getNvmCliVersion();
 }
 
 const dropDownMenuClick = (key) => {

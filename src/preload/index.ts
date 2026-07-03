@@ -1,18 +1,44 @@
 import { contextBridge, ipcRenderer } from 'electron'
 
-contextBridge.exposeInMainWorld(
-  'ipcRenderer',
-  {
-    invoke: ipcRenderer.invoke.bind(ipcRenderer),
-    on: ipcRenderer.on.bind(ipcRenderer),
-    removeAllListeners: ipcRenderer.removeAllListeners.bind(ipcRenderer),
-  },
-)
+const invoke = ipcRenderer.invoke.bind(ipcRenderer)
 
-contextBridge.exposeInMainWorld('versions', {
-  node: () => process.versions.node,
-  chrome: () => process.versions.chrome,
-  electron: () => process.versions.electron,
-  system: () => process
-  // 除函数之外，我们也可以暴露变量
+contextBridge.exposeInMainWorld('nvmGui', {
+  nvm: {
+    list: () => invoke('nvm-list'),
+    current: () => invoke('nvm-current'),
+    version: () => invoke('nvm-version'),
+    use: (version: string) => invoke('nvm-use', version),
+    install: (version: string) => invoke('nvm-install', version),
+    uninstall: (version: string) => invoke('nvm-uninstall', version),
+    manager: {
+      detect: () => invoke('nvm-manager-detect'),
+      listVersions: () => invoke('nvm-manager-list-versions'),
+      install: (options: { version: string; source: 'embedded' | 'remote'; writeProfile?: boolean }) =>
+        invoke('nvm-manager-install', options),
+      currentVersion: () => invoke('nvm-manager-current-version'),
+      refresh: () => invoke('nvm-manager-refresh'),
+    },
+  },
+  npm: {
+    getRegistry: () => invoke('npm-get-registry'),
+    setRegistry: (registry: string) => invoke('npm-set-registry', registry),
+    listGlobalPackages: () => invoke('npm-list-global'),
+    installGlobalPackage: (pkg: string) => invoke('npm-install-global', pkg),
+  },
+  project: {
+    openDirectoryDialog: () => invoke('open-directory-dialog'),
+    checkNvmrc: (path: string) => invoke('check-nvmrc', path),
+  },
+  shell: {
+    openUrl: (url: string) => invoke('openUrl', url),
+  },
+  system: {
+    platform: process.platform,
+    systemVersion: typeof process.getSystemVersion === 'function'
+      ? process.getSystemVersion()
+      : '',
+    nodeVersion: process.versions.node,
+    chromeVersion: process.versions.chrome,
+    electronVersion: process.versions.electron,
+  },
 })

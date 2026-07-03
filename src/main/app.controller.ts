@@ -1,10 +1,11 @@
-import { exec } from 'node:child_process'
-import util from 'node:util'
 import { Controller, IpcHandle } from 'einf'
 import { shell, dialog } from 'electron'
+import type { NvmManagerInstallOptions } from '../common/types'
+import { NvmManagerService } from './nvm-manager.service'
 
 @Controller()
 export class AppController {
+  private readonly nvmManager = new NvmManagerService()
 
   @IpcHandle('open-directory-dialog')
   public async openDirectoryDialog(): Promise<string | null> {
@@ -17,66 +18,84 @@ export class AppController {
     return result.filePaths[0];
   }
 
-  /**
-   * @deprecated This method is deprecated for security reasons. Use specific nvm-* methods instead.
-   */
-  @IpcHandle('runCmd')
-  public async runExec(cmd: string): Promise<string> {
-    // Keep for backward compatibility during refactor, but it's recommended to remove this in production.
-    return this.execCommand(cmd);
-  }
-
   @IpcHandle('nvm-list')
   public async listVersions(): Promise<string> {
-    return this.execCommand('nvm ls');
+    return this.nvmManager.runNvmCommand(['ls']);
+  }
+
+  @IpcHandle('nvm-current')
+  public async currentVersion(): Promise<string> {
+    return this.nvmManager.runNvmCommand(['current']);
+  }
+
+  @IpcHandle('nvm-version')
+  public async nvmVersion(): Promise<string> {
+    return this.nvmManager.currentManagerVersion();
   }
 
   @IpcHandle('nvm-use')
   public async useVersion(version: string): Promise<string> {
     this.validateVersion(version);
-    return this.execCommand(`nvm use ${version}`);
+    return this.nvmManager.runNvmCommand(['use', version]);
   }
 
   @IpcHandle('nvm-install')
   public async installVersion(version: string): Promise<string> {
      this.validateVersion(version);
-     return this.execCommand(`nvm install ${version}`);
+     return this.nvmManager.runNvmCommand(['install', version]);
   }
 
   @IpcHandle('nvm-uninstall')
   public async uninstallVersion(version: string): Promise<string> {
     this.validateVersion(version);
-    return this.execCommand(`nvm uninstall ${version}`);
+    return this.nvmManager.runNvmCommand(['uninstall', version]);
+  }
+
+  @IpcHandle('nvm-manager-detect')
+  public async detectNvmManager() {
+    return this.nvmManager.detect();
+  }
+
+  @IpcHandle('nvm-manager-list-versions')
+  public async listNvmManagerVersions() {
+    return this.nvmManager.listManagerVersions();
+  }
+
+  @IpcHandle('nvm-manager-install')
+  public async installNvmManager(options: NvmManagerInstallOptions) {
+    return this.nvmManager.installManager(options);
+  }
+
+  @IpcHandle('nvm-manager-current-version')
+  public async currentNvmManagerVersion(): Promise<string> {
+    return this.nvmManager.currentManagerVersion();
+  }
+
+  @IpcHandle('nvm-manager-refresh')
+  public async refreshNvmManager() {
+    return this.nvmManager.refreshEnv();
   }
 
   @IpcHandle('npm-get-registry')
   public async getNpmRegistry(): Promise<string> {
-    return this.execCommand('npm config get registry');
+    return this.nvmManager.runNpmCommand(['config', 'get', 'registry']);
   }
 
   @IpcHandle('npm-set-registry')
   public async setNpmRegistry(registry: string): Promise<string> {
-    // Basic URL validation
-    try {
-      new URL(registry);
-    } catch {
-      throw new Error('Invalid registry URL');
-    }
-    return this.execCommand(`npm config set registry ${registry}`);
+    this.validateRegistryUrl(registry);
+    return this.nvmManager.runNpmCommand(['config', 'set', 'registry', registry]);
   }
 
   @IpcHandle('npm-list-global')
   public async listGlobalPackages(): Promise<string> {
-    return this.execCommand('npm list -g --depth=0 --json');
+    return this.nvmManager.runNpmCommand(['list', '-g', '--depth=0', '--json']);
   }
 
   @IpcHandle('npm-install-global')
   public async installGlobalPackage(pkg: string): Promise<string> {
-    // Validate package name to prevent injection
-    if (!/^[a-zA-Z0-9@/._-]+$/.test(pkg)) {
-        throw new Error('Invalid package name');
-    }
-    return this.execCommand(`npm install -g ${pkg}`);
+    this.validatePackageName(pkg);
+    return this.nvmManager.runNpmCommand(['install', '-g', pkg]);
   }
 
   @IpcHandle('nvm-alias-list')
@@ -112,23 +131,33 @@ export class AppController {
     shell.openExternal(url)
   }
 
-  private async execCommand(cmd: string): Promise<string> {
-    console.log(`Executing command: ${cmd}`); // Add logging
-    const execPromise = util.promisify(exec)
-    try {
-      const { stdout } = await execPromise(cmd, {})
-      console.log(`Command success: ${cmd}`); // Add logging
-      return stdout
-    } catch (error: any) {
-      console.error(`Command failed: ${cmd}`, error);
-      throw new Error(error.message || 'Command execution failed');
-    }
-  }
-
   private validateVersion(version: string) {
     // Simple validation for version string (e.g., 14.17.0 or v14.17.0)
     if (!version || !/^v?\d+\.\d+\.\d+$/.test(version)) {
       throw new Error(`Invalid version format: ${version}`);
+    }
+  }
+
+  private validateRegistryUrl(registry: string) {
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(registry);
+    } catch {
+      throw new Error('Invalid registry URL');
+    }
+
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+      throw new Error('Only http and https registries are allowed');
+    }
+
+    if (!/^[a-zA-Z0-9:/.?=_~%-]+$/.test(registry)) {
+      throw new Error('Registry URL contains unsupported characters');
+    }
+  }
+
+  private validatePackageName(pkg: string) {
+    if (!/^(?:@[a-zA-Z0-9._-]+\/)?[a-zA-Z0-9._-]+$/.test(pkg)) {
+      throw new Error('Invalid package name');
     }
   }
 }

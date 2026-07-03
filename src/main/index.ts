@@ -4,7 +4,8 @@ import { AppController } from './app.controller'
 import { ProjectController } from './project.controller'
 import { createWindow } from './main.window'
 
-process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
+if (!app.isPackaged)
+  process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
 
 // 异步函数，用于初始化electron应用
 async function electronAppInit() {

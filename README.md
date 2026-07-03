@@ -43,7 +43,7 @@ npm run build
 ## 下载与发布
 
 - 最新安装包下载：在 GitHub Releases 页面（基于 tag 的自动发布）
-- 推送发布：创建符合语义化的 tag（例如 `v0.0.3`），CI 会自动构建并附加安装包
+- 推送发布：创建符合语义化的 tag（例如 `v0.0.4`），CI 会自动构建并附加安装包
 
 ## 常见问题
 
@@ -53,3 +53,10 @@ npm run build
 ## 许可协议
 
 MIT
+
+## v0.0.5 NVM 管理器集成
+
+- Windows 安装包内置推荐版 `coreybutler/nvm-windows` 安装器，用户可在应用内完成安装，无需单独下载。
+- 设置页新增 “NVM 管理器”，支持检测当前 NVM 状态、查看版本和路径，并从官方 GitHub Releases 选择其它管理器版本安装。
+- macOS/Linux 运行时代码支持 `nvm-sh/nvm`，默认安装到用户级 `NVM_DIR`，并通过受控 shell wrapper 调用 `nvm.sh`。
+- 未检测到 NVM 时，本地版本页、可安装版本页和 Dashboard 会显示明确引导。

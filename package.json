@@ -1,6 +1,6 @@
 {
   "name": "nvm-gui",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "description": "Vite + Electron + Vue Nvm GUI",
   "author": "wulidanxi@gmail.com",
   "main": "dist/main/index.js",
@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "vite",
     "debug": "vite -- --dsb-debug",
-    "build": "rimraf dist && vue-tsc && vite build",
+    "build": "vue-tsc && vite build",
     "typecheck": "vue-tsc --noEmit",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint .",

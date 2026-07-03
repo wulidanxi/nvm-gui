@@ -17,6 +17,9 @@
       <n-tab-pane name="project" tab="项目检测">
         <ProjectDetector />
       </n-tab-pane>
+      <n-tab-pane name="nvm-manager" tab="NVM 管理器">
+        <NvmManager />
+      </n-tab-pane>
     </n-tabs>
     <div class="footer">
       <n-button type="primary" @click="saveAllSettings">保存</n-button>
@@ -28,10 +31,15 @@
 import { NTabs, NTabPane, NButton, NMessageProvider } from "naive-ui";
 import GeneralSettings from "./Setting/GeneralSettings.vue";
 import AdvancedSettings from "./Setting/AdvancedSettings.vue";
+import NvmManager from "./Setting/NvmManager.vue";
 import RegistryManager from "./Setting/RegistryManager.vue";
 import MigrationHelper from "./Setting/MigrationHelper.vue";
 import ProjectDetector from "./Setting/ProjectDetector.vue";
 import { ref, defineComponent } from "vue";
+
+interface SettingsExpose {
+  saveSettings?: () => void;
+}
 
 // Explicitly define component to ensure proper name registration
 defineComponent({
@@ -39,8 +47,8 @@ defineComponent({
 });
 
 // 新增: 定义子组件的引用
-const generalSettingsRef = ref(null);
-const advancedSettingsRef = ref(null);
+const generalSettingsRef = ref<SettingsExpose | null>(null);
+const advancedSettingsRef = ref<SettingsExpose | null>(null);
 
 // 新增: 定义保存所有设置的方法
 const saveAllSettings = () => {
@@ -61,11 +69,13 @@ const saveAllSettings = () => {
 .setting-page {
   padding: 20px;
   position: relative;
-  min-height: 100vh;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .footer {
-  position: fixed;
+  position: absolute;
   bottom: 20px;
   right: 20px;
 }

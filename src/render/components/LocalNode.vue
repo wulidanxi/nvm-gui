@@ -5,6 +5,9 @@
         本机 Node.js 环境
       </n-layout-header>
       <n-layout content-style="padding: 24px;">
+        <n-alert v-if="nvmMissing" type="warning" style="margin-bottom: 16px">
+          未检测到 NVM 管理器，请先到设置页的 “NVM 管理器” 中安装。
+        </n-alert>
         <n-flex size="large">
           <!--          <n-flex vertical>-->
           <!--            <n-button-->
@@ -41,7 +44,7 @@
 </template>
 
 <script lang="ts" setup>
-import { h, onMounted, ref } from "vue";
+import { h, onActivated, onMounted, ref } from "vue";
 import { DataTableColumns } from "naive-ui";
 import {
   NTag,
@@ -51,9 +54,14 @@ import {
   NDataTable,
   NFlex,
   NIcon,
+  NAlert,
 } from "naive-ui";
 import { executeNvmSafely, nvmList, nvmUse, nvmUninstall } from "@render/api";
 import { parseNvmList } from "@render/utils/nvmParser";
+import {
+  consumeNodeEnvDirty,
+  markNodeEnvDirty,
+} from "@render/utils/nodeEnvDirty";
 import { SearchOutline as SearchOutline } from "@vicons/ionicons5";
 import dayjs from "dayjs";
 
@@ -66,6 +74,7 @@ interface RowData {
 }
 
 const loading = ref(false);
+const nvmMissing = ref(false);
 
 // 设置表格值
 const data = ref<RowData[]>([]);
@@ -74,10 +83,16 @@ const pagination = ref({
   picker: true,
 });
 
-const checkedRowKeysRef = ref<number[]>([]);
+const checkedRowKeysRef = ref<(string | number)[]>([]);
 
 onMounted(() => {
   detail("fnc");
+});
+
+onActivated(() => {
+  if (consumeNodeEnvDirty()) {
+    detail("fnc");
+  }
 });
 
 // 设定列
@@ -158,6 +173,7 @@ const uninstallNode = async (row: RowData) => {
 
   try {
     await nvmUninstall(row.value);
+    markNodeEnvDirty();
     window.$message.success(`成功卸载 Node.js ${row.value}`);
     await detail("fun");
   } catch (error: any) {
@@ -177,6 +193,7 @@ const titleField = ref(createColumns());
 // 获取当前node版本信息
 async function detail(action: string) {
   loading.value = true;
+  nvmMissing.value = false;
   try {
     const result = await nvmList();
     const parsedVersions = parseNvmList(result);
@@ -203,6 +220,7 @@ async function detail(action: string) {
       message.success("查询成功:" + dayjs().format("YYYY-MM-DD HH:mm:ss"));
     }
   } catch (error: any) {
+    nvmMissing.value = isNvmMissingError(error);
     window.$message.error(
       `获取 Node.js 列表失败: ${error.message || "未知错误"}`,
     );
@@ -212,19 +230,27 @@ async function detail(action: string) {
   }
 }
 
+function isNvmMissingError(error: any) {
+  const message = String(error?.message || error || "").toLowerCase();
+  return message.includes("nvm manager is not installed")
+    || message.includes("not recognized")
+    || message.includes("command not found");
+}
+
 // 切换node版本
 async function changVersion(version: string) {
   await nvmUse(version);
 }
 
 // 表格行选中逻辑
-async function handleCheck(rowKeys: number[]) {
+async function handleCheck(rowKeys: (string | number)[]) {
   // 注意：单选模式下 rowKeys 应该是一个包含单个 key 的数组，或者直接是 key（取决于 Naive UI 版本和配置）
   // 这里假设是数组
   const key = Array.isArray(rowKeys) ? rowKeys[0] : rowKeys;
+  const normalizedKey = Number(key);
 
   // 找到对应的行数据
-  const targetRow = data.value.find((item) => item.key === key);
+  const targetRow = data.value.find((item) => item.key === normalizedKey);
 
   if (!targetRow) return;
 
@@ -233,6 +259,7 @@ async function handleCheck(rowKeys: number[]) {
 
   try {
     await changVersion(nodeVersion);
+    markNodeEnvDirty();
     message.success(`切换node版本==>${nodeVersion}`);
     await detail("Function");
   } catch (error: any) {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, onBeforeMount, h } from "vue";
 
-import { executeCmd } from "@render/api";
+import { nvmInstall, nvmList } from "@render/api";
 import {
   NTag,
   NButton,
@@ -9,21 +9,34 @@ import {
   NLayoutHeader,
   NFlex,
   NDataTable,
+  NAlert,
   DataTableColumns,
 } from "naive-ui";
 import dayjs from "dayjs";
 
 import { getNodeReleaseRecord } from "@render/api/httpRequest";
+import { markNodeEnvDirty } from "@render/utils/nodeEnvDirty";
 
-const availableData = ref([]);
+interface AvailableNodeRow {
+  version: string;
+  class?: string;
+  npm?: string;
+  lts?: string | boolean;
+  date?: string;
+  installed?: boolean;
+  loading?: boolean;
+  installFlag?: boolean;
+}
+
+const availableData = ref<AvailableNodeRow[]>([]);
 
 const pagination = ref({
   pageSize: 10,
   picker: true,
 });
 
-const installFlag = ref(false);
 const tableLoading = ref(false);
+const nvmMissing = ref(false);
 
 const availableColumns = (): DataTableColumns<any> => {
   return [
@@ -97,104 +110,81 @@ const availableColumns = (): DataTableColumns<any> => {
   ];
 };
 
-const installNode = async (row: any) => {
-  availableData.value.map((item, index) => {
-    if (item === row) {
-      availableData.value[index].loading = true;
-    } else {
-      availableData.value[index].installFlag = true;
-      availableData.value[index].loading = false;
-    }
-  });
-  var installCmd = `nvm install ${row.version.replace("v", "")}`;
-  await executeCmd(installCmd);
-  await initData();
-  installFlag.value = false;
-  availableData.value.map((item, index) => {
-    if (item === row) {
-      availableData.value[index].loading = false;
-    }
-    availableData.value[index].installFlag = false;
-  });
+const installNode = async (row: AvailableNodeRow) => {
+  availableData.value = availableData.value.map((item) => ({
+    ...item,
+    loading: item === row,
+    installFlag: item !== row,
+  }));
+
+  try {
+    await nvmInstall(row.version.replace("v", ""));
+    markNodeEnvDirty();
+    window.$message.success(`Node.js ${row.version} installed`);
+    await initData();
+  } catch (error: any) {
+    window.$message.error(`Install failed: ${error.message || "Unknown error"}`);
+  } finally {
+    availableData.value = availableData.value.map((item) => ({
+      ...item,
+      loading: false,
+      installFlag: false,
+    }));
+  }
 };
 
 const availableTitleField = ref(availableColumns());
-// https://nodejs.org/dist/index.json
-// async function getAvailableNode() {
-//   const commandStr = "nvm list available";
-//   const availableVer = await executeCmd(commandStr);
-//   const arrayTemp = availableVer.split("\n").filter((item) => {
-//     return item.length > 0 && item.indexOf("| ") !== -1 ? item : undefined;
-//   });
-//   arrayTemp.map((item, index) => {
-//     if (index > 0) {
-//       var itemArray = item
-//         .split("|")
-//         .map((item) => item.trim())
-//         .filter((item) => item.length > 0);
-//       const ob = {
-//         current: undefined,
-//         lts: undefined,
-//         oldStable: undefined,
-//         oldUnstable: undefined,
-//       };
-//       itemArray.map((value, i) => {
-//         switch (i) {
-//           case 0:
-//             ob.current = value;
-//             break;
-//           case 1:
-//             ob.lts = value;
-//             break;
-//           case 2:
-//             ob.oldStable = value;
-//             break;
-//           case 3:
-//             ob.oldUnstable = value;
-//             break;
-//           default:
-//             break;
-//         }
-//       });
-//       availableData.value[index] = ob;
-//     }
-//   });
-// }
-
 async function initData() {
-  getNodeReleaseRecord().then((res) => {
-    let data: Array<{}> = res;
-    const groups: { [key: string]: [{}] } = {};
-    const result = executeCmd("nvm ls");
-    result.then((i) => {
-      data.forEach((item: any) => {
-        const version = item.version;
-        if (i.indexOf(version.replace("v", "")) >= 0) {
-          item.installed = true;
-        } else {
-          item.installed = false;
-        }
-        var classVersion: string = version.substring(0, version.indexOf("."));
-        groups[classVersion] = groups[classVersion] || [{}];
-        item.class = "Node.js " + classVersion.replace("v", "");
-        groups[classVersion].push(item);
-      });
-      let tempData = [];
-      for (const key in groups) {
-        let newGroups = groups[key].filter((item) => {
-          return Object.keys(item).length > 0;
-        });
-        newGroups.sort((a: any, b: any) => {
-          const aDate = dayjs(a.date).valueOf();
-          const bDate = dayjs(b.date).valueOf();
-          return aDate > bDate ? -1 : 1;
-        });
-        tempData.push(newGroups[0]);
-      }
+  tableLoading.value = true;
+  nvmMissing.value = false;
+  try {
+    const [releaseRecord, localVersions] = await Promise.all([
+      getNodeReleaseRecord(),
+      nvmList(),
+    ]);
+    const installedVersions = new Set(
+      localVersions
+        .split("\n")
+        .map((line) => line.replace("*", "").split("(")[0].trim())
+        .filter((line) => /^v?\d+\.\d+\.\d+$/.test(line))
+        .map((line) => line.replace(/^v/, "")),
+    );
+    const groups: Record<string, AvailableNodeRow[]> = {};
 
-      availableData.value = tempData;
+    (releaseRecord as AvailableNodeRow[]).forEach((item) => {
+      const version = item.version;
+      item.installed = installedVersions.has(version.replace("v", ""));
+      const classVersion = version.substring(0, version.indexOf("."));
+      groups[classVersion] = groups[classVersion] || [];
+      item.class = "Node.js " + classVersion.replace("v", "");
+      groups[classVersion].push(item);
     });
-  });
+
+    const tempData: AvailableNodeRow[] = [];
+    for (const key in groups) {
+      const newGroups = groups[key].filter((item) => Object.keys(item).length > 0);
+      newGroups.sort((a, b) => {
+        const aDate = dayjs(a.date).valueOf();
+        const bDate = dayjs(b.date).valueOf();
+        return aDate > bDate ? -1 : 1;
+      });
+      tempData.push(newGroups[0]);
+    }
+
+    availableData.value = tempData;
+  } catch (error: any) {
+    nvmMissing.value = isNvmMissingError(error);
+    window.$message.error(`Failed to load Node.js releases: ${error.message || "Unknown error"}`);
+  } finally {
+    tableLoading.value = false;
+  }
+}
+
+function isNvmMissingError(error: any) {
+  const message = String(error?.message || error || "").toLowerCase();
+  return message.includes("nvm manager is not installed")
+    || message.includes("not recognized")
+    || message.includes("command not found");
 }
 
 onBeforeMount(() => {
@@ -213,6 +203,9 @@ onMounted(() => {
         Node.js 发行记录
       </n-layout-header>
       <n-layout content-style="padding: 24px;">
+        <n-alert v-if="nvmMissing" type="warning" style="margin-bottom: 16px">
+          未检测到 NVM 管理器，请先到设置页的 “NVM 管理器” 中安装。
+        </n-alert>
         <n-flex justify="center">
           <n-data-table
             :bordered="true"

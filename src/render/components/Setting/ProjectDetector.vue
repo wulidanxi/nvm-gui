@@ -69,6 +69,7 @@ import {
   openDirectoryDialog,
 } from "@render/api";
 import { parseNvmList } from "@render/utils/nvmParser";
+import { markNodeEnvDirty } from "@render/utils/nodeEnvDirty";
 
 const message = useMessage();
 
@@ -136,6 +137,7 @@ const analyzeProject = async (path: string) => {
 const switchToVersion = async (version: string) => {
   try {
     await nvmUse(version);
+    markNodeEnvDirty();
     message.success(`已切换到 ${version}`);
     if (currentProject.value) {
       currentProject.value.match = true;
@@ -151,7 +153,9 @@ const switchToVersion = async (version: string) => {
       message.error(`切换失败，尝试安装 ${version}...`);
       try {
         await nvmInstall(version);
+        markNodeEnvDirty();
         await nvmUse(version);
+        markNodeEnvDirty();
         message.success(`安装并切换到 ${version} 成功`);
         if (currentProject.value) {
           currentProject.value.match = true;
