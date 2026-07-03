@@ -15,7 +15,7 @@ jobs:
           node-version: 22.x
           cache: yarn
           cache-dependency-path: yarn.lock
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --ignore-scripts
       - name: Build installer
         run: npm run build
         env:

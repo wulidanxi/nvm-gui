@@ -23,7 +23,7 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: yarn
           cache-dependency-path: yarn.lock
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --ignore-scripts
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run test
@@ -53,7 +53,7 @@ jobs:
           key: electron-cache-${{ runner.os }}-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
           restore-keys: |
             electron-cache-${{ runner.os }}-
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --ignore-scripts
       - name: Build
         run: npm run build
         env:
@@ -152,7 +152,7 @@ jobs:
           key: electron-cache-${{ runner.os }}-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
           restore-keys: |
             electron-cache-${{ runner.os }}-
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --ignore-scripts
         env:
           ELECTRON_CACHE: ${{ github.workspace }}/.cache/electron
           ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.cache/electron-builder
@@ -175,7 +175,7 @@ jobs:
           key: electron-cache-${{ runner.os }}-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
           restore-keys: |
             electron-cache-${{ runner.os }}-
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --ignore-scripts
         env:
           ELECTRON_CACHE: ${{ github.workspace }}/.cache/electron
           ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.cache/electron-builder
