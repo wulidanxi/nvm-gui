@@ -115,7 +115,7 @@ jobs:
         if: steps.tag.outputs.exists != 'true'
         run: node scripts/extract-changelog.js
         env:
-          GITHUB_REF_NAME: ${{ steps.version.outputs.tag }}
+          CHANGELOG_VERSION: ${{ steps.version.outputs.tag }}
       - name: Create and push release tag
         if: steps.tag.outputs.exists != 'true'
         shell: bash

@@ -2,7 +2,7 @@ const fs = require('node:fs')
 const path = require('node:path')
 
 function main() {
-  const tag = process.env.GITHUB_REF_NAME || ''
+  const tag = process.env.CHANGELOG_VERSION || process.env.GITHUB_REF_NAME || ''
   const version = tag.replace(/^v/, '')
   const changelogPath = path.join(process.cwd(), 'CHANGELOG.md')
 

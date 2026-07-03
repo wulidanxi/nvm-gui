@@ -25,7 +25,7 @@ jobs:
       - name: Extract Release Notes from CHANGELOG.md
         run: node scripts/extract-changelog.js
         env:
-          GITHUB_REF_NAME: ${{ github.ref_name }}
+          CHANGELOG_VERSION: ${{ github.ref_name }}
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
