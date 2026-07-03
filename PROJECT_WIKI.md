@@ -12,9 +12,10 @@
 - 管理 npm registry。
 - 读取当前 Node 环境下的全局包，并批量迁移安装。
 - 检测项目 `.nvmrc`，辅助切换到项目所需版本。
-- 支持浅色/深色主题和 Node.js 发行源配置。
+- 支持浅色/深色模式、预设主题色和 Node.js 发行源配置。
+- 检测、安装和升级底层 NVM 管理器。
 
-当前版本：`0.0.3`。
+当前版本：`0.0.6`。
 
 ## 2. 技术栈
 
@@ -56,7 +57,7 @@ npm run typecheck 通过
 npm run lint      通过
 ```
 
-未运行 `npm run build`，因为它会重建 `dist` 输出目录，本次 wiki 生成不需要改动构建产物。
+`npm run build` 在 Windows 下需要确保旧的 `dist/electron/win-unpacked/nvm-gui.exe` 没有运行；否则 electron-builder 清理旧 DLL 时可能遇到 `Access is denied`。
 
 ## 4. 目录结构
 
@@ -103,16 +104,16 @@ npm run lint      通过
    - 关闭 `nodeIntegration`。
    - 通过 preload 暴露受控桥接对象。
 5. `src/render/main.ts` 创建 Vue 应用，注册 Naive UI、Pinia、Router。
-6. 根路由进入 `src/render/components/index.vue` 布局页，再渲染具体功能页。
+6. 根路由进入 `src/render/components/AppShell.vue` 工作台壳层，再渲染具体功能页。
 
 ## 6. 路由与页面
 
-| 路由         | 组件                | 说明                            |
-| ------------ | ------------------- | ------------------------------- |
-| `/dashboard` | `Dashboard.vue`     | 展示系统、Node、Electron 版本   |
-| `/local`     | `LocalNode.vue`     | 查看本地 Node 版本，切换和卸载  |
-| `/available` | `AvailableNode.vue` | 查看 Node.js 发行记录，安装版本 |
-| `/setting`   | `Setting.vue`       | 设置页，包含多个子功能          |
+| 路由         | 组件                         | 说明                                  |
+| ------------ | ---------------------------- | ------------------------------------- |
+| `/dashboard` | `WorkbenchDashboard.vue`     | 当前 Node 运行时、环境健康和快捷操作  |
+| `/local`     | `WorkbenchLocalNode.vue`     | 查看本地 Node 版本，搜索、切换和卸载  |
+| `/available` | `WorkbenchAvailableNode.vue` | 查看 Node.js 发行记录，筛选和安装版本 |
+| `/setting`   | `WorkbenchSetting.vue`       | 设置中心，包含多个子功能              |
 
 根路径 `/` 重定向到 `/dashboard`。
 
@@ -120,46 +121,54 @@ npm run lint      通过
 
 主进程控制器位于 `src/main/app.controller.ts` 和 `src/main/project.controller.ts`。
 
-| IPC handle              | 作用                                  |
-| ----------------------- | ------------------------------------- |
-| `open-directory-dialog` | 打开目录选择框                        |
-| `runCmd`                | 旧通用命令执行入口，已标记 deprecated |
-| `nvm-list`              | 执行 `nvm ls`                         |
-| `nvm-use`               | 执行 `nvm use <version>`              |
-| `nvm-install`           | 执行 `nvm install <version>`          |
-| `nvm-uninstall`         | 执行 `nvm uninstall <version>`        |
-| `npm-get-registry`      | 获取当前 npm registry                 |
-| `npm-set-registry`      | 设置 npm registry                     |
-| `npm-list-global`       | 获取全局 npm 包列表                   |
-| `npm-install-global`    | 全局安装 npm 包                       |
-| `nvm-alias-list`        | 预留接口，当前返回空字符串            |
-| `openUrl`               | 调用系统浏览器打开 http/https URL     |
-| `check-nvmrc`           | 读取目录下 `.nvmrc` 文件              |
+| IPC handle                    | 作用                              |
+| ----------------------------- | --------------------------------- |
+| `open-directory-dialog`       | 打开目录选择框                    |
+| `nvm-list`                    | 执行 `nvm ls`                     |
+| `nvm-current`                 | 执行 `nvm current`                |
+| `nvm-version`                 | 获取当前 NVM 管理器版本           |
+| `nvm-use`                     | 执行 `nvm use <version>`          |
+| `nvm-install`                 | 执行 `nvm install <version>`      |
+| `nvm-uninstall`               | 执行 `nvm uninstall <version>`    |
+| `nvm-manager-detect`          | 检测 NVM 管理器状态               |
+| `nvm-manager-list-versions`   | 获取可安装的 NVM 管理器版本       |
+| `nvm-manager-install`         | 安装或升级 NVM 管理器             |
+| `nvm-manager-current-version` | 获取 NVM 管理器当前版本           |
+| `nvm-manager-refresh`         | 刷新 NVM 运行环境                 |
+| `npm-get-registry`            | 获取当前 npm registry             |
+| `npm-set-registry`            | 设置 npm registry                 |
+| `npm-list-global`             | 获取全局 npm 包列表               |
+| `npm-install-global`          | 全局安装 npm 包                   |
+| `nvm-alias-list`              | 预留接口，当前返回空字符串        |
+| `openUrl`                     | 调用系统浏览器打开 http/https URL |
+| `check-nvmrc`                 | 读取目录下 `.nvmrc` 文件          |
 
-渲染层封装位于 `src/render/api/index.ts`，底层通过 `src/render/plugins/ipc.ts` 调用 `window.ipcRenderer.invoke()`。
+渲染层封装位于 `src/render/api/index.ts`，底层通过 preload 暴露的 `window.nvmGui` 白名单 API 调用主进程能力。
 
 ## 8. 功能模块说明
 
 ### Dashboard
 
-文件：`src/render/components/Dashboard.vue`
+文件：`src/render/components/WorkbenchDashboard.vue`
 
 职责：
 
-- 读取 `window.versions.system()` 获取平台与系统版本。
-- 通过 `executeCmd("nvm current")` 获取当前 Node 版本。
-- 读取 Electron 版本。
+- 展示当前 Node 运行时和环境健康状态。
+- 聚合 Node、NVM 管理器、Electron 运行壳状态。
+- 提供本地版本、可安装版本、项目检测和 NVM 管理器的快捷入口。
 
 ### 本机 Node 环境
 
-文件：`src/render/components/LocalNode.vue`
+文件：`src/render/components/WorkbenchLocalNode.vue`
 
 职责：
 
 - 调用 `nvmList()` 获取本地版本列表。
 - 使用 `parseNvmList()` 解析 `nvm ls` 输出。
+- 支持版本搜索和状态摘要。
 - 单选表格切换版本。
 - 对非当前版本提供卸载按钮。
+- 表格每页默认展示 4 条数据。
 - 使用 `nodeEnvDirty` 标记跨页面刷新。
 
 关键工具：
@@ -169,14 +178,17 @@ npm run lint      通过
 
 ### Node.js 发行记录
 
-文件：`src/render/components/AvailableNode.vue`
+文件：`src/render/components/WorkbenchAvailableNode.vue`
 
 职责：
 
 - 通过 `getNodeReleaseRecord()` 拉取 Node.js 发行 JSON。
 - 按 Node 大版本分组，每组展示最新版本。
 - 结合本地 `nvm ls` 判断版本是否已安装。
+- 支持版本/世代/LTS 搜索和仅看 LTS。
 - 支持安装未安装的版本。
+- 操作列固定在表格最右侧。
+- 表格每页默认展示 4 条数据。
 
 发行源默认值来自 `NodeURLStore`：
 
@@ -186,23 +198,39 @@ https://nodejs.org/dist/index.json
 
 ### 设置页
 
-文件：`src/render/components/Setting.vue`
+文件：`src/render/components/WorkbenchSetting.vue`
 
 子模块：
 
-| Tab        | 组件                   | 说明                    |
-| ---------- | ---------------------- | ----------------------- |
-| 通用       | `GeneralSettings.vue`  | 主题切换                |
-| 高级       | `AdvancedSettings.vue` | Node.js 发行源配置      |
-| NPM 源管理 | `RegistryManager.vue`  | npm registry 切换与测速 |
-| 全局包迁移 | `MigrationHelper.vue`  | 全局包读取与批量安装    |
-| 项目检测   | `ProjectDetector.vue`  | 选择目录并读取 `.nvmrc` |
+| 分类       | 组件                            | 说明                            |
+| ---------- | ------------------------------- | ------------------------------- |
+| 通用       | `GeneralAppearanceSettings.vue` | 外观模式和预设主题色            |
+| 高级       | `AdvancedSettings.vue`          | Node.js 发行源配置              |
+| NPM 源管理 | `RegistryManager.vue`           | npm registry 切换与测速         |
+| 全局包迁移 | `MigrationHelper.vue`           | 全局包读取与批量安装            |
+| 项目检测   | `ProjectDetector.vue`           | 选择目录并读取 `.nvmrc`         |
+| NVM 管理器 | `NvmManager.vue`                | 检测、安装和升级底层 NVM 管理器 |
+
+项目检测用于多项目开发场景：选择项目目录后读取 `.nvmrc`，对比当前激活的 Node 版本，并在不匹配时提供切换/安装入口。
 
 ### 主题配置
 
 文件：`src/render/stores/ThemeStore.ts`
 
-使用 Pinia 持久化保存 `light` / `dark`。
+使用 Pinia 持久化保存：
+
+- `theme`：`light` / `dark` 外观模式。
+- `accent`：预设主题色 key，默认 `node-green`。
+
+当前内置主题色：
+
+- `Node Green`
+- `Sky Blue`
+- `Violet`
+- `Amber`
+- `Rose`
+
+`src/render/App.vue` 根据 `ThemeStore` 生成 Naive UI `themeOverrides`，并在根节点写入 `--app-accent`、`--app-accent-soft`、`--app-accent-strong` 等 CSS 变量。工作台壳层、导航、按钮、状态点、表格和设置中心均通过这些变量跟随当前主题色。
 
 ### Node 发行源配置
 
@@ -281,6 +309,8 @@ Electron Builder 配置：
 - `requestedExecutionLevel`: `requireAdministrator`
 
 ## 11. 代码审阅发现
+
+以下为早期审阅记录。`0.0.4` 之后已完成 preload 白名单 API、移除通用命令入口、主进程参数校验等安全加固；保留本节用于追溯历史问题和后续测试方向。
 
 ### P1：preload 暴露了过宽的能力
 
@@ -383,14 +413,15 @@ Electron Builder 配置：
 
 ## 14. 维护注意事项
 
-- 当前项目里已有未提交改动，主要集中在：
+- 当前 0.0.6 工作区改动主要集中在：
   - `src/main/main.window.ts`
-  - `src/render/components/AvailableNode.vue`
-  - `src/render/components/LocalNode.vue`
-  - `src/render/components/Setting.vue`
-  - `src/render/components/Setting/MigrationHelper.vue`
-  - `src/render/components/Setting/ProjectDetector.vue`
-  - `src/render/utils/nodeEnvDirty.ts`
+  - `src/render/App.vue`
+  - `src/render/router/index.ts`
+  - `src/render/stores/ThemeStore.ts`
+  - `src/render/styles/reset.css`
+  - `src/render/components/AppShell.vue`
+  - `src/render/components/Workbench*.vue`
+  - `src/render/components/Setting/GeneralAppearanceSettings.vue`
 
 ## 15. v0.0.5 NVM 管理器集成
 
@@ -409,3 +440,17 @@ Electron Builder 配置：
 - `package.json`：`build` 脚本改为 `vue-tsc && vite build`，跳过清理 `dist`，避免 Windows 下旧打包产物 `app.asar` 被运行中应用、Explorer 或安全软件锁住时导致 `EBUSY/EPERM`。
 - 构建注意：如果需要彻底清理 `dist`，先关闭正在运行的 `nvm-gui`、关闭打开在 `dist/electron/win-unpacked` 的 Explorer 窗口，再手动删除 `dist` 后执行 `npm run build`。
 - 已验证：`npm run typecheck`、`npm run lint` 通过；跳过清理后的 `npm run build` 已可完成 Windows NSIS 安装包构建。
+
+## 17. v0.0.6 工作台 UI 与主题色
+
+- 应用壳层切换到 `AppShell.vue`：左侧导航、顶部运行状态条、统一内容滚动区。
+- 路由切换到新版 Workbench 页面：`WorkbenchDashboard.vue`、`WorkbenchLocalNode.vue`、`WorkbenchAvailableNode.vue`、`WorkbenchSetting.vue`。
+- 顶部运行状态条展示系统版本、NVM 管理器版本和 Electron 版本，标签背景、边框和文字色跟随当前主题色。
+- Dashboard 移除四个重复版本信息卡片，保留当前 Node 运行时、环境健康和快捷操作。
+- 本地版本页和可安装版本页支持搜索、摘要卡、稳定列宽、横向滚动和每页 4 条数据；可安装版本页操作列固定在最右侧。
+- 设置中心改为左侧分类导航和右侧内容面板，底部保存提示区域跟随主题色背景。
+- 通用设置新增外观模式与预设主题色选择，当前支持 Node Green、Sky Blue、Violet、Amber、Rose。
+- 全局样式新增 `--app-*` 变量，统一控制背景、卡片、边框、阴影、强调色和 dark 模式。
+- 主窗口高度从 `768` 调整为 `845`，减少工作台内容被压缩的问题。
+- 当前版本同步为 `0.0.6`，发布说明已记录在 `CHANGELOG.md`。
+- 构建注意：如果 `npm run build` 在 electron-builder 阶段报 `d3dcompiler_47.dll: Access is denied`，先关闭正在运行的 `dist/electron/win-unpacked/nvm-gui.exe` 进程后再重试。

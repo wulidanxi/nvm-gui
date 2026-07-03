@@ -10,7 +10,7 @@ export async function createWindow() {
     // 设置窗口宽度
     width: 1024,
     // 设置窗口高度
-    height: 768,
+    height: 845,
     // 设置窗口图标
     icon: join('./nvm-logo-color-avatar.png'),
     // 设置webPreferences
