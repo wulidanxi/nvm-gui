@@ -35,7 +35,7 @@
 
 ### 环境要求
 
-- Node.js 20+。
+- Node.js 22.12+（Electron 40 / electron-builder 依赖链要求）。
 - Windows 为当前主要目标平台。
 - 系统已安装 `nvm-windows`，并保证 `nvm`、`npm` 可以在命令行中访问。
 

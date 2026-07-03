@@ -18,7 +18,7 @@
 
 ## 环境要求
 
-- Node.js 20+（建议 20 或 22）
+- Node.js 22.12+（Electron 40 / electron-builder 依赖链要求）
 - Windows（当前主平台），后续将拓展更多平台
 - 系统已安装 nvm-windows
 
