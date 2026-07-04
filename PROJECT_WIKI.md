@@ -15,7 +15,7 @@
 - 支持浅色/深色模式、预设主题色和 Node.js 发行源配置。
 - 检测、安装和升级底层 NVM 管理器。
 
-当前版本：`0.0.8`。
+当前版本：`0.0.8b`。
 
 ## 2. 技术栈
 
@@ -482,3 +482,9 @@ Electron Builder 配置：
 - macOS/Linux 的 NVM 管理器继续使用 `nvm-sh/nvm`，推荐版本更新为 `v0.40.5`，POSIX `NVM_DIR` 默认路径对齐官方安装器行为。
 - GitHub Actions 的 CI 与 Release 流程加入三平台构建产物，发布时统一附加 `.exe`、`.dmg`、`.zip`、`.AppImage` 和 `.deb`。
 - 当前版本同步为 `0.0.8`，发布说明已记录在 `CHANGELOG.md`。
+
+## 21. v0.0.8b 跨平台打包修正
+
+- macOS 打包显式传递 `x64` 与 `arm64` 架构，避免只生成 runner 默认架构产物。
+- Linux `.deb` 打包补充 package author 邮箱和 electron-builder `linux.maintainer`，修复 maintainer 缺失导致的 CI 失败。
+- 当前版本同步为 `0.0.8b`，发布说明已记录在 `CHANGELOG.md`。

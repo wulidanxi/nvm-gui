@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.8b] - 2026-07-04
+
+### Fixes
+- 修复 macOS 打包未显式包含 Intel `x64` 架构的问题，`build:mac` 会同时产出 `x64` 与 `arm64` 包。
+- 修复 Linux `.deb` 打包缺少 maintainer 元数据导致 CI 构建失败的问题。
+- 应用版本同步升级至 `0.0.8b`。
+
 ## [0.0.8] - 2026-07-04
 
 ### Features
