@@ -125,7 +125,7 @@ export class NvmManagerService {
   public async runNvmCommand(args: string[]): Promise<string> {
     try {
       if (this.provider === 'nvm-windows')
-        return this.runCommand('nvm', args)
+        return this.runWindowsNvmCommand(args)
 
       return this.runPosixNvm(args)
     }
@@ -273,6 +273,61 @@ export class NvmManagerService {
       maxBuffer: 1024 * 1024 * 10,
     })
     return stdout
+  }
+
+  private async runWindowsNvmCommand(args: string[]): Promise<string> {
+    if (args[0] === 'use' && args[1])
+      await this.assertWindowsNodeVersionInstalled(args[1])
+
+    const stdout = await this.runCommand('nvm', args)
+    if (args[0] === 'ls' || args[0] === 'list')
+      return this.filterWindowsNvmList(stdout)
+
+    return stdout
+  }
+
+  private async assertWindowsNodeVersionInstalled(version: string) {
+    if (await this.isWindowsNodeVersionInstalled(version))
+      return
+
+    throw new Error(
+      `Node.js ${version} installation is incomplete. Please reinstall this version before switching to it.`,
+    )
+  }
+
+  private async filterWindowsNvmList(stdout: string): Promise<string> {
+    const lines = stdout.split(/\r?\n/)
+    const filtered: string[] = []
+
+    for (const line of lines) {
+      const version = this.extractWindowsNvmListVersion(line)
+      if (!version || await this.isWindowsNodeVersionInstalled(version))
+        filtered.push(line)
+    }
+
+    return filtered.join('\n')
+  }
+
+  private extractWindowsNvmListVersion(line: string): string | null {
+    const match = line.match(/\*?\s*(v?\d+\.\d+\.\d+)/)
+    return match?.[1] || null
+  }
+
+  private async isWindowsNodeVersionInstalled(version: string): Promise<boolean> {
+    const root = await this.getWindowsNvmRoot()
+    if (!root)
+      return false
+
+    const normalized = version.trim().replace(/^v/i, '')
+    return existsSync(join(root, `v${normalized}`, 'node.exe'))
+  }
+
+  private async getWindowsNvmRoot(): Promise<string | undefined> {
+    if (process.env.NVM_HOME)
+      return process.env.NVM_HOME
+
+    const executable = await this.findWindowsNvmExecutable()
+    return executable ? dirname(executable) : undefined
   }
 
   private async runPosixNvm(args: string[]): Promise<string> {

@@ -448,7 +448,7 @@ onMounted(() => {
 
 .content-frame {
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
   overscroll-behavior: contain;
 }
 

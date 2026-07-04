@@ -15,7 +15,7 @@
 - 支持浅色/深色模式、预设主题色和 Node.js 发行源配置。
 - 检测、安装和升级底层 NVM 管理器。
 
-当前版本：`0.0.6`。
+当前版本：`0.0.6b`。
 
 ## 2. 技术栈
 
@@ -144,6 +144,8 @@ npm run lint      通过
 | `check-nvmrc`                 | 读取目录下 `.nvmrc` 文件          |
 
 渲染层封装位于 `src/render/api/index.ts`，底层通过 preload 暴露的 `window.nvmGui` 白名单 API 调用主进程能力。
+
+Windows 下 `nvm-list` 会过滤缺少 `node.exe` 的不完整版本目录，`nvm-use` 在切换前也会校验目标版本目录是否可用，避免空目录出现在本地版本页后切换失败。
 
 ## 8. 功能模块说明
 
@@ -454,3 +456,12 @@ Electron Builder 配置：
 - 主窗口高度从 `768` 调整为 `845`，减少工作台内容被压缩的问题。
 - 当前版本同步为 `0.0.6`，发布说明已记录在 `CHANGELOG.md`。
 - 构建注意：如果 `npm run build` 在 electron-builder 阶段报 `d3dcompiler_47.dll: Access is denied`，先关闭正在运行的 `dist/electron/win-unpacked/nvm-gui.exe` 进程后再重试。
+
+## 18. v0.0.6b 标题固定与 NVM 版本完整性修复
+
+- 所有新版 Workbench 页面保留顶部 `.page-heading` 为固定区域，滚动移动到标题下方 `.page-scroll-body`。
+- `AppShell.vue` 的内容框不再作为整页滚动源，避免顶部标题区和页面主体一起滑动。
+- 设置中心保留右侧面板底部保存区作为唯一保存入口；左侧分类与右侧内容分别在展示框内部滚动。
+- Windows NVM 命令增加版本完整性检查：`nvm ls` 结果过滤缺少 `node.exe` 的目录，`nvm use` 切换前再次校验。
+- 渲染层 API 会清理 `Error invoking remote method ...` 包装文本，让用户看到更直接的 NVM 失败原因。
+- 当前版本同步为 `0.0.6b`，发布说明已记录在 `CHANGELOG.md`。

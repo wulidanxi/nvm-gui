@@ -5,7 +5,16 @@
 ![GitHub License](https://img.shields.io/github/license/wulidanxi/nvm-gui) ![GitHub Release](https://img.shields.io/github/v/release/wulidanxi/nvm-gui)
 ![CI](https://github.com/wulidanxi/nvm-gui/actions/workflows/ci.yml/badge.svg?branch=main)
 
+当前版本：`0.0.6b`
+
 # ⚡ NVM GUI（Vite + Vue + Electron）
+
+## v0.0.6b 细节优化
+
+- 工作台各页面标题区固定，标题下方内容独立滚动，避免页面主操作区跟随列表滚走。
+- 设置中心左右展示框各自内部滚动，底部“通用和高级设置需要点击保存后生效”区域固定在右侧面板底部。
+- Windows 下会过滤不完整的 Node 版本目录；例如版本目录存在但缺少 `node.exe` 时，不再把它当作可切换版本展示。
+- NVM 操作失败提示会清理 Electron IPC 包装前缀，优先展示真实错误原因。
 
 一个专注于 Node.js 版本管理的桌面图形工具。集成 NVM 常用操作，并提供更贴近开发者工作流的能力。
 
@@ -53,10 +62,3 @@ npm run build
 ## 许可协议
 
 MIT
-
-## v0.0.5 NVM 管理器集成
-
-- Windows 安装包内置推荐版 `coreybutler/nvm-windows` 安装器，用户可在应用内完成安装，无需单独下载。
-- 设置页新增 “NVM 管理器”，支持检测当前 NVM 状态、查看版本和路径，并从官方 GitHub Releases 选择其它管理器版本安装。
-- macOS/Linux 运行时代码支持 `nvm-sh/nvm`，默认安装到用户级 `NVM_DIR`，并通过受控 shell wrapper 调用 `nvm.sh`。
-- 未检测到 NVM 时，本地版本页、可安装版本页和 Dashboard 会显示明确引导。

@@ -83,7 +83,6 @@ function saveAllSettings() {
           把源管理、项目检测、全局包迁移和 NVM 管理器集中到一个工作区。
         </div>
       </div>
-      <n-button type="primary" @click="saveAllSettings">保存设置</n-button>
     </div>
 
     <section class="settings-workspace">
@@ -139,17 +138,17 @@ function saveAllSettings() {
 
 <style scoped>
 .setting-page {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
+  gap: 0;
 }
 
 .settings-workspace {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
   gap: 16px;
-  align-items: start;
-  flex: 1;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .settings-nav,
@@ -162,7 +161,10 @@ function saveAllSettings() {
   display: grid;
   align-content: start;
   gap: 8px;
+  min-height: 0;
   padding: 12px;
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .settings-nav-item {
@@ -213,11 +215,13 @@ function saveAllSettings() {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  overflow: visible;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .settings-panel-header,
 .settings-footer {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -240,16 +244,24 @@ function saveAllSettings() {
 }
 
 .settings-panel-body {
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 18px;
-  overflow: visible;
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .settings-footer {
+  flex-wrap: wrap;
   border-top: 1px solid var(--app-border);
   border-bottom: 0;
   background:
     linear-gradient(90deg, var(--app-accent-soft), transparent 56%),
     var(--app-surface);
+}
+
+.settings-footer .text-muted {
+  min-width: 0;
 }
 
 :deep(.n-card) {
@@ -259,6 +271,7 @@ function saveAllSettings() {
 @media (max-width: 940px) {
   .settings-workspace {
     grid-template-columns: 1fr;
+    grid-template-rows: minmax(120px, 34%) minmax(0, 1fr);
   }
 
   .settings-nav {

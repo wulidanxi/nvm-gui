@@ -3,27 +3,27 @@ import type { NvmManagerInstallOptions } from '@common/types'
 const { nvmGui } = window
 
 export function nvmList() {
-  return nvmGui.nvm.list()
+  return invokeGui(() => nvmGui.nvm.list())
 }
 
 export function nvmCurrent() {
-  return nvmGui.nvm.current()
+  return invokeGui(() => nvmGui.nvm.current())
 }
 
 export function nvmVersion() {
-  return nvmGui.nvm.version()
+  return invokeGui(() => nvmGui.nvm.version())
 }
 
 export function nvmUse(version: string) {
-  return nvmGui.nvm.use(version)
+  return invokeGui(() => nvmGui.nvm.use(version))
 }
 
 export function nvmInstall(version: string) {
-  return nvmGui.nvm.install(version)
+  return invokeGui(() => nvmGui.nvm.install(version))
 }
 
 export function nvmUninstall(version: string) {
-  return nvmGui.nvm.uninstall(version)
+  return invokeGui(() => nvmGui.nvm.uninstall(version))
 }
 
 export function detectNvmManager() {
@@ -92,4 +92,21 @@ export async function executeNvmSafely(
     default:
       throw new Error(`Unsupported nvm operation: ${command}`)
   }
+}
+
+async function invokeGui<T>(action: () => Promise<T>): Promise<T> {
+  try {
+    return await action()
+  }
+  catch (error) {
+    throw new Error(formatIpcError(error))
+  }
+}
+
+function formatIpcError(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error || '')
+  return message
+    .replace(/^Error invoking remote method '[^']+': Error:\s*/u, '')
+    .replace(/^Error invoking remote method "[^"]+": Error:\s*/u, '')
+    .trim() || 'Command execution failed'
 }

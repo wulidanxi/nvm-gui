@@ -240,7 +240,8 @@ onBeforeMount(() => {
       </n-button>
     </div>
 
-    <n-alert v-if="nvmMissing" type="warning" class="page-alert">
+    <div class="page-scroll-body">
+      <n-alert v-if="nvmMissing" type="warning" class="page-alert">
       未检测到 NVM 管理器，请先到设置中心的 “NVM 管理器” 中安装。
     </n-alert>
 
@@ -282,15 +283,14 @@ onBeforeMount(() => {
         :loading="tableLoading"
         :scroll-x="tableScrollX"
       />
-    </n-card>
+      </n-card>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .available-page {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  gap: 0;
 }
 
 .page-alert {

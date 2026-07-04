@@ -108,7 +108,8 @@ onMounted(() => {
       </n-button>
     </div>
 
-    <section class="hero-panel">
+    <div class="page-scroll-body">
+      <section class="hero-panel">
       <div class="hero-copy">
         <div class="hero-eyebrow">CURRENT RUNTIME</div>
         <div class="hero-version">{{ nodeVersion }}</div>
@@ -121,9 +122,9 @@ onMounted(() => {
           {{ nodeReady ? "Active" : "Action required" }}
         </n-tag>
       </div>
-    </section>
+      </section>
 
-    <section class="dashboard-grid">
+      <section class="dashboard-grid">
       <n-card class="panel-card" :bordered="false" title="环境健康">
         <div class="health-list">
           <div
@@ -167,14 +168,17 @@ onMounted(() => {
           </button>
         </div>
       </n-card>
-    </section>
+      </section>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .dashboard-page {
-  display: flex;
-  flex-direction: column;
+  gap: 0;
+}
+
+.dashboard-page .page-scroll-body {
   gap: 14px;
 }
 
