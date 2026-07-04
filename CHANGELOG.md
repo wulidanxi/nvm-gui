@@ -4,6 +4,7 @@
 
 ### Features
 - 打包发布扩展为三平台：Windows 继续产出 NSIS `.exe`，macOS 产出未签名 `.dmg`/`.zip`，Linux 产出 `.AppImage`/`.deb`。
+- macOS 打包显式产出 Intel `x64` 与 Apple Silicon `arm64` 两种架构。
 - 新增 `npm run build:win`、`npm run build:mac`、`npm run build:linux`，通过 Vite mode 将目标平台传递给 electron-builder。
 - GitHub Actions 的 CI 与 Release 流程加入 macOS、Linux 构建产物，并在发布时统一附加三平台安装包。
 

@@ -5,6 +5,7 @@ import { defineConfig } from 'vite'
 import { VitePluginDoubleshot } from 'vite-plugin-doubleshot'
 
 type PackageTarget = 'win' | 'mac' | 'linux'
+type ElectronBuilderCliOptions = Record<string, string[] | boolean>
 
 function resolvePackageTarget(mode: string): PackageTarget | null {
   if (mode === 'win' || mode === 'mac' || mode === 'linux')
@@ -13,11 +14,27 @@ function resolvePackageTarget(mode: string): PackageTarget | null {
   return null
 }
 
+function resolveElectronBuilderCliOptions(target: PackageTarget | null): ElectronBuilderCliOptions | undefined {
+  if (!target)
+    return undefined
+
+  if (target === 'mac') {
+    return {
+      mac: [],
+      x64: true,
+      arm64: true,
+    }
+  }
+
+  return { [target]: [] }
+}
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const packageTarget = resolvePackageTarget(mode)
   if (packageTarget)
     process.env.NVM_GUI_BUILD_TARGET = packageTarget
+  const electronBuilderCliOptions = resolveElectronBuilderCliOptions(packageTarget)
 
   return {
     root: join(__dirname, 'src/render'),
@@ -35,7 +52,7 @@ export default defineConfig(({ mode }) => {
         electron: {
           build: {
             config: './electron-builder.config.js',
-            cliOptions: packageTarget ? { [packageTarget]: [] } : undefined,
+            cliOptions: electronBuilderCliOptions,
           },
           preload: {
             entry: 'src/preload/index.ts',

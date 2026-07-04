@@ -11,7 +11,7 @@
 
 ## v0.0.8 macOS/Linux 打包发布支持
 
-- 发布流程扩展为 Windows、macOS、Linux 三平台构建。
+- 发布流程扩展为 Windows、macOS、Linux 三平台构建，macOS 同时覆盖 Intel `x64` 和 Apple Silicon `arm64`。
 - macOS/Linux 使用 `nvm-sh/nvm`，Windows 继续使用 `nvm-windows`。
 - 新增 `npm run build:win`、`npm run build:mac`、`npm run build:linux` 分平台打包脚本。
 
