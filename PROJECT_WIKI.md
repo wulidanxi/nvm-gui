@@ -2,7 +2,7 @@
 
 ## 1. 项目概览
 
-`nvm-gui` 是一个面向 Windows/nvm-windows 的 Node.js 版本管理桌面工具。项目使用 Electron 承载桌面窗口，Vue 3 + Naive UI 构建界面，主进程通过 `einf` 暴露 IPC 能力，让渲染层可以执行 nvm/npm 相关操作。
+`nvm-gui` 是一个面向 Windows/macOS/Linux 的 Node.js 版本管理桌面工具。项目使用 Electron 承载桌面窗口，Vue 3 + Naive UI 构建界面，主进程通过 `einf` 暴露 IPC 能力，让渲染层可以执行 nvm/npm 相关操作。
 
 核心目标：
 
@@ -15,7 +15,7 @@
 - 支持浅色/深色模式、预设主题色和 Node.js 发行源配置。
 - 检测、安装和升级底层 NVM 管理器。
 
-当前版本：`0.0.7`。
+当前版本：`0.0.8`。
 
 ## 2. 技术栈
 
@@ -473,3 +473,12 @@ Electron Builder 配置：
 - 新增 `npm run electron:install` / `yarn electron:install`，默认使用 `npmmirror` 国内镜像在二进制缺失时手动补下载 Electron 运行时。
 - 设置中心外观模式的本地草稿值会监听 Pinia 主题 store，顶部主题开关切换后下拉框会立即同步显示。
 - 当前版本同步为 `0.0.7`，发布说明已记录在 `CHANGELOG.md`。
+
+## 20. v0.0.8 macOS/Linux 打包发布支持
+
+- electron-builder 配置新增 macOS `dmg`/`zip` 和 Linux `AppImage`/`deb` 目标，macOS 第一版按未签名包发布。
+- Windows 专用 `resources/nvm-windows/nvm-setup.exe` 只在 Windows 包中携带，macOS/Linux 不再包含该资源。
+- 新增 `build:win`、`build:mac`、`build:linux` 脚本，Vite mode 会把目标平台传递给 Doubleshot/electron-builder。
+- macOS/Linux 的 NVM 管理器继续使用 `nvm-sh/nvm`，推荐版本更新为 `v0.40.5`，POSIX `NVM_DIR` 默认路径对齐官方安装器行为。
+- GitHub Actions 的 CI 与 Release 流程加入三平台构建产物，发布时统一附加 `.exe`、`.dmg`、`.zip`、`.AppImage` 和 `.deb`。
+- 当前版本同步为 `0.0.8`，发布说明已记录在 `CHANGELOG.md`。

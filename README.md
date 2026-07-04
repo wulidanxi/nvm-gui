@@ -5,15 +5,15 @@
 ![GitHub License](https://img.shields.io/github/license/wulidanxi/nvm-gui) ![GitHub Release](https://img.shields.io/github/v/release/wulidanxi/nvm-gui)
 ![CI](https://github.com/wulidanxi/nvm-gui/actions/workflows/ci.yml/badge.svg?branch=main)
 
-当前版本：`0.0.7`
+当前版本：`0.0.8`
 
 # ⚡ NVM GUI（Vite + Vue + Electron）
 
-## v0.0.7 Electron 41 与主题设置同步
+## v0.0.8 macOS/Linux 打包发布支持
 
-- Electron 依赖升级到 41 系列，当前锁定为 npm 已发布的 `41.9.2`。
-- 设置中心外观模式会跟随顶部主题开关同步显示当前值。
-- 可通过 `npm run electron:install` 使用 `npmmirror` 国内镜像手动补下载 Electron 二进制。
+- 发布流程扩展为 Windows、macOS、Linux 三平台构建。
+- macOS/Linux 使用 `nvm-sh/nvm`，Windows 继续使用 `nvm-windows`。
+- 新增 `npm run build:win`、`npm run build:mac`、`npm run build:linux` 分平台打包脚本。
 
 一个专注于 Node.js 版本管理的桌面图形工具。集成 NVM 常用操作，并提供更贴近开发者工作流的能力。
 
@@ -27,8 +27,8 @@
 ## 环境要求
 
 - Node.js 22.12+（Electron 41 / electron-builder 依赖链要求）
-- Windows（当前主平台），后续将拓展更多平台
-- 系统已安装 nvm-windows
+- Windows、macOS 或 Linux
+- Windows 使用 nvm-windows；macOS/Linux 使用 nvm-sh/nvm
 
 ## 安装与运行
 
@@ -46,15 +46,20 @@ npm run dev
 
 # 构建与打包安装包
 npm run build
+
+# 分平台打包
+npm run build:win
+npm run build:mac
+npm run build:linux
 ```
 
 打包完成后，安装包位于：
-`dist/electron/nvm-gui Setup <version>.exe`
+`dist/electron/`，Windows 为 `.exe`，macOS 为 `.dmg`/`.zip`，Linux 为 `.AppImage`/`.deb`。
 
 ## 下载与发布
 
 - 最新安装包下载：在 GitHub Releases 页面（基于 tag 的自动发布）
-- 推送发布：创建符合语义化的 tag（例如 `v0.0.7`），CI 会自动构建并附加安装包
+- 推送发布：创建符合语义化的 tag（例如 `v0.0.8`），CI 会自动构建并附加三平台安装包
 
 ## 常见问题
 

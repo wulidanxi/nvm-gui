@@ -20,6 +20,7 @@ import {
   providerForPlatform,
   recommendedManagerOption,
   releaseTagsToOptions,
+  resolvePosixNvmDir,
   validateManagerVersion,
   WINDOWS_NVM_RECOMMENDED_VERSION,
 } from './nvm-manager.shared'
@@ -183,6 +184,7 @@ export class NvmManagerService {
 
     const nvmDir = this.getPosixNvmDir()
     await mkdir(nvmDir, { recursive: true })
+    await this.ensurePosixProfileFile(writeProfile)
 
     const profile = writeProfile ? '' : '/dev/null'
     const script = [
@@ -242,7 +244,7 @@ export class NvmManagerService {
   }
 
   private getPosixNvmDir(): string {
-    return process.env.NVM_DIR || join(homedir(), '.nvm')
+    return resolvePosixNvmDir(process.env, homedir())
   }
 
   private async findWindowsNvmExecutable(envHome?: string): Promise<string | undefined> {
@@ -349,6 +351,19 @@ export class NvmManagerService {
       maxBuffer: 1024 * 1024 * 10,
     })
     return stdout
+  }
+
+  private async ensurePosixProfileFile(writeProfile: boolean): Promise<void> {
+    if (!writeProfile || this.platform !== 'darwin')
+      return
+
+    const shellName = process.env.SHELL?.split('/').pop()
+    if (shellName !== 'zsh')
+      return
+
+    const zshrc = join(homedir(), '.zshrc')
+    if (!existsSync(zshrc))
+      await writeFile(zshrc, '')
   }
 
   private isCommandMissingError(error: any): boolean {

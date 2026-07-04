@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.0.8] - 2026-07-04
+
+### Features
+- 打包发布扩展为三平台：Windows 继续产出 NSIS `.exe`，macOS 产出未签名 `.dmg`/`.zip`，Linux 产出 `.AppImage`/`.deb`。
+- 新增 `npm run build:win`、`npm run build:mac`、`npm run build:linux`，通过 Vite mode 将目标平台传递给 electron-builder。
+- GitHub Actions 的 CI 与 Release 流程加入 macOS、Linux 构建产物，并在发布时统一附加三平台安装包。
+
+### Improvements
+- macOS/Linux 的 NVM 管理器继续使用 `nvm-sh/nvm`，推荐版本更新至 `v0.40.5`。
+- POSIX 平台默认 `NVM_DIR` 对齐 nvm-sh 行为：优先 `NVM_DIR`，其次 `$XDG_CONFIG_HOME/nvm`，否则使用 `~/.nvm`。
+- Windows 内置的 `nvm-windows` 安装器只在 Windows 包中携带，macOS/Linux 包不再包含 Windows 专用资源。
+- 应用版本同步升级至 `0.0.8`。
+
 ## [0.0.7] - 2026-07-04
 
 ### Improvements

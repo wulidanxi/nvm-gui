@@ -1,3 +1,4 @@
+import { posix } from 'node:path'
 import type {
   NvmManagerProvider,
   NvmManagerSource,
@@ -5,7 +6,7 @@ import type {
 } from '../common/types'
 
 export const WINDOWS_NVM_RECOMMENDED_VERSION = '1.2.1'
-export const POSIX_NVM_RECOMMENDED_VERSION = 'v0.40.3'
+export const POSIX_NVM_RECOMMENDED_VERSION = 'v0.40.5'
 
 export function providerForPlatform(platform: NodeJS.Platform): NvmManagerProvider {
   return platform === 'win32' ? 'nvm-windows' : 'nvm-sh'
@@ -52,6 +53,19 @@ export function githubAssetUrl(provider: NvmManagerProvider, version: string): s
   }
 
   return `https://raw.githubusercontent.com/${githubRepoForProvider(provider)}/${normalized}/install.sh`
+}
+
+export function resolvePosixNvmDir(
+  env: Record<string, string | undefined>,
+  homeDir: string,
+): string {
+  if (env.NVM_DIR)
+    return env.NVM_DIR
+
+  if (env.XDG_CONFIG_HOME)
+    return posix.join(env.XDG_CONFIG_HOME, 'nvm')
+
+  return posix.join(homeDir, '.nvm')
 }
 
 export function recommendedManagerOption(
