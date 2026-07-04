@@ -34,6 +34,7 @@ const config = {
     icon: './nvm-logo-color-avatar.png',
     target: ['AppImage', 'deb'],
     category: 'Development',
+    maintainer: 'wulidanxi <wulidanxi@gmail.com>',
   },
   publish: null,
   npmRebuild: false,

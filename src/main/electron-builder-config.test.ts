@@ -28,6 +28,7 @@ describe('electron-builder config', () => {
     expect(config.linux).toMatchObject({
       target: ['AppImage', 'deb'],
       category: 'Development',
+      maintainer: 'wulidanxi <wulidanxi@gmail.com>',
     })
   })
 })

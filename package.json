@@ -2,7 +2,10 @@
   "name": "nvm-gui",
   "version": "0.0.8",
   "description": "Vite + Electron + Vue Nvm GUI",
-  "author": "wulidanxi@gmail.com",
+  "author": {
+    "name": "wulidanxi",
+    "email": "wulidanxi@gmail.com"
+  },
   "main": "dist/main/index.js",
   "icon": "__dirname + 'logo.ico'",
   "scripts": {
