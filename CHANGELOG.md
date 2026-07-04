@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.0.7] - 2026-07-04
+
+### Improvements
+- Electron 依赖升级到 41 系列，当前锁定为 npm 已发布的 `41.9.2`。
+- 新增 `npm run electron:install` / `yarn electron:install`，默认使用 `npmmirror` 国内镜像手动补下载 Electron 运行时。
+- 应用版本同步升级至 `0.0.7`。
+
+### Fixes
+- 修复顶部主题开关切换后，设置中心外观模式下拉值不会同步变化的问题。
+
 ## [0.0.6b] - 2026-07-04
 
 ### Improvements

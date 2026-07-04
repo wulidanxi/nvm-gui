@@ -15,13 +15,13 @@
 - 支持浅色/深色模式、预设主题色和 Node.js 发行源配置。
 - 检测、安装和升级底层 NVM 管理器。
 
-当前版本：`0.0.6b`。
+当前版本：`0.0.7`。
 
 ## 2. 技术栈
 
 | 层级            | 技术                               |
 | --------------- | ---------------------------------- |
-| 桌面运行时      | Electron 40                        |
+| 桌面运行时      | Electron 41                        |
 | 构建工具        | Vite 7, vite-plugin-doubleshot     |
 | 前端框架        | Vue 3, Vue Router 4                |
 | UI              | Naive UI, vicons                   |
@@ -36,7 +36,7 @@
 
 ### 环境要求
 
-- Node.js 22.12+（Electron 40 / electron-builder 依赖链要求）。
+- Node.js 22.12+（Electron 41 / electron-builder 依赖链要求）。
 - Windows 为当前主要目标平台。
 - 系统已安装 `nvm-windows`，并保证 `nvm`、`npm` 可以在命令行中访问。
 
@@ -44,6 +44,7 @@
 
 ```bash
 npm install
+npm run electron:install
 npm run dev
 npm run typecheck
 npm run lint
@@ -465,3 +466,10 @@ Electron Builder 配置：
 - Windows NVM 命令增加版本完整性检查：`nvm ls` 结果过滤缺少 `node.exe` 的目录，`nvm use` 切换前再次校验。
 - 渲染层 API 会清理 `Error invoking remote method ...` 包装文本，让用户看到更直接的 NVM 失败原因。
 - 当前版本同步为 `0.0.6b`，发布说明已记录在 `CHANGELOG.md`。
+
+## 19. v0.0.7 Electron 41 与主题设置同步
+
+- Electron 依赖升级到 41 系列，当前锁定为 npm 已发布的 `41.9.2`。
+- 新增 `npm run electron:install` / `yarn electron:install`，默认使用 `npmmirror` 国内镜像在二进制缺失时手动补下载 Electron 运行时。
+- 设置中心外观模式的本地草稿值会监听 Pinia 主题 store，顶部主题开关切换后下拉框会立即同步显示。
+- 当前版本同步为 `0.0.7`，发布说明已记录在 `CHANGELOG.md`。

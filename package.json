@@ -1,6 +1,6 @@
 {
   "name": "nvm-gui",
-  "version": "0.0.6b",
+  "version": "0.0.7",
   "description": "Vite + Electron + Vue Nvm GUI",
   "author": "wulidanxi@gmail.com",
   "main": "dist/main/index.js",
@@ -17,6 +17,7 @@
     "test:render": "vitest run -r src/render --passWithNoTests",
     "test:main": "vitest run -r src/main --passWithNoTests",
     "test:e2e": "vitest run",
+    "electron:install": "node scripts/install-electron.js",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps"
   },
@@ -37,7 +38,7 @@
     "@vitest/coverage-v8": "4.0.17",
     "@vue/compiler-sfc": "3.5.26",
     "@vue/test-utils": "2.4.6",
-    "electron": "40.0.0",
+    "electron": "41.9.2",
     "electron-builder": "26.4.0",
     "eslint": "9.39.2",
     "happy-dom": "20.3.1",

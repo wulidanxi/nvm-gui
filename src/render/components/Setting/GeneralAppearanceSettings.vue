@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { NCard, NForm, NFormItem, NSelect } from "naive-ui";
 import {
   themeAccentOptions,
@@ -54,6 +54,14 @@ const store = useThemeStore();
 
 const selectedTheme = ref<ThemeMode>(store.theme || "light");
 const selectedAccent = ref<ThemeAccentKey>(store.accent || "node-green");
+
+watch(() => store.theme, (value) => {
+  selectedTheme.value = value;
+});
+
+watch(() => store.accent, (value) => {
+  selectedAccent.value = value;
+});
 
 const saveSettings = () => {
   store.setThemeMode(selectedTheme.value);
