@@ -94,7 +94,7 @@ onMounted(() => {
   <div class="app-page dashboard-page">
     <div class="page-heading">
       <div>
-        <div class="page-kicker">Dashboard</div>
+        <div class="page-kicker">工作台概览</div>
         <h1 class="page-title">Node 环境工作台</h1>
         <div class="page-description">
           汇总当前 Node、NVM 和桌面运行状态，把常用操作放在第一屏。
@@ -111,7 +111,7 @@ onMounted(() => {
     <div class="page-scroll-body">
       <section class="hero-panel">
       <div class="hero-copy">
-        <div class="hero-eyebrow">CURRENT RUNTIME</div>
+        <div class="hero-eyebrow">当前运行时</div>
         <div class="hero-version">{{ nodeVersion }}</div>
         <div class="hero-subtitle">
           {{ nodeReady ? "当前 Node 环境已就绪" : "需要先安装或配置 NVM 管理器" }}
@@ -119,7 +119,7 @@ onMounted(() => {
       </div>
       <div class="hero-status">
         <n-tag :type="nodeReady ? 'success' : 'warning'" round :bordered="false">
-          {{ nodeReady ? "Active" : "Action required" }}
+          {{ nodeReady ? "已就绪" : "待处理" }}
         </n-tag>
       </div>
       </section>

@@ -1,55 +1,47 @@
 import { app } from 'electron'
 import { createEinf } from 'einf'
-import { AppController } from './app.controller'
+import { NpmController } from './npm.controller'
+import { NvmController } from './nvm.controller'
 import { ProjectController } from './project.controller'
+import { SystemController } from './system.controller'
 import { createWindow } from './main.window'
 
 if (!app.isPackaged)
   process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
 
-// 异步函数，用于初始化electron应用
 async function electronAppInit() {
-  // 判断是否为开发环境
   const isDev = !app.isPackaged
-  // 监听所有窗口关闭事件
+
   app.on('window-all-closed', () => {
-    // 如果不是macOS平台，则退出应用
+    // Keep the macOS convention where closing all windows does not quit the app.
     if (process.platform !== 'darwin')
       app.exit()
   })
 
-  // 如果是开发环境
   if (isDev) {
-    // 如果是Windows平台
     if (process.platform === 'win32') {
-      // 监听消息事件
       process.on('message', (data) => {
-        // 如果消息为'graceful-exit'，则退出应用
+        // Vite/electron dev tooling sends this message for a clean restart.
         if (data === 'graceful-exit')
           app.exit()
       })
     }
-    // 如果不是Windows平台
     else {
-      // 监听SIGTERM信号
       process.on('SIGTERM', () => {
-        // 退出应用
         app.exit()
       })
     }
   }
 }
 
-// 异步函数，用于初始化应用程序
 async function bootstrap() {
   try {
-    // 初始化electron应用程序
     await electronAppInit()
 
-    // 创建Einf实例，传入窗口、控制器和注入对象
+    // Controllers define the complete main-process IPC surface exposed through preload.
     await createEinf({
       window: createWindow,
-      controllers: [AppController, ProjectController],
+      controllers: [NvmController, NpmController, ProjectController, SystemController],
       injects: [{
         name: 'IS_DEV',
         inject: !app.isPackaged,
@@ -57,7 +49,6 @@ async function bootstrap() {
     })
   }
   catch (error) {
-    // 捕获错误并打印错误信息，退出应用程序
     console.error(error)
     app.quit()
   }

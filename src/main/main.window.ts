@@ -3,24 +3,19 @@ import { BrowserWindow, app } from 'electron'
 
 const isDev = !app.isPackaged
 
-// 导出一个异步函数createWindow
 export async function createWindow() {
-  // 创建一个BrowserWindow实例
   const win = new BrowserWindow({
-    // 设置窗口宽度
     width: 1024,
-    // 设置窗口高度
     height: 845,
-    // 设置窗口图标
     icon: join('./nvm-logo-color-avatar.png'),
-    // 设置webPreferences
     webPreferences: {
-      nodeIntegration: false, // 尝试全局暴露node api
+      // Renderer code must use the preload bridge instead of direct Node access.
+      nodeIntegration: false,
       contextIsolation: true,
       preload: join(__dirname, '../preload/index.js'),
       devTools: isDev,
     },
-    autoHideMenuBar: true,//!isDev,
+    autoHideMenuBar: true,
   })
 
   const URL = isDev
@@ -31,11 +26,13 @@ export async function createWindow() {
     win.loadURL(URL)
   }
 
+  // External links are opened only through the validated shell IPC.
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
 
- if (isDev)
+  if (isDev)
     win.webContents.openDevTools()
-  else win.removeMenu()
+  else
+    win.removeMenu()
 
   win.on('closed', () => {
     win.destroy()

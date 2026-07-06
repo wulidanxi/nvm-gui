@@ -1,13 +1,14 @@
 <script lang="ts">
-import { useMessage, useDialog } from "naive-ui";
-import { defineComponent } from "vue";
+import { defineComponent } from 'vue'
+import { useDialog, useMessage } from 'naive-ui'
 
-// content
 export default defineComponent({
   setup() {
-    window.$message = useMessage(); // 关键代码
-    window.$dialog = useDialog();
+    // Legacy components still read Naive UI handles from window globals.
+    window.$message = useMessage()
+    window.$dialog = useDialog()
   },
-});
+})
 </script>
+
 <template></template>

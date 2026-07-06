@@ -1,6 +1,5 @@
 <template>
   <div class="general-settings">
-    <!-- 新增主题色切换功能 -->
     <n-card :bordered="false" size="small">
       <n-form label-placement="left" label-width="auto">
         <n-form-item label="主题色：">
@@ -17,34 +16,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { NCard, NForm, NFormItem, NSelect } from "naive-ui";
-import { useThemeStore } from "@render/stores/ThemeStore";
+import { ref } from 'vue'
+import { NCard, NForm, NFormItem, NSelect } from 'naive-ui'
+import { useThemeStore } from '@render/stores/ThemeStore'
 
-// 定义主题选项
+const store = useThemeStore()
 const themeOptions = [
-  { label: "亮色", value: "light" },
-  { label: "暗色", value: "dark" },
-];
+  { label: '亮色', value: 'light' },
+  { label: '暗色', value: 'dark' },
+]
+const selectedTheme = ref<string>(store.theme || 'light')
 
-const store = useThemeStore();
+function handleThemeChange(value: string) {
+  selectedTheme.value = value
+}
 
-// 获取当前主题色
-const selectedTheme = ref<string>(store.theme || "light");
+function saveSettings() {
+  store.toggleTheme(selectedTheme.value)
+}
 
-// 主题切换事件处理
-const handleThemeChange = (value: string) => {
-  selectedTheme.value = value;
-};
-
-const saveSettings = () => {
-  // 这里可以添加保存逻辑，例如将当前设置保存到服务器或本地存储
-  store.toggleTheme(selectedTheme.value);
-};
-
+// Parent settings containers call this when the user clicks Save.
 defineExpose({
   saveSettings,
-});
+})
 </script>
 
 <style scoped>

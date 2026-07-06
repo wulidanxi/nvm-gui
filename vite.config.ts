@@ -29,7 +29,6 @@ function resolveElectronBuilderCliOptions(target: PackageTarget | null): Electro
   return { [target]: [] }
 }
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const packageTarget = resolvePackageTarget(mode)
   if (packageTarget)
@@ -77,15 +76,10 @@ export default defineConfig(({ mode }) => {
           manualChunks: {
             'naive-ui': ['naive-ui'],
             'vue-vendor': ['vue', 'vue-router', 'pinia', 'pinia-plugin-persistedstate'],
-            'utils': ['axios', 'dayjs'],
+            'utils': ['dayjs'],
           },
         },
       },
     },
-    // test: { // e2e tests
-    //   include: ['./tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    //   testTimeout: 30_000,
-    //   hookTimeout: 30_000,
-    // },
   }
 })

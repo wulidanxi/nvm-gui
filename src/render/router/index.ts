@@ -18,7 +18,7 @@ const router = createRouter({
     {
       path: "/",
       component: Layout,
-      redirect: "/dashboard", // Explicit redirect at root level
+      redirect: "/dashboard",
       children: [
         {
           path: "dashboard",
@@ -39,7 +39,7 @@ const router = createRouter({
       ]
     }
   ],
-  // vue=route配置项
+  // Keep navigation state deterministic when switching between workbench pages.
   scrollBehavior() {
     return {
       top: 0,

@@ -95,7 +95,6 @@ const refreshPackages = async () => {
   loading.value = true;
   try {
     const result = await listGlobalPackages();
-    // Handle empty or error response gracefully
     if (!result) {
       packages.value = [];
       return;
@@ -110,7 +109,7 @@ const refreshPackages = async () => {
       return;
     }
 
-    // Parse `npm list -g --json` output
+    // npm returns global packages as a dependency map keyed by package name.
     if (json && json.dependencies) {
       packages.value = Object.entries(json.dependencies).map(
         ([name, info]: [string, any]) => ({

@@ -5,9 +5,16 @@
 ![GitHub License](https://img.shields.io/github/license/wulidanxi/nvm-gui) ![GitHub Release](https://img.shields.io/github/v/release/wulidanxi/nvm-gui)
 ![CI](https://github.com/wulidanxi/nvm-gui/actions/workflows/ci.yml/badge.svg?branch=main)
 
-当前版本：`0.0.8b`
+当前版本：`0.0.9`
 
 # ⚡ NVM GUI（Vite + Vue + Electron）
+
+## v0.0.9 架构分层与稳定性优化
+
+- 主进程拆分为命令执行、NVM Provider、安装器、Release Client 和 facade 服务，降低页面与系统命令的耦合。
+- IPC 和 preload API 收口为结构化 DTO，renderer 不再解析原始 `nvm` 输出。
+- 本地版本、可安装版本和设置相关页面恢复为中文文案，并修复若干乱码提示。
+- Windows 打包资源版本固定为 `0.0.9.0`，避免 `rcedit` 写入非法版本号失败。
 
 ## v0.0.8b 跨平台打包修正
 
@@ -59,7 +66,7 @@ npm run build:linux
 ## 下载与发布
 
 - 最新安装包下载：在 GitHub Releases 页面（基于 tag 的自动发布）
-- 推送发布：创建符合语义化的 tag（例如 `v0.0.8b`），CI 会自动构建并附加三平台安装包
+- 推送发布：创建符合语义化的 tag（例如 `v0.0.9`），CI 会自动构建并附加三平台安装包
 
 ## 常见问题
 

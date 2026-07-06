@@ -15,7 +15,7 @@
 - 支持浅色/深色模式、预设主题色和 Node.js 发行源配置。
 - 检测、安装和升级底层 NVM 管理器。
 
-当前版本：`0.0.8b`。
+当前版本：`0.0.9`。
 
 ## 2. 技术栈
 
@@ -488,3 +488,13 @@ Electron Builder 配置：
 - macOS 打包显式传递 `x64` 与 `arm64` 架构，避免只生成 runner 默认架构产物。
 - Linux `.deb` 打包补充 package author 邮箱和 electron-builder `linux.maintainer`，修复 maintainer 缺失导致的 CI 失败。
 - 当前版本同步为 `0.0.8b`，发布说明已记录在 `CHANGELOG.md`。
+
+## 22. v0.0.9 架构分层与稳定性优化
+
+- 主进程从“大服务”拆分为命令执行、NVM Provider、安装器、Release Client 和 facade 编排层，平台差异与命令错误归类可单独测试。
+- IPC 控制器按 NVM、NPM、Project、System 拆分，preload 保持 `window.nvmGui` 白名单并返回结构化 DTO。
+- renderer 通过 `useInstalledNodeVersions`、`useAvailableNodeReleases`、`useNvmOperations` 复用加载、错误和 dirty refresh 状态，页面不再解析 `nvm` 原始 stdout。
+- Node 发行记录、NVM 管理器版本列表和 npm registry 测速迁移到 main 侧执行，renderer 只消费结构化结果。
+- 本地版本、可安装版本、工作台和设置相关页面恢复中文文案，并修复设置页、项目检测、通用设置、高级设置中的乱码提示。
+- Windows 打包新增合法资源版本 `buildVersion: 0.0.9.0`，避免 `rcedit` 写入带字母版本号导致 `Unable to commit changes`。
+- 当前版本同步为 `0.0.9`，发布说明已记录在 `CHANGELOG.md`。

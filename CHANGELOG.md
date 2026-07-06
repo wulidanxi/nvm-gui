@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.0.9] - 2026-07-06
+
+### Refactor
+- 拆分主进程业务层，新增 `CommandRunner`、`NvmProvider`、`NvmInstaller`、`ReleaseClient`，`NvmManagerService` 调整为 facade 编排层。
+- 将 IPC 控制器拆分为 NVM、NPM、Project、System 边界，preload 继续通过 `window.nvmGui` 暴露白名单 API。
+- renderer 迁移到结构化 DTO 和 composable，减少页面直接解析 `nvm` 原始输出和重复实现操作流程。
+
+### Improvements
+- 新增 main/render 单元测试覆盖命令执行、Provider 解析、安装器、Release 获取和 renderer 操作状态。
+- ESLint 覆盖 `src`，同时保留必要的构建产物忽略。
+- Windows 打包资源版本固定为 `0.0.9.0`，避免 `rcedit` 写入带字母版本号失败。
+- 应用版本同步升级至 `0.0.9`。
+
+### Fixes
+- 恢复本地版本、可安装版本、工作台和设置相关页面的中文文案。
+- 修复设置页、项目检测、通用设置和高级设置中的乱码提示。
+
 ## [0.0.8b] - 2026-07-04
 
 ### Fixes

@@ -36,3 +36,34 @@ export interface NvmManagerInstallOptions {
   source: NvmManagerSource
   writeProfile?: boolean
 }
+
+export interface InstalledNodeVersion {
+  version: string
+  active: boolean
+  valid: boolean
+}
+
+export interface NodeReleaseSummary {
+  version: string
+  major: number
+  npm?: string
+  lts: string | false
+  date?: string
+  installed: boolean
+}
+
+export type CommandFailureCode =
+  | 'NVM_MISSING'
+  | 'INVALID_VERSION'
+  | 'COMMAND_FAILED'
+  | 'NETWORK_FAILED'
+
+export interface CommandFailure {
+  code: CommandFailureCode
+  message: string
+}
+
+export interface OperationResult {
+  success: boolean
+  message: string
+}

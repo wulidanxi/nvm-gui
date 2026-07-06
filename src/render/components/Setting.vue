@@ -28,41 +28,28 @@
 </template>
 
 <script setup lang="ts">
-import { NTabs, NTabPane, NButton, NMessageProvider } from "naive-ui";
-import GeneralSettings from "./Setting/GeneralSettings.vue";
-import AdvancedSettings from "./Setting/AdvancedSettings.vue";
-import NvmManager from "./Setting/NvmManager.vue";
-import RegistryManager from "./Setting/RegistryManager.vue";
-import MigrationHelper from "./Setting/MigrationHelper.vue";
-import ProjectDetector from "./Setting/ProjectDetector.vue";
-import { ref, defineComponent } from "vue";
+import { ref } from 'vue'
+import { NButton, NTabPane, NTabs } from 'naive-ui'
+import AdvancedSettings from './Setting/AdvancedSettings.vue'
+import GeneralSettings from './Setting/GeneralSettings.vue'
+import MigrationHelper from './Setting/MigrationHelper.vue'
+import NvmManager from './Setting/NvmManager.vue'
+import ProjectDetector from './Setting/ProjectDetector.vue'
+import RegistryManager from './Setting/RegistryManager.vue'
 
 interface SettingsExpose {
-  saveSettings?: () => void;
+  saveSettings?: () => void
 }
 
-// Explicitly define component to ensure proper name registration
-defineComponent({
-  name: "Setting",
-});
+// Child settings panels expose optional save hooks that are invoked together.
+const generalSettingsRef = ref<SettingsExpose | null>(null)
+const advancedSettingsRef = ref<SettingsExpose | null>(null)
 
-// 新增: 定义子组件的引用
-const generalSettingsRef = ref<SettingsExpose | null>(null);
-const advancedSettingsRef = ref<SettingsExpose | null>(null);
-
-// 新增: 定义保存所有设置的方法
-const saveAllSettings = () => {
-  // 调用子组件的保存方法
-  if (generalSettingsRef.value && generalSettingsRef.value.saveSettings) {
-    generalSettingsRef.value.saveSettings();
-  }
-  if (advancedSettingsRef.value && advancedSettingsRef.value.saveSettings) {
-    advancedSettingsRef.value.saveSettings();
-  }
-
-  // 显示保存成功的提示
-  window.$message.success("所有设置已保存");
-};
+function saveAllSettings() {
+  generalSettingsRef.value?.saveSettings?.()
+  advancedSettingsRef.value?.saveSettings?.()
+  window.$message.success('所有设置已保存')
+}
 </script>
 
 <style scoped>

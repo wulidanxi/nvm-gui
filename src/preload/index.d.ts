@@ -3,16 +3,21 @@ import type {
   NvmManagerInstallOptions,
   NvmManagerStatus,
   NvmManagerVersionOption,
+  InstalledNodeVersion,
+  NodeReleaseSummary,
+  OperationResult,
 } from '../common/types'
 
 type NvmGuiApi = {
   nvm: {
-    list: () => Promise<string>
+    list: () => Promise<InstalledNodeVersion[]>
+    listInstalled: () => Promise<InstalledNodeVersion[]>
+    listAvailableReleases: (releaseUrl?: string) => Promise<NodeReleaseSummary[]>
     current: () => Promise<string>
     version: () => Promise<string>
-    use: (version: string) => Promise<string>
-    install: (version: string) => Promise<string>
-    uninstall: (version: string) => Promise<string>
+    use: (version: string) => Promise<OperationResult>
+    install: (version: string) => Promise<OperationResult>
+    uninstall: (version: string) => Promise<OperationResult>
     manager: {
       detect: () => Promise<NvmManagerStatus>
       listVersions: () => Promise<NvmManagerVersionOption[]>
@@ -26,6 +31,7 @@ type NvmGuiApi = {
     setRegistry: (registry: string) => Promise<string>
     listGlobalPackages: () => Promise<string>
     installGlobalPackage: (pkg: string) => Promise<string>
+    testRegistrySpeed: (registry: string) => Promise<number>
   }
   project: {
     openDirectoryDialog: () => Promise<string | null>

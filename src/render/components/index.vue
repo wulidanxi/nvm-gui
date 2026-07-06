@@ -44,7 +44,6 @@ const nvmVersion = ref("");
 const router = useRouter();
 
 const store = useThemeStore();
-//const globalTheme = ref<GlobalTheme| null>(null);
 const globalTheme = computed(() => {
   if (store.theme === "dark") {
     logoIcon.value = logoIconWhite;
@@ -88,7 +87,7 @@ const menuOptions = [
     icon: renderIcon(NodeIcon),
   },
   {
-    label: "设置", // 新增设置页面入口
+    label: "设置",
     key: "setting",
     icon: renderIcon(SettingIcon),
   },
@@ -130,14 +129,11 @@ onMounted(() => {
   <n-config-provider :theme="globalTheme">
     <n-layout>
       <n-layout-header style="height: 5vh" bordered>
-        <!-- <div>NVM GUI</div> -->
         <n-icon
           size="20"
           color="#18a058"
           style="padding-left: 1vh; padding-top: 1vh"
         >
-          <!--        <n-image :src="nodeIcon"></n-image>-->
-          <!-- <NodeIcon /> -->
           <n-image :object-fit="'cover'" :height="'20px'" :src="nodeIcon" />
         </n-icon>
 

@@ -25,7 +25,7 @@
                 }}</n-text>
               </n-flex>
               <n-tag :type="currentProject.match ? 'success' : 'warning'">
-                需求: {{ currentProject.version }}
+                需求版本 {{ currentProject.version }}
               </n-tag>
             </n-flex>
           </n-list-item>
@@ -40,7 +40,7 @@
           </n-button>
         </n-flex>
         <n-flex justify="end" class="mt-4" v-else>
-          <n-button type="success" secondary disabled> 当前已匹配 </n-button>
+          <n-button type="success" secondary disabled>当前已匹配</n-button>
         </n-flex>
       </div>
     </n-card>
@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineComponent } from "vue";
+import { ref } from "vue";
 import {
   NButton,
   NCard,
@@ -63,15 +63,13 @@ import {
 import { FolderOpenOutline } from "@vicons/ionicons5";
 import {
   checkNvmrc,
-  nvmInstall,
-  nvmList,
-  nvmUse,
+  listInstalledNodeVersions,
   openDirectoryDialog,
 } from "@render/api";
-import { parseNvmList } from "@render/utils/nvmParser";
-import { markNodeEnvDirty } from "@render/utils/nodeEnvDirty";
+import { useNvmOperations } from "@render/utils/useNvmOperations";
 
 const message = useMessage();
+const nvmOperations = useNvmOperations();
 
 interface ProjectInfo {
   name: string;
@@ -104,23 +102,15 @@ const analyzeProject = async (path: string) => {
     }
 
     const requiredVersion = version.trim();
-    const installedVersions = await nvmList();
-    const parsed = parseNvmList(installedVersions);
+    const installedVersions = await listInstalledNodeVersions();
 
-    // Check if required version is installed
-    // Note: .nvmrc might contain "14" or "lts/fermium" or "14.17.0"
-    // For simplicity, we check exact match or if installed version starts with it
-    // Or we rely on nvm install/use which handles aliases better usually.
-
-    // But nvm-windows 'nvm list' returns specific versions like 14.17.0
-    // If .nvmrc has '14', we need to check if we have any 14.*
-    // For this MVP, let's just show what's in .nvmrc and let user try to switch.
-
-    // Check if currently active version matches
-    const currentActive = parsed.find((v) => v.isCurrent);
+    // Current matching is exact because nvm-windows lists concrete versions.
+    // Broader .nvmrc aliases such as `20` or `lts/iron` should be normalized
+    // in a dedicated parser before changing this comparison.
+    const currentActive = installedVersions.find((v) => v.active);
     const match = currentActive
       ? currentActive.version === requiredVersion
-      : false; // Naive check
+      : false;
 
     currentProject.value = {
       name: path.split("\\").pop() || "Project",
@@ -136,35 +126,30 @@ const analyzeProject = async (path: string) => {
 
 const switchToVersion = async (version: string) => {
   try {
-    await nvmUse(version);
-    markNodeEnvDirty();
+    await nvmOperations.use(version);
     message.success(`已切换到 ${version}`);
     if (currentProject.value) {
       currentProject.value.match = true;
     }
   } catch (error: any) {
-    // If fail, maybe not installed
     if (
       (error.message && error.message.includes("not installed")) ||
       error.toString().includes("exit code")
     ) {
-      // Try install?
-      // Ask user or just error
+      // If switching fails because the version is missing, install it and retry once.
       message.error(`切换失败，尝试安装 ${version}...`);
       try {
-        await nvmInstall(version);
-        markNodeEnvDirty();
-        await nvmUse(version);
-        markNodeEnvDirty();
+        await nvmOperations.install(version);
+        await nvmOperations.use(version);
         message.success(`安装并切换到 ${version} 成功`);
         if (currentProject.value) {
           currentProject.value.match = true;
         }
       } catch (installError) {
-        message.error(`安装失败: ${installError}`);
+        message.error(`安装失败：${installError}`);
       }
     } else {
-      message.error(`切换失败: ${error}`);
+      message.error(`切换失败：${error}`);
     }
   }
 };

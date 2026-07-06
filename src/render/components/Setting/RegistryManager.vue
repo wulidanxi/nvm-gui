@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, defineComponent } from "vue";
+import { ref, onMounted } from "vue";
 import {
   NCard,
   NList,
@@ -77,8 +77,7 @@ import {
   useMessage,
 } from "naive-ui";
 import { SpeedometerOutline, RefreshOutline } from "@vicons/ionicons5";
-import { getNpmRegistry, setNpmRegistry } from "@render/api";
-import axios from "axios";
+import { getNpmRegistry, setNpmRegistry, testRegistrySpeed } from "@render/api";
 
 export interface Registry {
   name: string;
@@ -96,7 +95,8 @@ const registries = ref<Registry[]>([
   { name: "yarn", url: "https://registry.yarnpkg.com/" },
   { name: "tencent", url: "https://mirrors.cloud.tencent.com/npm/" },
   { name: "npmmirror", url: "https://registry.npmmirror.com/" },
-  { name: "taobao", url: "https://registry.npm.taobao.org/" }, // Deprecated but common
+  // Kept for users with old npm configurations, although npmmirror is preferred.
+  { name: "taobao", url: "https://registry.npm.taobao.org/" },
 ]);
 
 onMounted(async () => {
@@ -134,14 +134,10 @@ const handleRegistrySelect = async (item: Registry) => {
 };
 
 const testSpeed = async (item: Registry) => {
-  const start = Date.now();
   try {
-    // Try to fetch a small package info or just head request
-    await axios.get(`${item.url}react`, { timeout: 5000 });
-    const end = Date.now();
-    item.speed = end - start;
+    item.speed = await testRegistrySpeed(item.url);
   } catch (error) {
-    item.speed = -1; // Error
+    item.speed = -1;
   }
 };
 
