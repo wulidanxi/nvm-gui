@@ -2,7 +2,6 @@ import { existsSync, mkdirSync } from 'node:fs'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { app } from 'electron'
 import type { NvmManagerProvider, NvmManagerSource } from '../common/types'
 import type { CommandRunner } from './command-runner'
 import { DEFAULT_COMMAND_TIMEOUT_MS } from './command-runner'
@@ -15,6 +14,11 @@ import {
 } from './nvm-manager.shared'
 import { shellQuote } from './nvm-provider'
 
+export interface ElectronAppAdapter {
+  isPackaged: boolean
+  getPath: (name: 'userData') => string
+}
+
 // Installer logic is isolated because it is the main-process area most likely
 // to require elevation, filesystem writes, and remote downloads.
 export class NvmInstaller {
@@ -23,6 +27,7 @@ export class NvmInstaller {
     private readonly runner: CommandRunner,
     private readonly posixNvmDir: () => string,
     private readonly platform: NodeJS.Platform = process.platform,
+    private readonly appAdapter?: ElectronAppAdapter,
   ) {}
 
   public async install(
@@ -39,7 +44,7 @@ export class NvmInstaller {
 
   public getEmbeddedWindowsInstallerPath(): string | undefined {
     const packagedPath = join(process.resourcesPath, 'nvm-manager', managerAssetName('nvm-windows'))
-    if (app.isPackaged)
+    if (this.getElectronApp().isPackaged)
       return packagedPath
 
     return join(process.cwd(), 'resources', 'nvm-windows', managerAssetName('nvm-windows'))
@@ -112,10 +117,17 @@ export class NvmInstaller {
   }
 
   private getDownloadCacheDir(): string {
-    const basePath = app.getPath('userData')
+    const basePath = this.getElectronApp().getPath('userData')
     const target = join(basePath, 'nvm-manager-cache')
     mkdirSync(target, { recursive: true })
     return target
+  }
+
+  private getElectronApp(): ElectronAppAdapter {
+    if (!this.appAdapter)
+      throw new Error('Electron app adapter is required for installer filesystem paths')
+
+    return this.appAdapter
   }
 
   private async ensurePosixProfileFile(writeProfile: boolean): Promise<void> {

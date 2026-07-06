@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
+import { app } from 'electron'
 import type {
   InstalledNodeVersion,
   NodeReleaseSummary,
@@ -52,6 +53,7 @@ export class NvmManagerService {
       runner,
       () => this.getPosixNvmDir(),
       platform,
+      app,
     )
     this.releaseClient = new ReleaseClient(this.providerName)
   }
