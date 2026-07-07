@@ -1,17 +1,17 @@
 <template>
   <div class="project-detector">
-    <n-card title="项目版本检测" size="small">
+    <n-card :title="t('project.title')" size="small">
       <template #header-extra>
         <n-button size="small" type="primary" dashed @click="selectProject">
           <template #icon
             ><n-icon><FolderOpenOutline /></n-icon
           ></template>
-          选择项目文件夹
+          {{ t("project.selectFolder") }}
         </n-button>
       </template>
 
       <div v-if="!currentProject" class="empty-state">
-        <n-text depth="3">请选择一个包含 .nvmrc 文件的项目</n-text>
+        <n-text depth="3">{{ t("project.empty") }}</n-text>
       </div>
 
       <div v-else>
@@ -25,7 +25,7 @@
                 }}</n-text>
               </n-flex>
               <n-tag :type="currentProject.match ? 'success' : 'warning'">
-                需求版本 {{ currentProject.version }}
+                {{ t("project.requiredVersion", { version: currentProject.version }) }}
               </n-tag>
             </n-flex>
           </n-list-item>
@@ -36,11 +36,11 @@
             type="primary"
             @click="switchToVersion(currentProject.version)"
           >
-            切换到 {{ currentProject.version }}
+            {{ t("project.switchTo", { version: currentProject.version }) }}
           </n-button>
         </n-flex>
         <n-flex justify="end" class="mt-4" v-else>
-          <n-button type="success" secondary disabled>当前已匹配</n-button>
+          <n-button type="success" secondary disabled>{{ t("project.matched") }}</n-button>
         </n-flex>
       </div>
     </n-card>
@@ -66,10 +66,12 @@ import {
   listInstalledNodeVersions,
   openDirectoryDialog,
 } from "@render/api";
+import { useI18n } from "@render/i18n";
 import { useNvmOperations } from "@render/utils/useNvmOperations";
 
 const message = useMessage();
 const nvmOperations = useNvmOperations();
+const { t } = useI18n();
 
 interface ProjectInfo {
   name: string;
@@ -87,7 +89,7 @@ const selectProject = async () => {
       await analyzeProject(path);
     }
   } catch (error) {
-    message.error("无法打开文件选择器");
+    message.error(t("project.openFailed"));
     console.error(error);
   }
 };
@@ -96,7 +98,7 @@ const analyzeProject = async (path: string) => {
   try {
     const version = await checkNvmrc(path);
     if (!version) {
-      message.warning("该目录没有 .nvmrc 文件");
+      message.warning(t("project.noNvmrc"));
       currentProject.value = null;
       return;
     }
@@ -113,13 +115,13 @@ const analyzeProject = async (path: string) => {
       : false;
 
     currentProject.value = {
-      name: path.split("\\").pop() || "Project",
+      name: path.split("\\").pop() || t("project.defaultName"),
       path: path,
       version: requiredVersion,
       match: match,
     };
   } catch (error) {
-    message.error("解析项目失败");
+    message.error(t("project.parseFailed"));
     console.error(error);
   }
 };
@@ -127,7 +129,7 @@ const analyzeProject = async (path: string) => {
 const switchToVersion = async (version: string) => {
   try {
     await nvmOperations.use(version);
-    message.success(`已切换到 ${version}`);
+    message.success(t("project.switchSuccess", { version }));
     if (currentProject.value) {
       currentProject.value.match = true;
     }
@@ -137,19 +139,19 @@ const switchToVersion = async (version: string) => {
       error.toString().includes("exit code")
     ) {
       // If switching fails because the version is missing, install it and retry once.
-      message.error(`切换失败，尝试安装 ${version}...`);
+      message.error(t("project.switchFailedTryInstall", { version }));
       try {
         await nvmOperations.install(version);
         await nvmOperations.use(version);
-        message.success(`安装并切换到 ${version} 成功`);
+        message.success(t("project.installSwitchSuccess", { version }));
         if (currentProject.value) {
           currentProject.value.match = true;
         }
       } catch (installError) {
-        message.error(`安装失败：${installError}`);
+        message.error(t("project.installFailed", { message: String(installError) }));
       }
     } else {
-      message.error(`切换失败：${error}`);
+      message.error(t("project.switchFailed", { message: String(error) }));
     }
   }
 };

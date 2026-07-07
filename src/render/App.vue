@@ -2,17 +2,27 @@
 import { computed } from 'vue'
 import {
   darkTheme,
+  dateEnUS,
+  dateZhCN,
+  enUS,
   NConfigProvider,
   NDialogProvider,
   NMessageProvider,
+  zhCN,
 } from 'naive-ui'
 import type { GlobalThemeOverrides } from 'naive-ui'
 import { getThemeAccent, useThemeStore } from '@render/stores/ThemeStore'
+import { useLocaleStore } from '@render/stores/LocaleStore'
 import useMessageComponents from '@render/components/useMessageComponents.vue'
 
 const store = useThemeStore()
+const localeStore = useLocaleStore()
 
 const theme = computed(() => store.theme === 'dark' ? darkTheme : null)
+
+const naiveLocale = computed(() => localeStore.locale === 'zh-CN' ? zhCN : enUS)
+
+const naiveDateLocale = computed(() => localeStore.locale === 'zh-CN' ? dateZhCN : dateEnUS)
 
 const themeClass = computed(() => {
   return store.theme === 'dark' ? 'app-theme-dark' : 'app-theme-light'
@@ -91,7 +101,12 @@ const themeOverrides = computed<GlobalThemeOverrides>(() => {
 </script>
 
 <template>
-  <NConfigProvider :theme="theme" :theme-overrides="themeOverrides">
+  <NConfigProvider
+    :theme="theme"
+    :theme-overrides="themeOverrides"
+    :locale="naiveLocale"
+    :date-locale="naiveDateLocale"
+  >
     <div class="app-theme" :class="[themeClass, accentClass]" :style="themeStyle">
       <NMessageProvider>
         <NDialogProvider>

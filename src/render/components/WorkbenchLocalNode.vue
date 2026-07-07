@@ -8,6 +8,7 @@ import {
   SwapHorizontalOutline,
 } from "@vicons/ionicons5";
 import type { InstalledNodeVersion } from "@common/types";
+import { useI18n } from "@render/i18n";
 import { consumeNodeEnvDirty } from "@render/utils/nodeEnvDirty";
 import { useInstalledNodeVersions } from "@render/utils/useInstalledNodeVersions";
 import { useNvmOperations } from "@render/utils/useNvmOperations";
@@ -15,6 +16,7 @@ import { useNvmOperations } from "@render/utils/useNvmOperations";
 const { versions, loading, nvmMissing, currentVersion, refresh } =
   useInstalledNodeVersions();
 const nvmOperations = useNvmOperations();
+const { t } = useI18n();
 
 const keyword = ref("");
 const checkedRowKeysRef = ref<string[]>([]);
@@ -26,7 +28,7 @@ const pagination = {
 
 const tableScrollX = 760;
 
-const currentVersionLabel = computed(() => currentVersion.value || "未激活");
+const currentVersionLabel = computed(() => currentVersion.value || t("local.inactive"));
 
 const filteredData = computed(() => {
   const query = keyword.value.trim().toLowerCase();
@@ -39,27 +41,27 @@ const filteredData = computed(() => {
 
 const summaryItems = computed(() => [
   {
-    label: "已安装版本",
+    label: t("local.installedVersions"),
     value: String(versions.value.length),
   },
   {
-    label: "当前激活",
+    label: t("local.activeVersion"),
     value: currentVersionLabel.value,
   },
   {
-    label: "可清理版本",
+    label: t("local.removableVersions"),
     value: String(versions.value.filter((item) => !item.active).length),
   },
 ]);
 
-const titleField: DataTableColumns<InstalledNodeVersion> = [
+const titleField = computed<DataTableColumns<InstalledNodeVersion>>(() => [
   {
     type: "selection",
     multiple: false,
     width: 56,
   },
   {
-    title: "Node 版本",
+    title: t("local.nodeVersion"),
     key: "version",
     minWidth: 140,
     width: 150,
@@ -75,14 +77,14 @@ const titleField: DataTableColumns<InstalledNodeVersion> = [
                 round: true,
                 bordered: false,
               },
-              { default: () => "当前" },
+              { default: () => t("common.current") },
             )
           : null,
       ]);
     },
   },
   {
-    title: "状态",
+    title: t("common.status"),
     key: "active",
     width: 150,
     render(row) {
@@ -94,13 +96,13 @@ const titleField: DataTableColumns<InstalledNodeVersion> = [
           bordered: false,
         },
         {
-          default: () => (row.active ? "当前环境" : "可切换"),
+          default: () => (row.active ? t("common.currentEnvironment") : t("local.switchable")),
         },
       );
     },
   },
   {
-    title: "操作",
+    title: t("common.action"),
     key: "action",
     width: 100,
     render(row) {
@@ -116,11 +118,11 @@ const titleField: DataTableColumns<InstalledNodeVersion> = [
           loading: busyVersion === row.version,
           onClick: () => uninstallNode(row),
         },
-        { default: () => (row.active ? "使用中" : "卸载") },
+        { default: () => (row.active ? t("local.inUse") : t("common.uninstall")) },
       );
     },
   },
-];
+]);
 
 onMounted(() => {
   detail();
@@ -133,10 +135,10 @@ onActivated(() => {
 async function uninstallNode(row: InstalledNodeVersion) {
   try {
     await nvmOperations.uninstall(row.version);
-    window.$message.success(`成功卸载 Node.js ${row.version}`);
+    window.$message.success(t("local.uninstallSuccess", { version: row.version }));
     await detail();
   } catch (error: any) {
-    window.$message.error(`卸载失败：${error.message || "未知错误"}`);
+    window.$message.error(t("local.uninstallFailed", { message: error.message || t("common.failedUnknown") }));
   }
 }
 
@@ -147,10 +149,10 @@ async function detail(showSuccess = false) {
       .filter((item) => item.active)
       .map((item) => item.version);
 
-    if (showSuccess) window.$message.success("刷新成功");
+    if (showSuccess) window.$message.success(t("common.refreshSuccess"));
   } catch (error: any) {
     window.$message.error(
-      `获取 Node.js 列表失败：${error.message || "未知错误"}`,
+      t("local.listFailed", { message: error.message || t("common.failedUnknown") }),
     );
     console.error(error);
   }
@@ -162,10 +164,10 @@ async function handleCheck(rowKeys: string[]) {
 
   try {
     await nvmOperations.use(String(targetVersion));
-    window.$message.success(`已切换到 Node.js ${targetVersion}`);
+    window.$message.success(t("local.switchSuccess", { version: String(targetVersion) }));
     await detail();
   } catch (error: any) {
-    window.$message.error(`切换失败：${error.message || "未知错误"}`);
+    window.$message.error(t("local.switchFailed", { message: error.message || t("common.failedUnknown") }));
     await detail();
   }
 }
@@ -175,23 +177,23 @@ async function handleCheck(rowKeys: string[]) {
   <div class="app-page local-page">
     <div class="page-heading">
       <div>
-        <div class="page-kicker">本地运行时</div>
-        <h1 class="page-title">本地 Node 环境</h1>
+        <div class="page-kicker">{{ t("local.kicker") }}</div>
+        <h1 class="page-title">{{ t("local.title") }}</h1>
         <div class="page-description">
-          管理已安装的 Node.js 版本，选择行即可切换当前运行时。
+          {{ t("local.description") }}
         </div>
       </div>
       <n-button :loading="loading" @click="detail(true)">
         <template #icon>
           <n-icon><RefreshOutline /></n-icon>
         </template>
-        刷新
+        {{ t("common.refresh") }}
       </n-button>
     </div>
 
     <div class="page-scroll-body">
       <n-alert v-if="nvmMissing" type="warning" class="page-alert">
-        未检测到 NVM 管理器，请先到设置中心的 NVM 管理器中安装。
+        {{ t("local.nvmMissingAlert") }}
       </n-alert>
 
       <section class="summary-grid">
@@ -210,7 +212,7 @@ async function handleCheck(rowKeys: string[]) {
         <n-input
           v-model:value="keyword"
           clearable
-          placeholder="搜索版本号，例如 22 或 20.11"
+          :placeholder="t('local.searchPlaceholder')"
         >
           <template #prefix>
             <n-icon><SearchOutline /></n-icon>
@@ -220,7 +222,7 @@ async function handleCheck(rowKeys: string[]) {
           <template #icon>
             <n-icon><SwapHorizontalOutline /></n-icon>
           </template>
-          当前 {{ currentVersionLabel }}
+          {{ t("local.currentLabel", { version: currentVersionLabel }) }}
         </n-tag>
       </div>
 

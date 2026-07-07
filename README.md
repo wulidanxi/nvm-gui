@@ -5,22 +5,9 @@
 ![GitHub License](https://img.shields.io/github/license/wulidanxi/nvm-gui) ![GitHub Release](https://img.shields.io/github/v/release/wulidanxi/nvm-gui)
 ![CI](https://github.com/wulidanxi/nvm-gui/actions/workflows/ci.yml/badge.svg?branch=main)
 
-当前版本：`0.0.9`
+当前版本：`0.0.9.5`
 
 # ⚡ NVM GUI（Vite + Vue + Electron）
-
-## v0.0.9 架构分层与稳定性优化
-
-- 主进程拆分为命令执行、NVM Provider、安装器、Release Client 和 facade 服务，降低页面与系统命令的耦合。
-- IPC 和 preload API 收口为结构化 DTO，renderer 不再解析原始 `nvm` 输出。
-- 本地版本、可安装版本和设置相关页面恢复为中文文案，并修复若干乱码提示。
-- Windows 打包资源版本固定为 `0.0.9.0`，避免 `rcedit` 写入非法版本号失败。
-
-## v0.0.8b 跨平台打包修正
-
-- macOS 打包显式覆盖 Intel `x64` 和 Apple Silicon `arm64`。
-- Linux `.deb` 打包补充 maintainer 元数据，避免 CI 构建失败。
-- 三平台发布流程继续产出 Windows、macOS、Linux 安装包。
 
 一个专注于 Node.js 版本管理的桌面图形工具。集成 NVM 常用操作，并提供更贴近开发者工作流的能力。
 
@@ -30,6 +17,7 @@
 - 全局包迁移助手：读取当前版本的全局包，批量安装到目标版本
 - 项目版本检测：识别 `.nvmrc`，检测是否匹配，一键安装/切换
 - 主题与基础布局：基于 Naive UI，支持暗色与浅色主题
+- 多语言界面：支持中英文切换，并跟随用户偏好持久化保存
 
 ## 环境要求
 
@@ -66,7 +54,7 @@ npm run build:linux
 ## 下载与发布
 
 - 最新安装包下载：在 GitHub Releases 页面（基于 tag 的自动发布）
-- 推送发布：创建符合语义化的 tag（例如 `v0.0.9`），CI 会自动构建并附加三平台安装包
+- 推送发布：创建符合语义化的 tag（例如 `v0.0.9.5`），CI 会自动构建并附加三平台安装包
 
 ## 常见问题
 

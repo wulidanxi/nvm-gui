@@ -8,73 +8,90 @@ import {
   SwapHorizontalOutline,
 } from "@vicons/ionicons5";
 import { currentNvmManagerVersion, nvmCurrent } from "@render/api";
+import { useI18n } from "@render/i18n";
 
 const router = useRouter();
-const nodeVersion = ref("检测中");
-const nvmManagerVersion = ref("检测中");
+const { t } = useI18n();
+
+const nodeStatus = ref<"loading" | "missing" | "ready">("loading");
+const nvmStatus = ref<"loading" | "missing" | "ready">("loading");
+const nodeVersion = ref("");
+const nvmManagerVersion = ref("");
 const electronVersion = ref("");
 
-const nodeReady = computed(() => !["检测中", "NVM 未安装"].includes(nodeVersion.value));
-const nvmReady = computed(() => !["检测中", "未安装"].includes(nvmManagerVersion.value));
+const nodeReady = computed(() => nodeStatus.value === "ready");
+const nvmReady = computed(() => nvmStatus.value === "ready");
+const nodeVersionLabel = computed(() => {
+  if (nodeStatus.value === "loading") return t("common.loading");
+  if (nodeStatus.value === "missing") return t("common.nvmMissing");
+  return nodeVersion.value;
+});
+const nvmManagerVersionLabel = computed(() => {
+  if (nvmStatus.value === "loading") return t("common.loading");
+  if (nvmStatus.value === "missing") return t("common.unavailable");
+  return nvmManagerVersion.value;
+});
 
 const healthItems = computed(() => [
   {
-    label: "Node 运行时",
-    value: nodeVersion.value,
+    label: t("dashboard.nodeRuntime"),
+    value: nodeVersionLabel.value,
     ready: nodeReady.value,
   },
   {
-    label: "NVM 管理器",
-    value: nvmManagerVersion.value,
+    label: t("dashboard.nvmManager"),
+    value: nvmManagerVersionLabel.value,
     ready: nvmReady.value,
   },
   {
-    label: "桌面运行壳",
+    label: t("dashboard.desktopRuntime"),
     value: `Electron ${electronVersion.value || "-"}`,
     ready: Boolean(electronVersion.value),
   },
 ]);
 
-const quickActions = [
+const quickActions = computed(() => [
   {
-    title: "管理本地版本",
-    description: "切换当前 Node，清理不再使用的版本。",
+    title: t("dashboard.manageLocalTitle"),
+    description: t("dashboard.manageLocalDescription"),
     path: "/local",
     icon: SwapHorizontalOutline,
   },
   {
-    title: "安装新版本",
-    description: "查看 Node 发行记录并安装推荐版本。",
+    title: t("dashboard.installNewTitle"),
+    description: t("dashboard.installNewDescription"),
     path: "/available",
     icon: CloudDownloadOutline,
   },
   {
-    title: "项目版本检测",
-    description: "读取项目 .nvmrc，快速切换到匹配版本。",
+    title: t("dashboard.projectDetectorTitle"),
+    description: t("dashboard.projectDetectorDescription"),
     path: "/setting",
     icon: CodeSlashOutline,
   },
   {
-    title: "NVM 管理器",
-    description: "检测、安装或升级底层 NVM 管理器。",
+    title: t("dashboard.nvmManager"),
+    description: t("dashboard.nvmManagerDescription"),
     path: "/setting",
     icon: SettingsOutline,
   },
-];
+]);
 
 async function getCurrentNodeVersion() {
   try {
     nodeVersion.value = await nvmCurrent();
+    nodeStatus.value = "ready";
   } catch {
-    nodeVersion.value = "NVM 未安装";
+    nodeStatus.value = "missing";
   }
 }
 
 async function getNvmManagerVersion() {
   try {
     nvmManagerVersion.value = await currentNvmManagerVersion();
+    nvmStatus.value = "ready";
   } catch {
-    nvmManagerVersion.value = "未安装";
+    nvmStatus.value = "missing";
   }
 }
 
@@ -94,38 +111,38 @@ onMounted(() => {
   <div class="app-page dashboard-page">
     <div class="page-heading">
       <div>
-        <div class="page-kicker">工作台概览</div>
-        <h1 class="page-title">Node 环境工作台</h1>
+        <div class="page-kicker">{{ t("dashboard.kicker") }}</div>
+        <h1 class="page-title">{{ t("dashboard.title") }}</h1>
         <div class="page-description">
-          汇总当前 Node、NVM 和桌面运行状态，把常用操作放在第一屏。
+          {{ t("dashboard.description") }}
         </div>
       </div>
       <n-button type="primary" @click="openAction('/available')">
         <template #icon>
           <n-icon><CloudDownloadOutline /></n-icon>
         </template>
-        安装 Node 版本
+        {{ t("dashboard.installNode") }}
       </n-button>
     </div>
 
     <div class="page-scroll-body">
       <section class="hero-panel">
       <div class="hero-copy">
-        <div class="hero-eyebrow">当前运行时</div>
-        <div class="hero-version">{{ nodeVersion }}</div>
+        <div class="hero-eyebrow">{{ t("dashboard.currentRuntime") }}</div>
+        <div class="hero-version">{{ nodeVersionLabel }}</div>
         <div class="hero-subtitle">
-          {{ nodeReady ? "当前 Node 环境已就绪" : "需要先安装或配置 NVM 管理器" }}
+          {{ nodeReady ? t("dashboard.runtimeReady") : t("dashboard.runtimeNeedsNvm") }}
         </div>
       </div>
       <div class="hero-status">
         <n-tag :type="nodeReady ? 'success' : 'warning'" round :bordered="false">
-          {{ nodeReady ? "已就绪" : "待处理" }}
+          {{ nodeReady ? t("common.ready") : t("common.pending") }}
         </n-tag>
       </div>
       </section>
 
       <section class="dashboard-grid">
-      <n-card class="panel-card" :bordered="false" title="环境健康">
+      <n-card class="panel-card" :bordered="false" :title="t('dashboard.healthTitle')">
         <div class="health-list">
           <div
             v-for="item in healthItems"
@@ -145,13 +162,13 @@ onMounted(() => {
               :bordered="false"
               :type="item.ready ? 'success' : 'warning'"
             >
-              {{ item.ready ? "正常" : "待处理" }}
+              {{ item.ready ? t("common.success") : t("common.pending") }}
             </n-tag>
           </div>
         </div>
       </n-card>
 
-      <n-card class="panel-card" :bordered="false" title="快捷操作">
+      <n-card class="panel-card" :bordered="false" :title="t('dashboard.quickActionsTitle')">
         <div class="action-grid">
           <button
             v-for="item in quickActions"

@@ -1,15 +1,21 @@
 <template>
   <div class="general-settings">
     <n-card :bordered="false" size="small">
-      <n-form label-placement="left" label-width="auto">
-        <n-form-item label="外观模式：">
+      <n-form label-placement="top" label-width="auto">
+        <n-form-item :label="t('appearance.mode')">
           <n-select
             v-model:value="selectedTheme"
             :options="themeOptions"
-            placeholder="选择外观模式"
+            :placeholder="t('appearance.modePlaceholder')"
           />
         </n-form-item>
-        <n-form-item label="主题色：">
+        <n-form-item :label="t('common.language')">
+          <n-select
+            v-model:value="selectedLocale"
+            :options="localeOptions"
+          />
+        </n-form-item>
+        <n-form-item :label="t('appearance.accent')">
           <div class="accent-grid">
             <button
               v-for="item in themeAccentOptions"
@@ -36,8 +42,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { NCard, NForm, NFormItem, NSelect } from "naive-ui";
+import { localeOptions, useI18n } from "@render/i18n";
+import { type AppLocale, useLocaleStore } from "@render/stores/LocaleStore";
 import {
   themeAccentOptions,
   type ThemeAccentKey,
@@ -45,15 +53,18 @@ import {
   useThemeStore,
 } from "@render/stores/ThemeStore";
 
-const themeOptions = [
-  { label: "亮色", value: "light" },
-  { label: "暗色", value: "dark" },
-];
-
 const store = useThemeStore();
+const localeStore = useLocaleStore();
+const { t } = useI18n();
+
+const themeOptions = computed(() => [
+  { label: t("appearance.light"), value: "light" },
+  { label: t("appearance.dark"), value: "dark" },
+]);
 
 const selectedTheme = ref<ThemeMode>(store.theme || "light");
 const selectedAccent = ref<ThemeAccentKey>(store.accent || "node-green");
+const selectedLocale = ref<AppLocale>(localeStore.locale);
 
 watch(() => store.theme, (value) => {
   selectedTheme.value = value;
@@ -63,9 +74,14 @@ watch(() => store.accent, (value) => {
   selectedAccent.value = value;
 });
 
+watch(() => localeStore.locale, (value) => {
+  selectedLocale.value = value;
+});
+
 const saveSettings = () => {
   store.setThemeMode(selectedTheme.value);
   store.setAccent(selectedAccent.value);
+  localeStore.setLocale(selectedLocale.value);
 };
 
 defineExpose({
@@ -83,9 +99,15 @@ defineExpose({
   min-width: 0;
 }
 
+.general-settings :deep(.n-form-item-label) {
+  min-width: 0;
+  line-height: 1.35;
+  white-space: normal;
+}
+
 .accent-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
   gap: 10px;
   width: 100%;
   min-width: 0;
@@ -135,18 +157,20 @@ defineExpose({
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .accent-label {
   font-size: 13px;
   font-weight: 750;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .accent-value {
   margin-top: 2px;
   color: var(--app-text-muted);
   font-size: 12px;
+  white-space: nowrap;
 }
 
 @media (max-width: 760px) {

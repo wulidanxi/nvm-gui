@@ -2,10 +2,10 @@
   <div class="advanced-settings">
     <n-card :bordered="false" size="small">
       <n-form label-placement="left" label-width="auto">
-        <n-form-item label="Node.js 数据源：">
+        <n-form-item :label="t('advanced.nodeSource')">
           <n-input
             v-model:value="nodejsUrl"
-            placeholder="请输入 Node.js 数据源"
+            :placeholder="t('advanced.nodeSourcePlaceholder')"
             @blur="validateUrl"
           />
         </n-form-item>
@@ -23,11 +23,13 @@
 import { ref } from 'vue'
 import { NCard, NDialogProvider, NForm, NFormItem, NInput, NMessageProvider } from 'naive-ui'
 import useMessageComponents from '@render/components/useMessageComponents.vue'
+import { useI18n } from '@render/i18n'
 import { useNodeURLStore } from '@render/stores/NodeURLStore'
 
 const store = useNodeURLStore()
 const nodejsUrl = ref<string>(store.nodeUrl)
 const message = window.$message
+const { t } = useI18n()
 
 // Keep invalid release sources out of the persisted store.
 function validateUrl() {
@@ -36,7 +38,7 @@ function validateUrl() {
   if (urlPattern.test(nodejsUrl.value))
     return
 
-  message.error('请输入有效的网址格式')
+  message.error(t('advanced.invalidUrl'))
   nodejsUrl.value = store.nodeUrl
 }
 

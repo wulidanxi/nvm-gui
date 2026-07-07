@@ -8,6 +8,7 @@ import {
   SettingsOutline,
   TerminalOutline,
 } from "@vicons/ionicons5";
+import { useI18n } from "@render/i18n";
 import GeneralSettings from "./Setting/GeneralAppearanceSettings.vue";
 import AdvancedSettings from "./Setting/AdvancedSettings.vue";
 import NvmManager from "./Setting/NvmManager.vue";
@@ -22,54 +23,55 @@ interface SettingsExpose {
 const activeKey = ref("general");
 const generalSettingsRef = ref<SettingsExpose | null>(null);
 const advancedSettingsRef = ref<SettingsExpose | null>(null);
+const { t } = useI18n();
 
-const settingGroups = [
+const settingGroups = computed(() => [
   {
     key: "general",
-    label: "通用",
-    description: "主题与基础偏好",
+    label: t("settings.general"),
+    description: t("settings.generalDescription"),
     icon: SettingsOutline,
   },
   {
     key: "advanced",
-    label: "高级",
-    description: "Node 数据源",
+    label: t("settings.advanced"),
+    description: t("settings.advancedDescription"),
     icon: BuildOutline,
   },
   {
     key: "registry",
-    label: "NPM 源管理",
-    description: "测速与切换镜像源",
+    label: t("settings.registry"),
+    description: t("settings.registryDescription"),
     icon: GlobeOutline,
   },
   {
     key: "migration",
-    label: "全局包迁移",
-    description: "迁移当前全局包",
+    label: t("settings.migration"),
+    description: t("settings.migrationDescription"),
     icon: GitCompareOutline,
   },
   {
     key: "project",
-    label: "项目检测",
-    description: "读取 .nvmrc",
+    label: t("settings.project"),
+    description: t("settings.projectDescription"),
     icon: CodeSlashOutline,
   },
   {
     key: "nvm-manager",
-    label: "NVM 管理器",
-    description: "检测、安装与升级",
+    label: t("settings.nvmManager"),
+    description: t("settings.nvmManagerDescription"),
     icon: TerminalOutline,
   },
-];
+]);
 
 const activeGroup = computed(() => {
-  return settingGroups.find((item) => item.key === activeKey.value) || settingGroups[0];
+  return settingGroups.value.find((item) => item.key === activeKey.value) || settingGroups.value[0];
 });
 
 function saveAllSettings() {
   generalSettingsRef.value?.saveSettings?.();
   advancedSettingsRef.value?.saveSettings?.();
-  window.$message.success("设置已保存");
+  window.$message.success(t("common.settingsSaved"));
 }
 </script>
 
@@ -77,10 +79,10 @@ function saveAllSettings() {
   <div class="app-page setting-page">
     <div class="page-heading">
       <div>
-        <div class="page-kicker">Settings</div>
-        <h1 class="page-title">设置中心</h1>
+        <div class="page-kicker">{{ t("settings.kicker") }}</div>
+        <h1 class="page-title">{{ t("settings.title") }}</h1>
         <div class="page-description">
-          把源管理、项目检测、全局包迁移和 NVM 管理器集中到一个工作区。
+          {{ t("settings.description") }}
         </div>
       </div>
     </div>
@@ -106,7 +108,7 @@ function saveAllSettings() {
       <main class="settings-panel panel-card">
         <header class="settings-panel-header">
           <div>
-            <div class="settings-panel-kicker">配置项</div>
+            <div class="settings-panel-kicker">{{ t("settings.panelKicker") }}</div>
             <h2>{{ activeGroup.label }}</h2>
           </div>
           <n-tag round :bordered="false">{{ activeGroup.description }}</n-tag>
@@ -128,8 +130,8 @@ function saveAllSettings() {
         </div>
 
         <footer class="settings-footer">
-          <span class="text-muted">通用和高级设置需要点击保存后生效。</span>
-          <n-button type="primary" @click="saveAllSettings">保存设置</n-button>
+          <span class="text-muted">{{ t("settings.footerHint") }}</span>
+          <n-button type="primary" @click="saveAllSettings">{{ t("common.saveSettings") }}</n-button>
         </footer>
       </main>
     </section>

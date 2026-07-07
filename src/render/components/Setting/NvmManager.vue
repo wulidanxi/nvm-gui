@@ -1,43 +1,43 @@
 <template>
   <div class="nvm-manager-settings">
-    <n-card :bordered="false" size="small" title="NVM 管理器">
+    <n-card :bordered="false" size="small" :title="t('nvmManager.title')">
       <n-space vertical size="large">
         <n-alert v-if="status && !status.installed" type="warning" :show-icon="true">
-          当前未检测到 NVM 管理器，可在此安装后继续管理 Node.js 版本。
+          {{ t("nvmManager.missingAlert") }}
         </n-alert>
 
         <n-descriptions v-if="status" :column="1" bordered size="small">
-          <n-descriptions-item label="平台">
+          <n-descriptions-item :label="t('nvmManager.platform')">
             {{ status.platform }}
           </n-descriptions-item>
-          <n-descriptions-item label="管理器">
+          <n-descriptions-item :label="t('nvmManager.manager')">
             {{ status.provider }}
           </n-descriptions-item>
-          <n-descriptions-item label="状态">
+          <n-descriptions-item :label="t('common.status')">
             <n-tag :type="status.installed ? 'success' : 'warning'">
-              {{ status.installed ? '已安装' : '未安装' }}
+              {{ status.installed ? t("common.installed") : t("common.unavailable") }}
             </n-tag>
           </n-descriptions-item>
-          <n-descriptions-item label="当前版本">
+          <n-descriptions-item :label="t('nvmManager.currentVersion')">
             {{ status.version || '-' }}
           </n-descriptions-item>
-          <n-descriptions-item label="安装路径">
+          <n-descriptions-item :label="t('nvmManager.installPath')">
             {{ managerPath }}
           </n-descriptions-item>
         </n-descriptions>
 
         <n-form label-placement="left" label-width="auto">
-          <n-form-item label="安装版本">
+          <n-form-item :label="t('nvmManager.installVersion')">
             <n-select
               v-model:value="selectedVersionKey"
               :options="versionSelectOptions"
               :loading="versionsLoading"
-              placeholder="选择 NVM 管理器版本"
+              :placeholder="t('nvmManager.versionPlaceholder')"
             />
           </n-form-item>
           <n-form-item
             v-if="status?.provider === 'nvm-sh'"
-            label="写入 shell profile"
+            :label="t('nvmManager.writeProfile')"
           >
             <n-switch v-model:value="writeProfile" />
           </n-form-item>
@@ -45,7 +45,7 @@
 
         <n-space>
           <n-button :loading="detecting" @click="loadStatus">
-            刷新状态
+            {{ t("nvmManager.refreshStatus") }}
           </n-button>
           <n-button
             type="primary"
@@ -53,7 +53,7 @@
             :loading="installing"
             @click="confirmInstall"
           >
-            {{ status?.installed ? '升级/重装管理器' : '安装管理器' }}
+            {{ status?.installed ? t("nvmManager.upgradeOrReinstall") : t("nvmManager.installManager") }}
           </n-button>
         </n-space>
       </n-space>
@@ -78,6 +78,7 @@ import {
 } from 'naive-ui'
 import type { SelectOption } from 'naive-ui'
 import type { NvmManagerStatus, NvmManagerVersionOption } from '@common/types'
+import { useI18n } from '@render/i18n'
 import {
   detectNvmManager,
   installNvmManager,
@@ -92,10 +93,11 @@ const writeProfile = ref(false)
 const detecting = ref(false)
 const versionsLoading = ref(false)
 const installing = ref(false)
+const { t } = useI18n()
 
 const versionSelectOptions = computed<SelectOption[]>(() => {
   return versions.value.map(item => ({
-    label: `${item.label}${item.recommended ? ' · 推荐' : ''}`,
+    label: `${item.label}${item.recommended ? ` ${t('nvmManager.recommended')}` : ''}`,
     value: optionKey(item),
   }))
 })
@@ -126,7 +128,7 @@ async function loadStatus() {
     status.value = await detectNvmManager()
   }
   catch (error: any) {
-    window.$message.error(`检测 NVM 管理器失败: ${error.message || '未知错误'}`)
+    window.$message.error(t('nvmManager.detectFailed', { message: error.message || t('common.failedUnknown') }))
   }
   finally {
     detecting.value = false
@@ -141,7 +143,7 @@ async function loadVersions() {
     selectedVersionKey.value = recommended ? optionKey(recommended) : null
   }
   catch (error: any) {
-    window.$message.error(`加载 NVM 管理器版本失败: ${error.message || '未知错误'}`)
+    window.$message.error(t('nvmManager.loadVersionsFailed', { message: error.message || t('common.failedUnknown') }))
   }
   finally {
     versionsLoading.value = false
@@ -158,10 +160,10 @@ function confirmInstall() {
   }
 
   window.$dialog.warning({
-    title: '确认安装',
-    content: '已检测到现有 NVM 管理器。继续操作会运行所选版本的安装/升级流程。',
-    positiveText: '继续',
-    negativeText: '取消',
+    title: t('nvmManager.confirmTitle'),
+    content: t('nvmManager.confirmContent'),
+    positiveText: t('nvmManager.continue'),
+    negativeText: t('common.cancel'),
     onPositiveClick: installSelectedVersion,
   })
 }
@@ -179,10 +181,10 @@ async function installSelectedVersion() {
       writeProfile: writeProfile.value,
     })
     markNodeEnvDirty()
-    window.$message.success(`NVM 管理器 ${target.version} 安装完成`)
+    window.$message.success(t('nvmManager.installSuccess', { version: target.version }))
   }
   catch (error: any) {
-    window.$message.error(`安装 NVM 管理器失败: ${error.message || '未知错误'}`)
+    window.$message.error(t('nvmManager.installFailed', { message: error.message || t('common.failedUnknown') }))
   }
   finally {
     installing.value = false

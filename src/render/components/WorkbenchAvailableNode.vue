@@ -8,6 +8,7 @@ import {
   SearchOutline,
 } from "@vicons/ionicons5";
 import type { NodeReleaseSummary } from "@common/types";
+import { useI18n } from "@render/i18n";
 import { useAvailableNodeReleases } from "@render/utils/useAvailableNodeReleases";
 import { useNvmOperations } from "@render/utils/useNvmOperations";
 
@@ -21,6 +22,7 @@ const {
   refresh,
 } = useAvailableNodeReleases();
 const nvmOperations = useNvmOperations();
+const { t } = useI18n();
 
 const pagination = {
   pageSize: 4,
@@ -31,22 +33,22 @@ const tableScrollX = 940;
 
 const summaryItems = computed(() => [
   {
-    label: "推荐世代",
+    label: t("available.recommendedMajors"),
     value: String(releases.value.length),
   },
   {
-    label: "已安装",
+    label: t("common.installed"),
     value: String(releases.value.filter((item) => item.installed).length),
   },
   {
-    label: "LTS",
+    label: t("available.lts"),
     value: String(releases.value.filter((item) => item.lts !== false).length),
   },
 ]);
 
-const availableColumns: DataTableColumns<NodeReleaseSummary> = [
+const availableColumns = computed<DataTableColumns<NodeReleaseSummary>>(() => [
   {
-    title: "Node 版本",
+    title: t("local.nodeVersion"),
     key: "version",
     minWidth: 140,
     render(row) {
@@ -56,14 +58,14 @@ const availableColumns: DataTableColumns<NodeReleaseSummary> = [
           ? h(
               NTag,
               { size: "small", type: "success", round: true, bordered: false },
-              { default: () => "已安装" },
+              { default: () => t("common.installed") },
             )
           : null,
       ]);
     },
   },
   {
-    title: "世代",
+    title: t("available.major"),
     key: "major",
     width: 140,
     render(row) {
@@ -76,7 +78,7 @@ const availableColumns: DataTableColumns<NodeReleaseSummary> = [
     width: 120,
   },
   {
-    title: "LTS",
+    title: t("available.lts"),
     key: "lts",
     width: 160,
     render(row) {
@@ -88,18 +90,18 @@ const availableColumns: DataTableColumns<NodeReleaseSummary> = [
           round: true,
         },
         {
-          default: () => (row.lts !== false ? row.lts : "非 LTS"),
+          default: () => (row.lts !== false ? row.lts : t("available.nonLts")),
         },
       );
     },
   },
   {
-    title: "发布日期",
+    title: t("available.releaseDate"),
     key: "date",
     width: 130,
   },
   {
-    title: "操作",
+    title: t("common.action"),
     key: "action",
     width: 150,
     fixed: "right",
@@ -117,19 +119,19 @@ const availableColumns: DataTableColumns<NodeReleaseSummary> = [
           loading: busyVersion === row.version,
           onClick: () => installNode(row),
         },
-        { default: () => (!row.installed ? "安装" : "已安装") },
+        { default: () => (!row.installed ? t("common.install") : t("common.installed")) },
       );
     },
   },
-];
+]);
 
 async function installNode(row: NodeReleaseSummary) {
   try {
     await nvmOperations.install(row.version);
-    window.$message.success(`Node.js ${row.version} 安装完成`);
+    window.$message.success(t("available.installSuccess", { version: row.version }));
     await initData();
   } catch (error: any) {
-    window.$message.error(`安装失败：${error.message || "未知错误"}`);
+    window.$message.error(t("available.installFailed", { message: error.message || t("common.failedUnknown") }));
   }
 }
 
@@ -138,7 +140,7 @@ async function initData() {
     await refresh();
   } catch (error: any) {
     window.$message.error(
-      `加载 Node.js 发行记录失败：${error.message || "未知错误"}`,
+      t("available.loadFailed", { message: error.message || t("common.failedUnknown") }),
     );
   }
 }
@@ -152,23 +154,23 @@ onBeforeMount(() => {
   <div class="app-page available-page">
     <div class="page-heading">
       <div>
-        <div class="page-kicker">Node 发行记录</div>
-        <h1 class="page-title">可安装版本</h1>
+        <div class="page-kicker">{{ t("available.kicker") }}</div>
+        <h1 class="page-title">{{ t("available.title") }}</h1>
         <div class="page-description">
-          按主要世代展示最新版本，快速安装 LTS 或当前版本。
+          {{ t("available.description") }}
         </div>
       </div>
       <n-button :loading="loading" @click="initData">
         <template #icon>
           <n-icon><RefreshOutline /></n-icon>
         </template>
-        刷新
+        {{ t("common.refresh") }}
       </n-button>
     </div>
 
     <div class="page-scroll-body">
       <n-alert v-if="nvmMissing" type="warning" class="page-alert">
-        未检测到 NVM 管理器，请先到设置中心的 NVM 管理器中安装。
+        {{ t("local.nvmMissingAlert") }}
       </n-alert>
 
       <section class="summary-grid">
@@ -187,7 +189,7 @@ onBeforeMount(() => {
         <n-input
           v-model:value="keyword"
           clearable
-          placeholder="搜索版本、世代或 LTS 代号"
+          :placeholder="t('available.searchPlaceholder')"
         >
           <template #prefix>
             <n-icon><SearchOutline /></n-icon>
@@ -195,7 +197,7 @@ onBeforeMount(() => {
         </n-input>
         <n-checkbox v-model:checked="ltsOnly">
           <n-icon><FilterOutline /></n-icon>
-          仅看 LTS
+          {{ t("available.ltsOnly") }}
         </n-checkbox>
       </div>
 

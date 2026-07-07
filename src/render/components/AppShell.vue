@@ -18,6 +18,7 @@ import {
   nvmVersion as getNvmCliVersion,
   openUrl,
 } from "@render/api";
+import { useI18n } from "@render/i18n";
 import { useThemeStore } from "@render/stores/ThemeStore";
 import logoIconBlack from "@render/assets/nvm-logo-color-avatar.png";
 import logoIconWhite from "@render/assets/nvm-logo-white.svg";
@@ -26,10 +27,14 @@ import config from "../../../package.json";
 const router = useRouter();
 const route = useRoute();
 const themeStore = useThemeStore();
+const { t } = useI18n();
 
 const showModal = ref(false);
-const currentNodeVersion = ref("检测中");
-const nvmManagerVersion = ref("检测中");
+const currentNodeStatus = ref<"loading" | "missing" | "ready">("loading");
+const nvmManagerStatus = ref<"loading" | "missing" | "ready">("loading");
+const nvmCliStatus = ref<"loading" | "missing" | "ready">("loading");
+const currentNodeVersion = ref("");
+const nvmManagerVersion = ref("");
 const nvmCliVersion = ref("");
 
 const version = config.version;
@@ -57,35 +62,53 @@ const electronVersionLabel = computed(() => {
   return `Electron ${window.nvmGui.system.electronVersion}`;
 });
 
-const navItems = [
+const currentNodeVersionLabel = computed(() => {
+  if (currentNodeStatus.value === "loading") return t("common.loading");
+  if (currentNodeStatus.value === "missing") return t("common.nvmMissing");
+  return currentNodeVersion.value;
+});
+
+const nvmManagerVersionLabel = computed(() => {
+  if (nvmManagerStatus.value === "loading") return t("common.loading");
+  if (nvmManagerStatus.value === "missing") return t("common.unavailable");
+  return nvmManagerVersion.value;
+});
+
+const nvmCliVersionLabel = computed(() => {
+  if (nvmCliStatus.value === "loading") return t("common.loading");
+  if (nvmCliStatus.value === "missing") return t("common.unavailable");
+  return nvmCliVersion.value;
+});
+
+const navItems = computed(() => [
   {
-    label: "工作台",
-    description: "环境总览",
+    label: t("nav.dashboard"),
+    description: t("nav.dashboardDescription"),
     path: "/dashboard",
     icon: GridOutline,
   },
   {
-    label: "本地版本",
-    description: "切换与卸载",
+    label: t("nav.local"),
+    description: t("nav.localDescription"),
     path: "/local",
     icon: AlbumsOutline,
   },
   {
-    label: "可安装版本",
-    description: "发行记录",
+    label: t("nav.available"),
+    description: t("nav.availableDescription"),
     path: "/available",
     icon: CloudDownloadOutline,
   },
   {
-    label: "设置中心",
-    description: "源、迁移、NVM",
+    label: t("nav.settings"),
+    description: t("nav.settingsDescription"),
     path: "/setting",
     icon: SettingsOutline,
   },
-];
+]);
 
 const activePath = computed(() => {
-  const current = navItems.find((item) => route.path.startsWith(item.path));
+  const current = navItems.value.find((item) => route.path.startsWith(item.path));
   return current?.path || "/dashboard";
 });
 
@@ -104,26 +127,29 @@ function onOpenPlugin() {
 }
 
 function onOpenOffice() {
-  window.$message.info("官方网站暂未配置");
+  window.$message.info(t("shell.officialSiteUnavailable"));
 }
 
 async function refreshRuntimeStatus() {
   try {
     currentNodeVersion.value = await nvmCurrent();
+    currentNodeStatus.value = "ready";
   } catch {
-    currentNodeVersion.value = "NVM 未安装";
+    currentNodeStatus.value = "missing";
   }
 
   try {
     nvmManagerVersion.value = await currentNvmManagerVersion();
+    nvmManagerStatus.value = "ready";
   } catch {
-    nvmManagerVersion.value = "未安装";
+    nvmManagerStatus.value = "missing";
   }
 
   try {
     nvmCliVersion.value = await getNvmCliVersion();
+    nvmCliStatus.value = "ready";
   } catch {
-    nvmCliVersion.value = "未检测到";
+    nvmCliStatus.value = "missing";
   }
 }
 
@@ -139,11 +165,11 @@ onMounted(() => {
         <img class="brand-logo" :src="logoIcon" alt="NVM GUI" />
         <div>
           <div class="brand-title">NVM GUI</div>
-          <div class="brand-subtitle">Node 环境工作台</div>
+          <div class="brand-subtitle">{{ t("shell.brandSubtitle") }}</div>
         </div>
       </div>
 
-      <nav class="nav-list" aria-label="主导航">
+      <nav class="nav-list" :aria-label="t('shell.navLabel')">
         <button
           v-for="item in navItems"
           :key="item.path"
@@ -166,8 +192,8 @@ onMounted(() => {
         <div class="runtime-mini">
           <div class="status-dot" />
           <div>
-            <div class="runtime-mini-label">当前 Node</div>
-            <div class="runtime-mini-value">{{ currentNodeVersion }}</div>
+            <div class="runtime-mini-label">{{ t("common.currentNode") }}</div>
+            <div class="runtime-mini-value">{{ currentNodeVersionLabel }}</div>
           </div>
         </div>
       </div>
@@ -180,7 +206,7 @@ onMounted(() => {
             {{ systemVersionLabel }}
           </n-tag>
           <n-tag class="runtime-tag" round :bordered="false">
-            NVM {{ nvmManagerVersion }}
+            NVM {{ nvmManagerVersionLabel }}
           </n-tag>
           <n-tag class="runtime-tag" round :bordered="false">
             {{ electronVersionLabel }}
@@ -196,7 +222,7 @@ onMounted(() => {
                 </template>
               </n-button>
             </template>
-            源码仓库
+            {{ t("shell.sourceRepo") }}
           </n-tooltip>
 
           <n-tooltip trigger="hover">
@@ -207,7 +233,7 @@ onMounted(() => {
                 </template>
               </n-button>
             </template>
-            关于
+            {{ t("shell.about") }}
           </n-tooltip>
 
           <div class="theme-switch">
@@ -240,22 +266,22 @@ onMounted(() => {
         <div class="about-app-title">Node Version Manager GUI</div>
         <n-space :size="6" align="center">
           <n-icon color="var(--app-accent)"><LogoNodejs /></n-icon>
-          <n-text depth="3">让 Node 版本管理更像一个顺手的桌面工具</n-text>
+          <n-text depth="3">{{ t("shell.tagline") }}</n-text>
         </n-space>
         <n-space :size="6" justify="space-between">
-          <n-text>管理器版本:</n-text>
+          <n-text>{{ t("shell.managerVersion") }}</n-text>
           <n-text class="about-link" @click="onOpenPlugin">
-            {{ nvmCliVersion || nvmManagerVersion }}
+            {{ nvmCliVersionLabel || nvmManagerVersionLabel }}
           </n-text>
         </n-space>
         <n-space :size="6" justify="space-between">
-          <n-text>软件版本:</n-text>
+          <n-text>{{ t("shell.appVersion") }}</n-text>
           <n-text>{{ version }}</n-text>
         </n-space>
         <n-space :size="6" justify="center">
-          <n-text class="about-link" @click="onOpenSource">源码地址</n-text>
+          <n-text class="about-link" @click="onOpenSource">{{ t("shell.sourceAddress") }}</n-text>
           <n-divider vertical />
-          <n-text class="about-link" @click="onOpenOffice">官方网站</n-text>
+          <n-text class="about-link" @click="onOpenOffice">{{ t("shell.officialSite") }}</n-text>
           <n-divider vertical />
           <n-text class="about-link" @click="onOpenPlugin">NVM Windows</n-text>
         </n-space>

@@ -1,6 +1,6 @@
 <template>
   <div class="registry-manager">
-    <n-card title="NPM 源管理" size="small">
+    <n-card :title="t('registry.title')" size="small">
       <template #header-extra>
         <n-button
           size="small"
@@ -11,7 +11,7 @@
           <template #icon
             ><n-icon><SpeedometerOutline /></n-icon
           ></template>
-          全量测速
+          {{ t("registry.testAll") }}
         </n-button>
       </template>
 
@@ -78,6 +78,7 @@ import {
 } from "naive-ui";
 import { SpeedometerOutline, RefreshOutline } from "@vicons/ionicons5";
 import { getNpmRegistry, setNpmRegistry, testRegistrySpeed } from "@render/api";
+import { useI18n } from "@render/i18n";
 
 export interface Registry {
   name: string;
@@ -86,6 +87,7 @@ export interface Registry {
 }
 
 const message = useMessage();
+const { t } = useI18n();
 const loading = ref(false);
 const testingAll = ref(false);
 const currentRegistry = ref("");
@@ -111,7 +113,7 @@ const fetchCurrentRegistry = async () => {
       currentRegistry.value = registry.trim();
     }
   } catch (error) {
-    message.error("无法获取当前 NPM 源");
+    message.error(t("registry.fetchFailed"));
     console.error(error);
   } finally {
     loading.value = false;
@@ -125,9 +127,9 @@ const handleRegistrySelect = async (item: Registry) => {
   try {
     await setNpmRegistry(item.url);
     currentRegistry.value = item.url;
-    message.success(`已切换至 ${item.name} 源`);
+    message.success(t("registry.switchSuccess", { name: item.name }));
   } catch (error) {
-    message.error(`切换源失败: ${error}`);
+    message.error(t("registry.switchFailed", { message: String(error) }));
   } finally {
     loading.value = false;
   }
