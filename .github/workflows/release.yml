@@ -1,13 +1,16 @@
 name: Release
 
+# Tag releases are handled by ci.yml, which runs validation before its single
+# release job. Keep this legacy workflow manual-only to avoid duplicate uploads.
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
 
 jobs:
   build_release_windows:
     runs-on: windows-latest
+    env:
+      # Only create the GitHub Release after all three platform artifacts are ready.
+      ELECTRON_BUILDER_PUBLISH: never
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,9 +32,12 @@ jobs:
           path: |
             dist/electron/*.exe
             dist/electron/*.exe.blockmap
+            dist/electron/latest*.yml
 
   build_release_macos:
     runs-on: macos-latest
+    env:
+      ELECTRON_BUILDER_PUBLISH: never
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -53,9 +59,12 @@ jobs:
           path: |
             dist/electron/*.dmg
             dist/electron/*.zip
+            dist/electron/latest*.yml
 
   build_release_linux:
     runs-on: ubuntu-latest
+    env:
+      ELECTRON_BUILDER_PUBLISH: never
     steps:
       - uses: actions/checkout@v4
       - name: Install Linux packaging dependencies
@@ -81,6 +90,7 @@ jobs:
           path: |
             dist/electron/*.AppImage
             dist/electron/*.deb
+            dist/electron/latest*.yml
 
   create_release:
     runs-on: ubuntu-latest
@@ -117,6 +127,7 @@ jobs:
             dist/electron/*.zip
             dist/electron/*.AppImage
             dist/electron/*.deb
+            dist/electron/latest*.yml
           body_path: CHANGELOG_RELEASE.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
