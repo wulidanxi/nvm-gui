@@ -1,6 +1,5 @@
-import { resolve4, resolve6 } from 'node:dns'
+import { lookup } from 'node:dns'
 import { isIP, isIPv6 } from 'node:net'
-import util from 'node:util'
 import type {
   InstalledNodeVersion,
   NodeReleaseSummary,
@@ -13,8 +12,6 @@ import {
   releaseTagsToOptions,
 } from './nvm-manager.shared'
 
-const resolve4Async = util.promisify(resolve4)
-const resolve6Async = util.promisify(resolve6)
 export const DEFAULT_NODE_RELEASE_ORIGINS = ['https://nodejs.org', 'https://npmmirror.com']
 
 // Keeps remote metadata access in the main process. Renderer code receives
@@ -199,16 +196,20 @@ async function parseJson<T>(response: Response): Promise<T> {
 }
 
 async function resolvePublicAddresses(host: string): Promise<string[]> {
-  const addresses: string[] = []
   try {
-    addresses.push(...await resolve4Async(host))
+    const addresses = await new Promise<Array<{ address: string }>>((resolve, reject) => {
+      lookup(host, { all: true, verbatim: true }, (error, results) => {
+        if (error)
+          reject(error)
+        else
+          resolve(results)
+      })
+    })
+    return addresses.map(item => item.address)
   }
-  catch {}
-  try {
-    addresses.push(...await resolve6Async(host))
+  catch {
+    return []
   }
-  catch {}
-  return addresses
 }
 
 function isPrivateAddress(ip: string): boolean {

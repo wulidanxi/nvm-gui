@@ -2,11 +2,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ReleaseClient, validateHttpUrl } from './release-client'
 
 vi.mock('node:dns', () => ({
-  resolve4: vi.fn((_hostname: string, callback: (error: null, addresses: string[]) => void) => {
-    callback(null, ['1.1.1.1'])
-  }),
-  resolve6: vi.fn((_hostname: string, callback: (error: null, addresses: string[]) => void) => {
-    callback(null, ['2606:4700:4700::1111'])
+  lookup: vi.fn((_hostname: string, _options: unknown, callback: (error: null, addresses: Array<{ address: string }>) => void) => {
+    callback(null, [
+      { address: '1.1.1.1' },
+      { address: '2606:4700:4700::1111' },
+    ])
   }),
 }))
 
