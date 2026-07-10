@@ -3,6 +3,24 @@ import { consumeNodeEnvDirty } from './nodeEnvDirty'
 import { useNvmOperations } from './useNvmOperations'
 
 describe('useNvmOperations', () => {
+  it('rejects a second operation while one is active', async () => {
+    let resolveInstall: (() => void) | undefined
+    vi.stubGlobal('window', {
+      nvmGui: {
+        nvm: {
+          install: vi.fn(() => new Promise<{ success: boolean, message: string }>((resolve) => {
+            resolveInstall = () => resolve({ success: true, message: 'ok' })
+          })),
+        },
+      },
+    })
+    const operations = useNvmOperations()
+    const first = operations.install('20.0.0')
+
+    await expect(operations.use('18.0.0')).rejects.toThrow('already running')
+    resolveInstall?.()
+    await first
+  })
   afterEach(() => {
     vi.useRealTimers()
     vi.unstubAllGlobals()

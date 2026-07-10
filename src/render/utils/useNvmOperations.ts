@@ -19,12 +19,11 @@ export interface NvmOperationState {
 }
 
 const feedbackVisibleMs = 2400
+const operatingVersion = ref<string | null>(null)
+const operationState = ref<NvmOperationState | null>(null)
+let feedbackTimer: ReturnType<typeof setTimeout> | null = null
 
 export function useNvmOperations() {
-  const operatingVersion = ref<string | null>(null)
-  const operationState = ref<NvmOperationState | null>(null)
-  let feedbackTimer: ReturnType<typeof setTimeout> | null = null
-
   async function install(version: string) {
     return run('install', version, () => installNodeVersion(normalizeVersion(version)))
   }
@@ -42,6 +41,9 @@ export function useNvmOperations() {
     version: string,
     action: () => Promise<OperationResult>,
   ) {
+    if (operatingVersion.value)
+      throw new Error(`NVM operation already running for ${operatingVersion.value}`)
+
     operatingVersion.value = version
     setOperationState({
       kind,

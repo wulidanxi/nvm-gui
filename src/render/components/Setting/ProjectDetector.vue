@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import {
   NButton,
   NCard,
@@ -82,9 +82,11 @@ import OperationFeedback from "@render/components/OperationFeedback.vue";
 import { useI18n } from "@render/i18n";
 import { useAppMotion } from "@render/utils/motionPresets";
 import { useNvmOperations } from "@render/utils/useNvmOperations";
+import { useProjectStore } from "@render/stores/ProjectStore";
 
 const message = useMessage();
 const nvmOperations = useNvmOperations();
+const projectStore = useProjectStore();
 const { t } = useI18n();
 const operatingVersion = nvmOperations.operatingVersion;
 const operationState = nvmOperations.operationState;
@@ -141,11 +143,17 @@ const analyzeProject = async (path: string) => {
       version: requiredVersion,
       match: match,
     };
+    projectStore.rememberProject(path);
   } catch (error) {
     message.error(t("project.parseFailed"));
     console.error(error);
   }
 };
+
+onMounted(async () => {
+  if (projectStore.lastProjectPath)
+    await analyzeProject(projectStore.lastProjectPath);
+});
 
 const switchToVersion = async (version: string) => {
   try {

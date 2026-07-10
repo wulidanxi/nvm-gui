@@ -16,6 +16,7 @@ import { ExecFileCommandRunner } from './command-runner'
 import type { CommandRunner } from './command-runner'
 import { NvmInstaller } from './nvm-installer'
 import { ElevatedExecutor } from './elevated-executor'
+import { AsyncMutex } from './async-mutex'
 import {
   PosixNvmProvider,
   WindowsNvmProvider,
@@ -37,6 +38,7 @@ export class NvmManagerService {
   private readonly installer: NvmInstaller
   private readonly releaseClient: ReleaseClient
   private readonly elevated = new ElevatedExecutor()
+  private readonly mutationMutex = new AsyncMutex()
 
   constructor(
     platform: NodeJS.Platform = process.platform,
@@ -111,13 +113,15 @@ export class NvmManagerService {
   }
 
   public async installManager(options: NvmManagerInstallOptions): Promise<NvmManagerStatus> {
-    if (this.platform === 'win32') {
-      const artifact = await this.installer.resolveWindowsInstaller(options.version, options.source)
-      await this.elevated.installNvmManager(artifact.path, artifact.hash)
+    return this.mutationMutex.runExclusive(async () => {
+      if (this.platform === 'win32') {
+        const artifact = await this.installer.resolveWindowsInstaller(options.version, options.source)
+        await this.elevated.installNvmManager(artifact.path, artifact.hash)
+        return this.detect()
+      }
+      await this.installer.install(options.version, options.source, options.writeProfile === true)
       return this.detect()
-    }
-    await this.installer.install(options.version, options.source, options.writeProfile === true)
-    return this.detect()
+    })
   }
 
   public async refreshEnv(): Promise<NvmManagerStatus> {
@@ -161,24 +165,30 @@ export class NvmManagerService {
   }
 
   public async installNodeVersion(version: string): Promise<OperationResult> {
-    if (this.platform === 'win32')
-      return { success: true, message: await this.elevated.executeNvm('install', version) }
-    const message = await this.runNvmCommand(['install', version])
-    return { success: true, message }
+    return this.mutationMutex.runExclusive(async () => {
+      if (this.platform === 'win32')
+        return { success: true, message: await this.elevated.executeNvm('install', version) }
+      const message = await this.runNvmCommand(['install', version])
+      return { success: true, message }
+    })
   }
 
   public async useNodeVersion(version: string): Promise<OperationResult> {
-    if (this.platform === 'win32')
-      return { success: true, message: await this.elevated.executeNvm('use', version) }
-    const message = await this.runNvmCommand(['use', version])
-    return { success: true, message }
+    return this.mutationMutex.runExclusive(async () => {
+      if (this.platform === 'win32')
+        return { success: true, message: await this.elevated.executeNvm('use', version) }
+      const message = await this.runNvmCommand(['use', version])
+      return { success: true, message }
+    })
   }
 
   public async uninstallNodeVersion(version: string): Promise<OperationResult> {
-    if (this.platform === 'win32')
-      return { success: true, message: await this.elevated.executeNvm('uninstall', version) }
-    const message = await this.runNvmCommand(['uninstall', version])
-    return { success: true, message }
+    return this.mutationMutex.runExclusive(async () => {
+      if (this.platform === 'win32')
+        return { success: true, message: await this.elevated.executeNvm('uninstall', version) }
+      const message = await this.runNvmCommand(['uninstall', version])
+      return { success: true, message }
+    })
   }
 
   public async runNvmCommand(args: string[]): Promise<string> {

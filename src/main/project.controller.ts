@@ -2,6 +2,7 @@ import { Controller, IpcHandle } from 'einf'
 import { dialog } from 'electron'
 import { join } from 'path'
 import { promises as fs } from 'fs'
+import { parseNvmrc } from './nvmrc'
 
 @Controller()
 export class ProjectController {
@@ -22,7 +23,7 @@ export class ProjectController {
     try {
       const nvmrcPath = join(path, '.nvmrc')
       const content = await fs.readFile(nvmrcPath, 'utf-8')
-      return content.trim()
+      return parseNvmrc(content)
     }
     catch {
       return null
