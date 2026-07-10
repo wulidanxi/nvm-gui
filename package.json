@@ -1,6 +1,6 @@
 {
   "name": "nvm-gui",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Vite + Electron + Vue Nvm GUI",
   "author": {
     "name": "wulidanxi",
@@ -15,6 +15,7 @@
     "build:win": "vue-tsc && vite build --mode win",
     "build:mac": "vue-tsc && vite build --mode mac",
     "build:linux": "vue-tsc && vite build --mode linux",
+    "analyze:bundle": "node scripts/report-render-bundle.js",
     "typecheck": "vue-tsc --noEmit",
     "test:coverage": "vitest run -r src/main --coverage --passWithNoTests",
     "lint": "eslint .",

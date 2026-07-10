@@ -1,9 +1,10 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 import Layout from '@render/components/AppShell.vue'
-import LocalNode from "@render/components/WorkbenchLocalNode.vue";
-import AvailableNode from "@render/components/WorkbenchAvailableNode.vue";
-import Dashboard from "@render/components/WorkbenchDashboard.vue";
-import Setting from '../components/WorkbenchSetting.vue';
+
+const LocalNode = () => import('@render/components/WorkbenchLocalNode.vue')
+const AvailableNode = () => import('@render/components/WorkbenchAvailableNode.vue')
+const Dashboard = () => import('@render/components/WorkbenchDashboard.vue')
+const Setting = () => import('@render/components/WorkbenchSetting.vue')
 
 const routes = [
   { path: '/dashboard', component: Dashboard },

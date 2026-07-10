@@ -76,7 +76,6 @@ export default defineConfig(({ mode }) => {
           manualChunks: {
             'naive-ui': ['naive-ui'],
             'vue-vendor': ['vue', 'vue-router', 'pinia', 'pinia-plugin-persistedstate'],
-            'utils': ['dayjs'],
           },
         },
       },
