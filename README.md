@@ -5,7 +5,7 @@
 ![GitHub License](https://img.shields.io/github/license/wulidanxi/nvm-gui) ![GitHub Release](https://img.shields.io/github/v/release/wulidanxi/nvm-gui)
 ![CI](https://github.com/wulidanxi/nvm-gui/actions/workflows/ci.yml/badge.svg?branch=main)
 
-当前版本：`0.0.14-a`
+当前版本：`0.0.15-a`
 
 # ⚡ NVM GUI（Vite + Vue + Electron）
 
@@ -19,6 +19,8 @@
 - 主题与基础布局：基于 Naive UI，支持暗色与浅色主题
 - 多语言界面：支持中英文切换，并跟随用户偏好持久化保存
 - 动效与操作反馈：统一页面切换、卡片和控件动效，实时展示 Node.js 安装、切换与卸载状态
+- 命令日志中心：持久化查看受控 NVM/NPM/NVM 管理器操作，支持筛选、复制、导出和清理
+- 应用更新：可配置启动检查；Windows 支持下载后重启安装，macOS/Linux 提供 Release 下载入口
 
 ## 环境要求
 

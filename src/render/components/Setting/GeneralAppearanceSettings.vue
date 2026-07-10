@@ -30,6 +30,9 @@
             </button>
           </div>
         </n-form-item>
+        <n-form-item :label="t('appearance.autoUpdate')">
+          <n-switch v-model:value="autoCheck" />
+        </n-form-item>
       </n-form>
     </n-card>
   </div>
@@ -37,7 +40,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { NCard, NForm, NFormItem, NSelect } from "naive-ui";
+import { NCard, NForm, NFormItem, NSelect, NSwitch } from "naive-ui";
 import { localeOptions, useI18n } from "@render/i18n";
 import { type AppLocale, useLocaleStore } from "@render/stores/LocaleStore";
 import {
@@ -46,14 +49,17 @@ import {
   useThemeStore,
 } from "@render/stores/ThemeStore";
 import { useAppMotion } from "@render/utils/motionPresets";
+import { useUpdateStore } from "@render/stores/UpdateStore";
 
 const store = useThemeStore();
 const localeStore = useLocaleStore();
+const updateStore = useUpdateStore();
 const { t } = useI18n();
 const { autoAnimateOptions, tileMotion } = useAppMotion();
 
 const selectedAccent = ref<ThemeAccentKey>(store.accent || "node-green");
 const selectedLocale = ref<AppLocale>(localeStore.locale);
+const autoCheck = ref(updateStore.autoCheck);
 
 watch(() => store.accent, (value) => {
   selectedAccent.value = value;
@@ -66,6 +72,7 @@ watch(() => localeStore.locale, (value) => {
 const saveSettings = () => {
   store.setAccent(selectedAccent.value);
   localeStore.setLocale(selectedLocale.value);
+  updateStore.setAutoCheck(autoCheck.value);
 };
 
 defineExpose({

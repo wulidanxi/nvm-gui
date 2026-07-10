@@ -1,6 +1,6 @@
 {
   "name": "nvm-gui",
-  "version": "0.0.14-a",
+  "version": "0.0.15-a",
   "description": "Vite + Electron + Vue Nvm GUI",
   "author": {
     "name": "wulidanxi",
@@ -34,6 +34,7 @@
     "@vueuse/motion": "^3.0.3",
     "dayjs": "^1.11.19",
     "einf": "^1.5.3",
+    "electron-updater": "^6.8.9",
     "pinia": "^3.0.4",
     "pinia-plugin-persistedstate": "^4.7.1",
     "vue": "^3.5.26",

@@ -1,0 +1,170 @@
+import { randomUUID } from 'node:crypto'
+import { mkdir, readFile, rename, unlink, writeFile } from 'node:fs/promises'
+import { createRequire } from 'node:module'
+import { dirname, join } from 'node:path'
+import type {
+  CommandLogCategory,
+  CommandLogEntry,
+  CommandLogPage,
+  CommandLogQuery,
+  CommandLogStatus,
+} from '../common/types'
+import { AsyncMutex } from './async-mutex'
+
+const MAX_ENTRIES = 500
+const MAX_OUTPUT_LENGTH = 64 * 1024
+
+export interface CommandLogAppAdapter {
+  getPath(name: 'userData'): string
+}
+
+export interface CommandLogInput {
+  category: CommandLogCategory
+  operation: string
+  command: string
+  args: string[]
+  status: CommandLogStatus
+  durationMs: number
+  output: string
+}
+
+export class CommandLogService {
+  private readonly mutex = new AsyncMutex()
+  private entries: CommandLogEntry[] = []
+  private loaded = false
+
+  constructor(private readonly appAdapter: CommandLogAppAdapter) {}
+
+  public async record(input: CommandLogInput): Promise<void> {
+    await this.mutex.runExclusive(async () => {
+      await this.ensureLoaded()
+      this.entries.unshift({
+        id: randomUUID(),
+        timestamp: new Date().toISOString(),
+        ...input,
+        args: input.args.map(item => item.slice(0, 500)),
+        durationMs: Math.max(0, Math.round(input.durationMs)),
+        output: truncateOutput(input.output),
+      })
+      this.entries = this.entries.slice(0, MAX_ENTRIES)
+      await this.persist()
+    })
+  }
+
+  public async list(query: CommandLogQuery = {}): Promise<CommandLogPage> {
+    return this.mutex.runExclusive(async () => {
+      await this.ensureLoaded()
+      const page = Math.max(1, Math.floor(query.page || 1))
+      const pageSize = Math.min(100, Math.max(1, Math.floor(query.pageSize || 20)))
+      const search = query.search?.trim().toLowerCase()
+      const filtered = this.entries.filter((entry) => {
+        if (query.status && entry.status !== query.status)
+          return false
+        if (!search)
+          return true
+        return [entry.operation, entry.command, ...entry.args, entry.output]
+          .join('\n')
+          .toLowerCase()
+          .includes(search)
+      })
+      return {
+        items: filtered.slice((page - 1) * pageSize, page * pageSize),
+        total: filtered.length,
+        page,
+        pageSize,
+      }
+    })
+  }
+
+  public async remove(id: string): Promise<void> {
+    await this.mutex.runExclusive(async () => {
+      await this.ensureLoaded()
+      this.entries = this.entries.filter(entry => entry.id !== id)
+      await this.persist()
+    })
+  }
+
+  public async clear(): Promise<void> {
+    await this.mutex.runExclusive(async () => {
+      await this.ensureLoaded()
+      this.entries = []
+      await this.persist()
+    })
+  }
+
+  public async export(): Promise<string> {
+    return this.mutex.runExclusive(async () => {
+      await this.ensureLoaded()
+      return JSON.stringify(this.entries, null, 2)
+    })
+  }
+
+  private async ensureLoaded(): Promise<void> {
+    if (this.loaded)
+      return
+    this.loaded = true
+    try {
+      const content = await readFile(this.filePath, 'utf-8')
+      const value: unknown = JSON.parse(content)
+      this.entries = Array.isArray(value) ? value.filter(isCommandLogEntry).slice(0, MAX_ENTRIES) : []
+    }
+    catch {
+      this.entries = []
+    }
+  }
+
+  private get filePath(): string {
+    return join(this.appAdapter.getPath('userData'), 'command-log.json')
+  }
+
+  private async persist(): Promise<void> {
+    const target = this.filePath
+    const temp = `${target}.tmp`
+    await mkdir(dirname(target), { recursive: true })
+    await writeFile(temp, JSON.stringify(this.entries), 'utf-8')
+    try {
+      await rename(temp, target)
+    }
+    catch {
+      await unlink(target).catch(() => {})
+      await rename(temp, target)
+    }
+  }
+}
+
+function truncateOutput(value: string): string {
+  if (value.length <= MAX_OUTPUT_LENGTH)
+    return value
+  const suffix = '\n… Output truncated at 64 KB.'
+  return `${value.slice(0, MAX_OUTPUT_LENGTH - suffix.length)}${suffix}`
+}
+
+function isCommandLogEntry(value: unknown): value is CommandLogEntry {
+  if (!value || typeof value !== 'object')
+    return false
+  const entry = value as Partial<CommandLogEntry>
+  return typeof entry.id === 'string'
+    && typeof entry.timestamp === 'string'
+    && typeof entry.category === 'string'
+    && typeof entry.operation === 'string'
+    && typeof entry.command === 'string'
+    && Array.isArray(entry.args)
+    && (entry.status === 'success' || entry.status === 'error')
+    && typeof entry.durationMs === 'number'
+    && typeof entry.output === 'string'
+}
+
+let sharedCommandLogService: CommandLogService | undefined
+
+export function getCommandLogService(): CommandLogService {
+  sharedCommandLogService ||= new CommandLogService(getElectronAppAdapter())
+  return sharedCommandLogService
+}
+
+function getElectronAppAdapter(): CommandLogAppAdapter {
+  // Delayed loading keeps this filesystem-only service unit-testable without an
+  // installed Electron binary, while production code still receives Electron's userData path.
+  const loadModule = createRequire(import.meta.url)
+  const { app } = loadModule('electron') as typeof import('electron')
+  return app
+}

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   AlbumsOutline,
   CloudDownloadOutline,
   GridOutline,
   InformationCircleOutline,
+  ListOutline,
   LogoGithub,
   LogoNodejs,
   MoonOutline,
@@ -17,9 +18,16 @@ import {
   nvmCurrent,
   nvmVersion as getNvmCliVersion,
   openUrl,
+  checkForAppUpdate,
+  downloadAppUpdate,
+  getAppUpdateStatus,
+  onAppUpdateStatus,
+  quitAndInstallAppUpdate,
 } from "@render/api";
 import { useI18n } from "@render/i18n";
 import { useThemeStore } from "@render/stores/ThemeStore";
+import { useUpdateStore } from "@render/stores/UpdateStore";
+import type { AppUpdateStatus } from "@common/types";
 import { useAppMotion } from "@render/utils/motionPresets";
 import logoIconBlack from "@render/assets/nvm-logo-color-avatar.png";
 import logoIconWhite from "@render/assets/nvm-logo-white.svg";
@@ -28,6 +36,7 @@ import config from "../../../package.json";
 const router = useRouter();
 const route = useRoute();
 const themeStore = useThemeStore();
+const updateStore = useUpdateStore();
 const { t } = useI18n();
 const {
   autoAnimateOptions,
@@ -46,6 +55,8 @@ const nvmCliStatus = ref<"loading" | "missing" | "ready">("loading");
 const currentNodeVersion = ref("");
 const nvmManagerVersion = ref("");
 const nvmCliVersion = ref("");
+const updateStatus = ref<AppUpdateStatus>({ phase: "idle" });
+let removeUpdateListener: (() => void) | undefined;
 
 const version = config.version;
 
@@ -105,6 +116,12 @@ const navItems = computed(() => [
     description: t("nav.availableDescription"),
     path: "/available",
     icon: CloudDownloadOutline,
+  },
+  {
+    label: t("nav.commandLog"),
+    description: t("nav.commandLogDescription"),
+    path: "/logs",
+    icon: ListOutline,
   },
   {
     label: t("nav.settings"),
@@ -212,6 +229,46 @@ function onOpenOffice() {
   window.$message.info(t("shell.officialSiteUnavailable"));
 }
 
+async function checkUpdate() {
+  updateStatus.value = await checkForAppUpdate();
+  if (updateStatus.value.phase === "up-to-date")
+    window.$message.success(t("update.upToDate"));
+  if (updateStatus.value.phase === "error")
+    window.$message.error(t("update.failed", { message: updateStatus.value.error || "-" }));
+}
+
+async function handleUpdate() {
+  if (updateStatus.value.phase === "available" && updateStatus.value.manualDownload) {
+    await openUrl("projectReleases");
+    return;
+  }
+  if (updateStatus.value.phase === "available") {
+    if (updateStatus.value.unsignedWarning) {
+      window.$dialog.warning({
+        title: t("update.download"), content: t("update.unsignedWarning"), closable: false, maskClosable: false,
+        positiveText: t("update.download"), negativeText: t("common.cancel"),
+        onPositiveClick: async () => { updateStatus.value = await downloadAppUpdate(); },
+      });
+      return;
+    }
+    updateStatus.value = await downloadAppUpdate();
+    return;
+  }
+  if (updateStatus.value.phase === "downloaded") {
+    quitAndInstallAppUpdate();
+    return;
+  }
+  await checkUpdate();
+}
+
+const updateButtonLabel = computed(() => {
+  if (updateStatus.value.phase === "checking") return t("update.checking");
+  if (updateStatus.value.phase === "available") return updateStatus.value.manualDownload ? t("update.manualDownload") : t("update.download");
+  if (updateStatus.value.phase === "downloading") return t("update.downloading", { progress: updateStatus.value.progress || 0 });
+  if (updateStatus.value.phase === "downloaded") return t("update.restart");
+  return t("update.check");
+});
+
 async function refreshRuntimeStatus() {
   try {
     currentNodeVersion.value = await nvmCurrent();
@@ -237,6 +294,21 @@ async function refreshRuntimeStatus() {
 
 onMounted(() => {
   refreshRuntimeStatus();
+  removeUpdateListener = onAppUpdateStatus((status) => {
+    updateStatus.value = status;
+  });
+  getAppUpdateStatus().then((status) => {
+    updateStatus.value = status;
+  });
+  if (updateStore.autoCheck) {
+    setTimeout(() => {
+      checkUpdate().catch(() => {});
+    }, 800);
+  }
+});
+
+onUnmounted(() => {
+  removeUpdateListener?.();
 });
 </script>
 
@@ -301,6 +373,15 @@ onMounted(() => {
         </div>
 
         <div class="topbar-right">
+          <n-tooltip trigger="hover">
+            <template #trigger>
+              <n-button v-motion="controlMotion" quaternary :loading="updateStatus.phase === 'checking' || updateStatus.phase === 'downloading'" @click="handleUpdate">
+                <template #icon><n-icon><CloudDownloadOutline /></n-icon></template>
+                {{ updateButtonLabel }}
+              </n-button>
+            </template>
+            {{ updateStatus.phase === 'available' ? t('update.available', { version: updateStatus.version || '-' }) : t('update.check') }}
+          </n-tooltip>
           <n-tooltip trigger="hover">
             <template #trigger>
               <n-button v-motion="controlMotion" quaternary circle @click="onOpenSource">

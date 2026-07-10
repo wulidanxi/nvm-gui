@@ -65,6 +65,8 @@ export const zhCNMessages = {
     availableDescription: '发行记录',
     settings: '设置中心',
     settingsDescription: '源、迁移、NVM',
+    commandLog: '命令日志',
+    commandLogDescription: '执行记录与诊断',
   },
   dashboard: {
     kicker: '工作台概览',
@@ -143,6 +145,17 @@ export const zhCNMessages = {
   },
   appearance: {
     accent: '主题色：',
+    autoUpdate: '启动时自动检查更新',
+  },
+  commandLog: {
+    kicker: '执行历史', title: '命令日志中心', description: '查看受控 NVM、NPM 和管理器操作的执行结果与错误输出。',
+    time: '时间', operation: '操作', command: '命令', result: '结果', duration: '耗时', failed: '失败', details: '详情',
+    search: '搜索操作、命令或输出', allResults: '全部结果', export: '导出 JSON', exported: '日志已导出', clear: '清空日志',
+    clearTitle: '清空命令日志', clearConfirm: '此操作会删除本机保存的全部命令日志，且无法恢复。', remove: '删除记录', copy: '复制输出', copied: '输出已复制',
+  },
+  update: {
+    check: '检查更新', checking: '正在检查更新', available: '发现新版本 {version}', download: '下载更新', downloading: '正在下载 {progress}%',
+    restart: '重启并安装', upToDate: '已是最新版本', manualDownload: '前往下载页', unsignedWarning: 'Windows 更新包当前未签名，安装时可能出现 SmartScreen 警告。', failed: '更新失败：{message}',
   },
   advanced: {
     nodeSource: 'Node.js 数据源：',

@@ -68,9 +68,59 @@ export interface OperationResult {
   message: string
 }
 
-export type ExternalLinkTarget = 'project' | 'nvmWindows'
+export type CommandLogCategory = 'nvm' | 'npm' | 'nvm-manager' | 'system'
+export type CommandLogStatus = 'success' | 'error'
+
+export interface CommandLogEntry {
+  id: string
+  timestamp: string
+  category: CommandLogCategory
+  operation: string
+  command: string
+  args: string[]
+  status: CommandLogStatus
+  durationMs: number
+  output: string
+}
+
+export interface CommandLogQuery {
+  page?: number
+  pageSize?: number
+  status?: CommandLogStatus
+  search?: string
+}
+
+export interface CommandLogPage {
+  items: CommandLogEntry[]
+  total: number
+  page: number
+  pageSize: number
+}
+
+export type AppUpdatePhase =
+  | 'idle'
+  | 'checking'
+  | 'up-to-date'
+  | 'available'
+  | 'downloading'
+  | 'downloaded'
+  | 'unsupported'
+  | 'error'
+
+export interface AppUpdateStatus {
+  phase: AppUpdatePhase
+  version?: string
+  releaseNotes?: string
+  progress?: number
+  error?: string
+  manualDownload?: boolean
+  unsignedWarning?: boolean
+}
+
+export type ExternalLinkTarget = 'project' | 'projectReleases' | 'nvmWindows'
 
 export const EXTERNAL_LINKS: Record<ExternalLinkTarget, string> = {
   project: 'https://github.com/wulidanxi/nvm-gui',
+  projectReleases: 'https://github.com/wulidanxi/nvm-gui/releases',
   nvmWindows: 'https://github.com/coreybutler/nvm-windows',
 }

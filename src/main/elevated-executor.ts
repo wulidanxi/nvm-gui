@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { existsSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import util from 'node:util'
+import type { CommandLogService } from './command-log.service'
 
 const execFilePromise = util.promisify(execFile)
 const OPERATIONS = ['install', 'use', 'uninstall'] as const
@@ -10,6 +11,8 @@ const VERSION = /^v?\d+\.\d+\.\d+$/
 const EXPECTED_INSTALLER_PUBLISHER = 'CN=Author Software Inc.'
 
 export class ElevatedExecutor {
+  constructor(private readonly commandLog?: CommandLogService) {}
+
   public async executeNvm(operation: string, version: string): Promise<string> {
     if (process.platform !== 'win32')
       throw new Error('Elevated execution is only supported on Windows')
@@ -17,14 +20,18 @@ export class ElevatedExecutor {
       throw new Error('Invalid elevated NVM operation')
 
     const nvmPath = this.resolveNvmExecutable()
-    return this.runElevated(`$proc = Start-Process -FilePath '${escapePs(nvmPath)}' -ArgumentList @('${operation}', '${version}') -PassThru -Wait -WindowStyle Hidden\nexit $proc.ExitCode`)
+    return this.runLogged('nvm', `nvm ${operation}`, 'nvm', [operation, version], () =>
+      this.runElevated(`$proc = Start-Process -FilePath '${escapePs(nvmPath)}' -ArgumentList @('${operation}', '${version}') -PassThru -Wait -WindowStyle Hidden\nexit $proc.ExitCode`),
+    )
   }
 
   public async installNvmManager(installerPath: string, expectedHash: string): Promise<string> {
     if (process.platform !== 'win32')
       throw new Error('Elevated execution is only supported on Windows')
     await this.verifyInstaller(installerPath, expectedHash)
-    return this.runElevated(`$proc = Start-Process -FilePath '${escapePs(installerPath)}' -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -PassThru -Wait -WindowStyle Hidden\nexit $proc.ExitCode`)
+    return this.runLogged('nvm-manager', 'nvm manager install', 'nvm-manager', ['install'], () =>
+      this.runElevated(`$proc = Start-Process -FilePath '${escapePs(installerPath)}' -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -PassThru -Wait -WindowStyle Hidden\nexit $proc.ExitCode`),
+    )
   }
 
   private resolveNvmExecutable(): string {
@@ -61,6 +68,26 @@ export class ElevatedExecutor {
       windowsHide: true, timeout: 600_000, maxBuffer: 10 * 1024 * 1024,
     })
     return stdout
+  }
+
+  private async runLogged(
+    category: 'nvm' | 'nvm-manager',
+    operation: string,
+    command: string,
+    args: string[],
+    action: () => Promise<string>,
+  ): Promise<string> {
+    const startedAt = Date.now()
+    try {
+      const output = await action()
+      await this.commandLog?.record({ category, operation, command, args, status: 'success', durationMs: Date.now() - startedAt, output })
+      return output
+    }
+    catch (error) {
+      const output = error instanceof Error ? error.message : String(error)
+      await this.commandLog?.record({ category, operation, command, args, status: 'error', durationMs: Date.now() - startedAt, output })
+      throw error
+    }
   }
 }
 

@@ -30,7 +30,7 @@ const config = {
     output: 'dist/electron',
   },
   appId: 'com.nvm-sh.cn',
-  buildVersion: '0.0.14.1',
+  buildVersion: '0.0.15.1',
   win: {
     icon: './nvm-logo-color-avatar.png',
     requestedExecutionLevel: 'asInvoker',
@@ -50,7 +50,14 @@ const config = {
     category: 'Development',
     maintainer: 'wulidanxi <wulidanxi@gmail.com>',
   },
-  publish: null,
+  publish: [
+    {
+      provider: 'github',
+      owner: 'wulidanxi',
+      repo: 'nvm-gui',
+      releaseType: 'release',
+    },
+  ],
   npmRebuild: false,
 
   files: ['dist/main/**/*', 'dist/preload/**/*', 'dist/render/**/*'],

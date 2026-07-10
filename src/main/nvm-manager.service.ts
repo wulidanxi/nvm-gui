@@ -14,6 +14,8 @@ import type {
 } from '../common/types'
 import { ExecFileCommandRunner } from './command-runner'
 import type { CommandRunner } from './command-runner'
+import { getCommandLogService } from './command-log.service'
+import { LoggedCommandRunner } from './logged-command-runner'
 import { NvmInstaller } from './nvm-installer'
 import { ElevatedExecutor } from './elevated-executor'
 import { AsyncMutex } from './async-mutex'
@@ -37,7 +39,7 @@ export class NvmManagerService {
   private readonly windowsProvider?: WindowsNvmProvider
   private readonly installer: NvmInstaller
   private readonly releaseClient: ReleaseClient
-  private readonly elevated = new ElevatedExecutor()
+  private readonly elevated: ElevatedExecutor
   private readonly mutationMutex = new AsyncMutex()
 
   constructor(
@@ -45,21 +47,22 @@ export class NvmManagerService {
     runner: CommandRunner = new ExecFileCommandRunner(platform),
   ) {
     this.platform = platform
+    this.runner = new LoggedCommandRunner(runner, getCommandLogService())
     this.providerName = providerForPlatform(platform)
-    this.runner = runner
     this.windowsProvider = this.providerName === 'nvm-windows'
-      ? new WindowsNvmProvider(runner)
+      ? new WindowsNvmProvider(this.runner)
       : undefined
     this.provider = this.windowsProvider
-      || new PosixNvmProvider(runner, () => this.getPosixNvmDir())
+      || new PosixNvmProvider(this.runner, () => this.getPosixNvmDir())
     this.installer = new NvmInstaller(
       this.providerName,
-      runner,
+      this.runner,
       () => this.getPosixNvmDir(),
       platform,
       app,
     )
     this.releaseClient = new ReleaseClient(this.providerName)
+    this.elevated = new ElevatedExecutor(getCommandLogService())
   }
 
   public async detect(): Promise<NvmManagerStatus> {

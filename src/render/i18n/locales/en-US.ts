@@ -67,6 +67,8 @@ export const enUSMessages: Messages = {
     availableDescription: 'Release index',
     settings: 'Settings',
     settingsDescription: 'Registry, migration, NVM',
+    commandLog: 'Command logs',
+    commandLogDescription: 'History and diagnostics',
   },
   dashboard: {
     kicker: 'Dashboard',
@@ -145,6 +147,17 @@ export const enUSMessages: Messages = {
   },
   appearance: {
     accent: 'Accent color:',
+    autoUpdate: 'Check for updates on startup',
+  },
+  commandLog: {
+    kicker: 'Execution history', title: 'Command Log Center', description: 'Inspect controlled NVM, NPM, and manager operation output and errors.',
+    time: 'Time', operation: 'Operation', command: 'Command', result: 'Result', duration: 'Duration', failed: 'Failed', details: 'Details',
+    search: 'Search operations, commands, or output', allResults: 'All results', export: 'Export JSON', exported: 'Logs exported', clear: 'Clear logs',
+    clearTitle: 'Clear command logs', clearConfirm: 'This permanently deletes all command logs stored on this device.', remove: 'Remove entry', copy: 'Copy output', copied: 'Output copied',
+  },
+  update: {
+    check: 'Check for updates', checking: 'Checking for updates', available: 'Version {version} is available', download: 'Download update', downloading: 'Downloading {progress}%',
+    restart: 'Restart and install', upToDate: 'You are up to date', manualDownload: 'Open download page', unsignedWarning: 'The Windows update is unsigned and may trigger a SmartScreen warning.', failed: 'Update failed: {message}',
   },
   advanced: {
     nodeSource: 'Node.js data source:',

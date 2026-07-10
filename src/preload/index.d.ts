@@ -7,6 +7,9 @@ import type {
   NodeReleaseSummary,
   OperationResult,
   ExternalLinkTarget,
+  AppUpdateStatus,
+  CommandLogPage,
+  CommandLogQuery,
 } from '../common/types'
 
 type NvmGuiApi = {
@@ -37,6 +40,19 @@ type NvmGuiApi = {
   project: {
     openDirectoryDialog: () => Promise<string | null>
     checkNvmrc: (path: string) => Promise<string | null>
+  }
+  commandLog: {
+    list: (query?: CommandLogQuery) => Promise<CommandLogPage>
+    remove: (id: string) => Promise<void>
+    clear: () => Promise<void>
+    export: () => Promise<string | null>
+  }
+  update: {
+    status: () => Promise<AppUpdateStatus>
+    check: () => Promise<AppUpdateStatus>
+    download: () => Promise<AppUpdateStatus>
+    quitAndInstall: () => Promise<void>
+    onStatus: (listener: (status: AppUpdateStatus) => void) => () => void
   }
   shell: {
     openUrl: (target: ExternalLinkTarget) => Promise<void>

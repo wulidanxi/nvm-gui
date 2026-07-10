@@ -4,6 +4,8 @@ import { NpmController } from './npm.controller'
 import { NvmController } from './nvm.controller'
 import { ProjectController } from './project.controller'
 import { SystemController } from './system.controller'
+import { CommandLogController } from './command-log.controller'
+import { AppUpdateController } from './app-update.controller'
 import { createWindow } from './main.window'
 import { registerCustomProtocol } from './custom-protocol'
 import { installIpcSecurityGuard } from './ipc-security'
@@ -46,7 +48,7 @@ async function bootstrap() {
     // Controllers define the complete main-process IPC surface exposed through preload.
     await createEinf({
       window: createWindow,
-      controllers: [NvmController, NpmController, ProjectController, SystemController],
+      controllers: [NvmController, NpmController, ProjectController, SystemController, CommandLogController, AppUpdateController],
       injects: [{
         name: 'IS_DEV',
         inject: !app.isPackaged,

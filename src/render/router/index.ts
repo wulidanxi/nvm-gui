@@ -5,6 +5,7 @@ const LocalNode = () => import('@render/components/WorkbenchLocalNode.vue')
 const AvailableNode = () => import('@render/components/WorkbenchAvailableNode.vue')
 const Dashboard = () => import('@render/components/WorkbenchDashboard.vue')
 const Setting = () => import('@render/components/WorkbenchSetting.vue')
+const CommandLog = () => import('@render/components/WorkbenchCommandLog.vue')
 
 const routes = [
   { path: '/dashboard', component: Dashboard },
@@ -36,6 +37,10 @@ const router = createRouter({
         {
           path: "setting",
           component: Setting
+        },
+        {
+          path: "logs",
+          component: CommandLog
         }
       ]
     }

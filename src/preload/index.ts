@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import type { AppUpdateStatus } from '../common/types'
 
 const invoke = ipcRenderer.invoke.bind(ipcRenderer)
 
@@ -31,6 +32,23 @@ contextBridge.exposeInMainWorld('nvmGui', {
   project: {
     openDirectoryDialog: () => invoke('open-directory-dialog'),
     checkNvmrc: (path: string) => invoke('check-nvmrc', path),
+  },
+  commandLog: {
+    list: (query?: unknown) => invoke('command-log-list', query),
+    remove: (id: string) => invoke('command-log-remove', id),
+    clear: () => invoke('command-log-clear'),
+    export: () => invoke('command-log-export'),
+  },
+  update: {
+    status: () => invoke('app-update-status'),
+    check: () => invoke('app-update-check'),
+    download: () => invoke('app-update-download'),
+    quitAndInstall: () => invoke('app-update-quit-and-install'),
+    onStatus: (listener: (status: AppUpdateStatus) => void) => {
+      const handler = (_event: Electron.IpcRendererEvent, status: AppUpdateStatus) => listener(status)
+      ipcRenderer.on('app-update-status', handler)
+      return () => ipcRenderer.removeListener('app-update-status', handler)
+    },
   },
   shell: {
     openUrl: (target: 'project' | 'nvmWindows') => invoke('openUrl', target),

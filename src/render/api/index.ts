@@ -4,6 +4,9 @@ import type {
   NvmManagerInstallOptions,
   OperationResult,
   ExternalLinkTarget,
+  AppUpdateStatus,
+  CommandLogPage,
+  CommandLogQuery,
 } from '@common/types'
 
 export function nvmList() {
@@ -100,6 +103,42 @@ export function checkNvmrc(path: string) {
 
 export function openUrl(target: ExternalLinkTarget) {
   return getNvmGui().shell.openUrl(target)
+}
+
+export function listCommandLogs(query?: CommandLogQuery): Promise<CommandLogPage> {
+  return invokeGui(() => getNvmGui().commandLog.list(query))
+}
+
+export function removeCommandLog(id: string) {
+  return invokeGui(() => getNvmGui().commandLog.remove(id))
+}
+
+export function clearCommandLogs() {
+  return invokeGui(() => getNvmGui().commandLog.clear())
+}
+
+export function exportCommandLogs() {
+  return invokeGui(() => getNvmGui().commandLog.export())
+}
+
+export function getAppUpdateStatus(): Promise<AppUpdateStatus> {
+  return invokeGui(() => getNvmGui().update.status())
+}
+
+export function checkForAppUpdate(): Promise<AppUpdateStatus> {
+  return invokeGui(() => getNvmGui().update.check())
+}
+
+export function downloadAppUpdate(): Promise<AppUpdateStatus> {
+  return invokeGui(() => getNvmGui().update.download())
+}
+
+export function quitAndInstallAppUpdate() {
+  return invokeGui(() => getNvmGui().update.quitAndInstall())
+}
+
+export function onAppUpdateStatus(listener: (status: AppUpdateStatus) => void) {
+  return getNvmGui().update.onStatus(listener)
 }
 
 export async function executeNvmSafely(

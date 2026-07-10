@@ -14,8 +14,10 @@
 - 检测项目 `.nvmrc`，辅助切换到项目所需版本。
 - 支持浅色/深色模式、预设主题色、中英文切换和 Node.js 发行源配置。
 - 检测、安装和升级底层 NVM 管理器。
+- 记录受控 NVM/NPM/NVM 管理器操作，支持筛选、导出与清理命令日志。
+- 检查应用更新；Windows 支持下载并重启安装，macOS/Linux 跳转 Release 页面下载。
 
-当前版本：`0.0.14-a`。
+当前版本：`0.0.15-a`。
 
 ## 2. 技术栈
 
@@ -136,6 +138,14 @@ npm run lint      通过
 | `nvm-manager-install`         | 安装或升级 NVM 管理器             |
 | `nvm-manager-current-version` | 获取 NVM 管理器当前版本           |
 | `nvm-manager-refresh`         | 刷新 NVM 运行环境                 |
+| `command-log-list`             | 分页读取命令日志                   |
+| `command-log-remove`           | 删除单条命令日志                   |
+| `command-log-clear`            | 清空命令日志                       |
+| `command-log-export`           | 导出命令日志 JSON                  |
+| `app-update-status`            | 获取应用更新状态                   |
+| `app-update-check`             | 检查应用更新                       |
+| `app-update-download`          | 下载 Windows 更新                  |
+| `app-update-quit-and-install`  | 重启并安装已下载更新               |
 | `npm-get-registry`            | 获取当前 npm registry             |
 | `npm-set-registry`            | 设置 npm registry                 |
 | `npm-list-global`             | 获取全局 npm 包列表               |
