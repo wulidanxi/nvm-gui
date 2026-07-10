@@ -5,7 +5,7 @@ import { defineConfig } from 'vite'
 import { VitePluginDoubleshot } from 'vite-plugin-doubleshot'
 
 type PackageTarget = 'win' | 'mac' | 'linux'
-type ElectronBuilderCliOptions = Record<string, string[] | boolean>
+type ElectronBuilderCliOptions = Record<string, string[] | boolean | 'never'>
 
 function resolvePackageTarget(mode: string): PackageTarget | null {
   if (mode === 'win' || mode === 'mac' || mode === 'linux')
@@ -20,13 +20,17 @@ function resolveElectronBuilderCliOptions(target: PackageTarget | null): Electro
 
   if (target === 'mac') {
     return {
+      publish: 'never',
       mac: [],
       x64: true,
       arm64: true,
     }
   }
 
-  return { [target]: [] }
+  return {
+    publish: 'never',
+    [target]: [],
+  }
 }
 
 export default defineConfig(({ mode }) => {
