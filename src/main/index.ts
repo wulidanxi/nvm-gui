@@ -5,9 +5,14 @@ import { NvmController } from './nvm.controller'
 import { ProjectController } from './project.controller'
 import { SystemController } from './system.controller'
 import { createWindow } from './main.window'
+import { registerCustomProtocol } from './custom-protocol'
+import { installIpcSecurityGuard } from './ipc-security'
 
 if (!app.isPackaged)
   process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
+
+registerCustomProtocol()
+installIpcSecurityGuard()
 
 async function electronAppInit() {
   const isDev = !app.isPackaged

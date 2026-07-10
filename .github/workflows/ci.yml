@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - main
@@ -24,6 +26,9 @@ jobs:
           cache: yarn
           cache-dependency-path: yarn.lock
       - run: yarn install --frozen-lockfile --ignore-scripts
+      - name: Audit production dependencies
+        shell: bash
+        run: yarn audit --groups dependencies --level high
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run test
@@ -37,6 +42,9 @@ jobs:
 
   build_windows:
     runs-on: windows-latest
+    env:
+      WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+      WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -67,6 +75,21 @@ jobs:
           path: |
             dist/electron/*.exe
             dist/electron/*.exe.blockmap
+      - name: Verify Windows signing state
+        shell: powershell
+        run: |
+          if ($env:WIN_CSC_LINK -and $env:WIN_CSC_KEY_PASSWORD) {
+            $exe = Get-ChildItem dist/electron/*.exe | Select-Object -First 1
+            if (-not $exe) { throw 'No Windows installer was produced' }
+            if ((Get-AuthenticodeSignature -FilePath $exe.FullName).Status -ne 'Valid') { throw 'Windows installer is not Authenticode-valid' }
+            Set-Content -LiteralPath signing-status.txt -Value Valid -NoNewline -Encoding ascii
+          } else {
+            Set-Content -LiteralPath signing-status.txt -Value unsigned -NoNewline -Encoding ascii
+          }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-signing-status
+          path: signing-status.txt
 
   build_macos:
     runs-on: macos-latest
@@ -145,7 +168,7 @@ jobs:
       - build_windows
       - build_macos
       - build_linux
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: false
     permissions:
       actions: read
       contents: write
@@ -256,3 +279,52 @@ jobs:
         env:
           ELECTRON_CACHE: ${{ github.workspace }}/.cache/electron
           ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.cache/electron-builder
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [lint_and_test, build_windows, build_macos, build_linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: nvm-gui-*
+          path: dist/electron
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-signing-status
+          path: signing-status
+      - id: windows
+        shell: bash
+        run: |
+          STATUS="$(cat signing-status/signing-status.txt)"
+          echo "status=${STATUS}" >> "$GITHUB_OUTPUT"
+          echo "signed=$([[ ${STATUS} == Valid ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - run: node scripts/extract-changelog.js
+        env:
+          CHANGELOG_VERSION: ${{ github.ref_name }}
+      - name: Mark unsigned Windows installer
+        if: steps.windows.outputs.signed != 'true'
+        shell: bash
+        run: |
+          printf '\n\n> WARNING: The Windows installer is currently unsigned. SmartScreen may show a warning on first run. Download only from this GitHub Release.\n' >> CHANGELOG_RELEASE.md
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/electron/*.exe
+            dist/electron/*.exe.blockmap
+            dist/electron/*.dmg
+            dist/electron/*.zip
+            dist/electron/*.AppImage
+            dist/electron/*.deb
+          body_path: CHANGELOG_RELEASE.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -3,6 +3,7 @@ import type {
   NodeReleaseSummary,
   NvmManagerInstallOptions,
   OperationResult,
+  ExternalLinkTarget,
 } from '@common/types'
 
 export function nvmList() {
@@ -97,8 +98,8 @@ export function checkNvmrc(path: string) {
   return getNvmGui().project.checkNvmrc(path)
 }
 
-export function openUrl(url: string) {
-  return getNvmGui().shell.openUrl(url)
+export function openUrl(target: ExternalLinkTarget) {
+  return getNvmGui().shell.openUrl(target)
 }
 
 export async function executeNvmSafely(

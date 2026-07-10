@@ -17,10 +17,10 @@ const config = {
     output: 'dist/electron',
   },
   appId: 'com.nvm-sh.cn',
-  buildVersion: '0.0.10.0',
+  buildVersion: '0.0.11.0',
   win: {
     icon: './nvm-logo-color-avatar.png',
-    requestedExecutionLevel: 'requireAdministrator',
+    requestedExecutionLevel: 'asInvoker',
   },
   nsis: {
     oneClick: false,

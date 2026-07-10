@@ -31,6 +31,11 @@ describe('electron-builder config', () => {
       maintainer: 'wulidanxi <wulidanxi@gmail.com>',
     })
   })
+
+  it('runs the Windows application as the invoking user', () => {
+    expect(loadConfigForTarget('win').win.requestedExecutionLevel).toBe('asInvoker')
+    expect(loadConfigForTarget('win').buildVersion).toBe('0.0.11.0')
+  })
 })
 
 function loadConfigForTarget(target: string): any {

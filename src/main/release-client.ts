@@ -1,3 +1,6 @@
+import { resolve4, resolve6 } from 'node:dns'
+import { isIP, isIPv6 } from 'node:net'
+import util from 'node:util'
 import type {
   InstalledNodeVersion,
   NodeReleaseSummary,
@@ -9,6 +12,10 @@ import {
   recommendedManagerOption,
   releaseTagsToOptions,
 } from './nvm-manager.shared'
+
+const resolve4Async = util.promisify(resolve4)
+const resolve6Async = util.promisify(resolve6)
+export const DEFAULT_NODE_RELEASE_ORIGINS = ['https://nodejs.org', 'https://npmmirror.com']
 
 // Keeps remote metadata access in the main process. Renderer code receives
 // normalized DTOs and does not need to fetch or merge release data itself.
@@ -89,32 +96,26 @@ export class ReleaseClient {
 
   private async fetchGithubReleases(): Promise<GithubRelease[]> {
     const url = `https://api.github.com/repos/${githubRepoForProvider(this.provider)}/releases`
-    const response = await fetch(url, {
+    const response = await safeFetch(url, {
       headers: {
         Accept: 'application/vnd.github+json',
         'User-Agent': 'nvm-gui',
       },
     })
 
-    if (!response.ok)
-      throw new Error(`GitHub release request failed: ${response.status}`)
-
-    return response.json()
+    return parseJson(response)
   }
 
   private async fetchNodeReleaseRecords(releaseUrl: string): Promise<NodeReleaseRecord[]> {
-    const url = validateHttpUrl(releaseUrl)
-    const response = await fetch(url, {
+    const url = validateNodeReleaseUrl(releaseUrl)
+    const response = await safeFetch(url, {
       headers: {
         Accept: 'application/json',
         'User-Agent': 'nvm-gui',
       },
     })
 
-    if (!response.ok)
-      throw new Error(`Node release request failed: ${response.status}`)
-
-    return response.json()
+    return parseJson(response)
   }
 }
 
@@ -131,6 +132,98 @@ export function validateHttpUrl(value: string): string {
     throw new Error('Only http and https URLs are allowed')
 
   return url.toString()
+}
+
+export function validateNodeReleaseUrl(value: string): string {
+  const url = new URL(validateHttpUrl(value))
+  if (url.protocol !== 'https:')
+    throw new Error('Node release URL must use HTTPS')
+  return url.toString()
+}
+
+export function isDefaultNodeReleaseUrl(value: string): boolean {
+  const url = new URL(value)
+  return DEFAULT_NODE_RELEASE_ORIGINS.includes(url.origin)
+}
+
+async function safeFetch(url: string, options: RequestInit): Promise<Response> {
+  const parsed = new URL(url)
+  if (parsed.protocol !== 'https:')
+    throw new Error('Only HTTPS requests are allowed')
+  if (isIP(parsed.hostname)) {
+    if (isPrivateAddress(parsed.hostname))
+      throw new Error('Private network addresses are not allowed')
+  }
+  else {
+    const addresses = await resolvePublicAddresses(parsed.hostname)
+    if (addresses.length === 0 || addresses.some(isPrivateAddress))
+      throw new Error('Host does not resolve to a public address')
+  }
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 30_000)
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal, redirect: 'error' })
+    if (!response.ok)
+      throw new Error(`Request failed: ${response.status}`)
+    const length = response.headers.get('content-length')
+    if (length && Number(length) > 10 * 1024 * 1024)
+      throw new Error('Response exceeds the 10 MB limit')
+    return response
+  }
+  finally { clearTimeout(timeout) }
+}
+
+async function parseJson<T>(response: Response): Promise<T> {
+  if (!response.body)
+    throw new Error('Response body is empty')
+  const reader = response.body.getReader()
+  const chunks: Uint8Array[] = []
+  let size = 0
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    size += value.byteLength
+    if (size > 10 * 1024 * 1024) {
+      await reader.cancel()
+      throw new Error('Response exceeds the 10 MB limit')
+    }
+    chunks.push(value)
+  }
+  const body = new Uint8Array(size)
+  let offset = 0
+  for (const chunk of chunks) {
+    body.set(chunk, offset)
+    offset += chunk.byteLength
+  }
+  return JSON.parse(new TextDecoder().decode(body))
+}
+
+async function resolvePublicAddresses(host: string): Promise<string[]> {
+  const addresses: string[] = []
+  try {
+    addresses.push(...await resolve4Async(host))
+  }
+  catch {}
+  try {
+    addresses.push(...await resolve6Async(host))
+  }
+  catch {}
+  return addresses
+}
+
+function isPrivateAddress(ip: string): boolean {
+  if (isIPv6(ip)) {
+    const value = ip.toLowerCase()
+    return value === '::' || value === '::1' || value.startsWith('fe80:') || value.startsWith('fc') || value.startsWith('fd')
+  }
+  const [a, b] = ip.split('.').map(Number)
+  return a === 0
+    || a === 10
+    || a === 127
+    || (a === 169 && b === 254)
+    || (a === 192 && b === 168)
+    || (a === 172 && b >= 16 && b <= 31)
+    || (a === 100 && b >= 64 && b <= 127)
 }
 
 function normalizeNodeVersion(version: string): string {

@@ -1,5 +1,6 @@
+import { createHash } from 'node:crypto'
 import { existsSync, mkdirSync } from 'node:fs'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, rename, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 import type { NvmManagerProvider, NvmManagerSource } from '../common/types'
@@ -11,6 +12,7 @@ import {
   managerAssetName,
   normalizeManagerVersion,
   validateManagerVersion,
+  trustedManagerHash,
 } from './nvm-manager.shared'
 import { shellQuote } from './nvm-provider'
 
@@ -42,6 +44,17 @@ export class NvmInstaller {
       await this.installPosixManager(normalized, writeProfile)
   }
 
+  public async resolveWindowsInstaller(version: string, source: NvmManagerSource): Promise<{ path: string, hash: string }> {
+    const normalized = validateManagerVersion('nvm-windows', version)
+    const hash = trustedManagerHash('nvm-windows', normalized)
+    if (!hash)
+      throw new Error(`Version ${normalized} is not in the trusted NVM manager manifest`)
+    const path = source === 'embedded'
+      ? await this.resolveEmbeddedWindowsInstaller(normalized)
+      : await this.downloadWindowsInstaller(normalized, hash)
+    return { path, hash }
+  }
+
   public getEmbeddedWindowsInstallerPath(): string | undefined {
     const packagedPath = join(process.resourcesPath, 'nvm-manager', managerAssetName('nvm-windows'))
     if (this.getElectronApp().isPackaged)
@@ -71,10 +84,13 @@ export class NvmInstaller {
     return this.downloadWindowsInstaller(version)
   }
 
-  private async downloadWindowsInstaller(version: string): Promise<string> {
+  private async downloadWindowsInstaller(version: string, expectedHash?: string): Promise<string> {
+    const hash = expectedHash || trustedManagerHash('nvm-windows', version)
+    if (!hash)
+      throw new Error(`Version ${version} is not in the trusted NVM manager manifest`)
     const url = githubAssetUrl('nvm-windows', version)
     const target = join(this.getDownloadCacheDir(), `nvm-windows-${version}`, managerAssetName('nvm-windows'))
-    await this.downloadFile(url, target)
+    await this.downloadFile(url, target, hash)
     return target
   }
 
@@ -101,19 +117,32 @@ export class NvmInstaller {
     })
   }
 
-  private async downloadFile(url: string, target: string): Promise<void> {
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'nvm-gui',
-      },
-    })
+  private async downloadFile(url: string, target: string, expectedHash?: string): Promise<void> {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 300_000)
+    try {
+      const response = await fetch(url, {
+        headers: { 'User-Agent': 'nvm-gui' }, signal: controller.signal, redirect: 'error',
+      })
 
-    if (!response.ok)
-      throw new Error(`Download failed: ${response.status} ${response.statusText}`)
+      if (!response.ok)
+        throw new Error(`Download failed: ${response.status} ${response.statusText}`)
+      const maxSize = 200 * 1024 * 1024
+      const contentLength = response.headers.get('content-length')
+      if (contentLength && Number(contentLength) > maxSize)
+        throw new Error('Download exceeds the 200 MB limit')
 
-    const data = Buffer.from(await response.arrayBuffer())
-    await mkdir(dirname(target), { recursive: true })
-    await writeFile(target, data)
+      const data = Buffer.from(await response.arrayBuffer())
+      if (data.length > maxSize)
+        throw new Error('Download exceeds the 200 MB limit')
+      if (expectedHash && createHash('sha256').update(data).digest('hex') !== expectedHash.toLowerCase())
+        throw new Error('Downloaded NVM installer SHA-256 verification failed')
+      await mkdir(dirname(target), { recursive: true })
+      const temp = `${target}.tmp-${Date.now()}`
+      await writeFile(temp, data)
+      await rename(temp, target)
+    }
+    finally { clearTimeout(timeout) }
   }
 
   private getDownloadCacheDir(): string {

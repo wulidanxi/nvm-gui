@@ -98,11 +98,11 @@ const handleUpdateValue = (key: string) => {
 };
 
 const onOpenSource = () => {
-  openUrl("https://github.com/wulidanxi/nvm-gui");
+  openUrl("project");
 };
 
 const onOpenPlugin = () => {
-  openUrl("https://github.com/coreybutler/nvm-windows");
+  openUrl("nvmWindows");
 };
 
 const onOpenOffice = () => {

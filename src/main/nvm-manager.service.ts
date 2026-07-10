@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
-import { app } from 'electron'
+import { app, dialog } from 'electron'
 import type {
   InstalledNodeVersion,
   NodeReleaseSummary,
@@ -15,13 +15,14 @@ import type {
 import { ExecFileCommandRunner } from './command-runner'
 import type { CommandRunner } from './command-runner'
 import { NvmInstaller } from './nvm-installer'
+import { ElevatedExecutor } from './elevated-executor'
 import {
   PosixNvmProvider,
   WindowsNvmProvider,
 } from './nvm-provider'
 import type { NvmProvider } from './nvm-provider'
 import { providerForPlatform, resolvePosixNvmDir } from './nvm-manager.shared'
-import { ReleaseClient } from './release-client'
+import { isDefaultNodeReleaseUrl, ReleaseClient, validateNodeReleaseUrl } from './release-client'
 
 const DEFAULT_NODE_RELEASE_URL = 'https://nodejs.org/dist/index.json'
 
@@ -35,6 +36,7 @@ export class NvmManagerService {
   private readonly windowsProvider?: WindowsNvmProvider
   private readonly installer: NvmInstaller
   private readonly releaseClient: ReleaseClient
+  private readonly elevated = new ElevatedExecutor()
 
   constructor(
     platform: NodeJS.Platform = process.platform,
@@ -109,6 +111,11 @@ export class NvmManagerService {
   }
 
   public async installManager(options: NvmManagerInstallOptions): Promise<NvmManagerStatus> {
+    if (this.platform === 'win32') {
+      const artifact = await this.installer.resolveWindowsInstaller(options.version, options.source)
+      await this.elevated.installNvmManager(artifact.path, artifact.hash)
+      return this.detect()
+    }
     await this.installer.install(options.version, options.source, options.writeProfile === true)
     return this.detect()
   }
@@ -133,8 +140,18 @@ export class NvmManagerService {
     releaseUrl: string = DEFAULT_NODE_RELEASE_URL,
   ): Promise<NodeReleaseSummary[]> {
     try {
+      const validatedUrl = validateNodeReleaseUrl(releaseUrl)
+      if (!isDefaultNodeReleaseUrl(validatedUrl)) {
+        const response = await dialog.showMessageBox({
+          type: 'warning', buttons: ['Cancel', 'Allow once'], defaultId: 0, cancelId: 0,
+          title: 'Allow custom Node release source?',
+          message: `The app will request Node release metadata from:\n${validatedUrl}`,
+        })
+        if (response.response !== 1)
+          throw new Error('Custom Node release source was not approved')
+      }
       return await this.releaseClient.listNodeReleaseSummaries(
-        releaseUrl,
+        validatedUrl,
         await this.listInstalledVersions(),
       )
     }
@@ -144,16 +161,22 @@ export class NvmManagerService {
   }
 
   public async installNodeVersion(version: string): Promise<OperationResult> {
+    if (this.platform === 'win32')
+      return { success: true, message: await this.elevated.executeNvm('install', version) }
     const message = await this.runNvmCommand(['install', version])
     return { success: true, message }
   }
 
   public async useNodeVersion(version: string): Promise<OperationResult> {
+    if (this.platform === 'win32')
+      return { success: true, message: await this.elevated.executeNvm('use', version) }
     const message = await this.runNvmCommand(['use', version])
     return { success: true, message }
   }
 
   public async uninstallNodeVersion(version: string): Promise<OperationResult> {
+    if (this.platform === 'win32')
+      return { success: true, message: await this.elevated.executeNvm('uninstall', version) }
     const message = await this.runNvmCommand(['uninstall', version])
     return { success: true, message }
   }

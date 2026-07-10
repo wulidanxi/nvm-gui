@@ -33,7 +33,7 @@ contextBridge.exposeInMainWorld('nvmGui', {
     checkNvmrc: (path: string) => invoke('check-nvmrc', path),
   },
   shell: {
-    openUrl: (url: string) => invoke('openUrl', url),
+    openUrl: (target: 'project' | 'nvmWindows') => invoke('openUrl', target),
   },
   system: {
     platform: process.platform,

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.11] - 2026-07-10
+
+### Security
+- The Windows app now runs as the invoking user and elevates only fixed, validated NVM operations.
+- Added trusted renderer protocol, IPC sender checks, navigation controls, CSP, verified installer downloads, and release-source controls.
+- Added production dependency audit and signed-Windows-artifact release gates.
+
 ## [0.0.10] - 2026-07-10
 
 ### Features

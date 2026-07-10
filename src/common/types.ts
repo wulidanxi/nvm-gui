@@ -67,3 +67,10 @@ export interface OperationResult {
   success: boolean
   message: string
 }
+
+export type ExternalLinkTarget = 'project' | 'nvmWindows'
+
+export const EXTERNAL_LINKS: Record<ExternalLinkTarget, string> = {
+  project: 'https://github.com/wulidanxi/nvm-gui',
+  nvmWindows: 'https://github.com/coreybutler/nvm-windows',
+}

@@ -6,6 +6,7 @@ import type {
   InstalledNodeVersion,
   NodeReleaseSummary,
   OperationResult,
+  ExternalLinkTarget,
 } from '../common/types'
 
 type NvmGuiApi = {
@@ -38,7 +39,7 @@ type NvmGuiApi = {
     checkNvmrc: (path: string) => Promise<string | null>
   }
   shell: {
-    openUrl: (url: string) => Promise<void>
+    openUrl: (target: ExternalLinkTarget) => Promise<void>
   }
   system: {
     platform: NodeJS.Platform

@@ -8,6 +8,14 @@ import type {
 export const WINDOWS_NVM_RECOMMENDED_VERSION = '1.2.1'
 export const POSIX_NVM_RECOMMENDED_VERSION = 'v0.40.5'
 
+export const TRUSTED_MANAGER_MANIFEST: Record<string, string> = {
+  'nvm-windows/1.2.1': '88a571be0ef1a240f2aa4dfe7bd7e445a0411cee702ab9c17c424658b8ac67e4',
+}
+
+export function trustedManagerHash(provider: NvmManagerProvider, version: string): string | undefined {
+  return TRUSTED_MANAGER_MANIFEST[`${provider}/${normalizeManagerVersion(provider, version)}`]
+}
+
 export function providerForPlatform(platform: NodeJS.Platform): NvmManagerProvider {
   return platform === 'win32' ? 'nvm-windows' : 'nvm-sh'
 }

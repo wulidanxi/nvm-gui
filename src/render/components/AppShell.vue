@@ -201,11 +201,11 @@ function go(path: string) {
 }
 
 function onOpenSource() {
-  openUrl("https://github.com/wulidanxi/nvm-gui");
+  openUrl("project");
 }
 
 function onOpenPlugin() {
-  openUrl("https://github.com/coreybutler/nvm-windows");
+  openUrl("nvmWindows");
 }
 
 function onOpenOffice() {
