@@ -6,6 +6,9 @@
 - 新增命令日志中心：持久化记录受控 NVM/NPM/NVM 管理器操作，支持筛选、详情、复制、导出和清理。
 - 新增应用更新：可配置启动自动检查；Windows 支持下载后重启安装，macOS/Linux 提供 Release 下载入口。
 
+### Security
+- 通过 Yarn resolution 将生产依赖 `js-yaml` 升级至 `4.3.0`，修复 CVE-2026-53550 的算法复杂度拒绝服务风险。
+
 ### Changed
 - 应用版本升级至 `0.0.15-a`；Windows 资源版本映射为纯数字 `0.0.15.1`，以兼容 Windows 文件版本格式。
 - 新增 MIT 包元数据、第三方声明和安装包内许可证资源，覆盖 nvm-windows 与 Font Awesome 图标的分发要求。

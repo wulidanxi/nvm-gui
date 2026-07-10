@@ -66,6 +66,7 @@
   },
   "resolutions": {
     "defu": "^6.1.5",
+    "js-yaml": "^4.2.0",
     "picomatch": "^4.0.4",
     "postcss": "^8.5.10"
   },
