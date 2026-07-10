@@ -1,5 +1,8 @@
 import '../render/styles/reset.css'
+import '../render/styles/motion.css'
 
+import { autoAnimatePlugin } from '@formkit/auto-animate/vue'
+import { MotionPlugin } from '@vueuse/motion'
 import { createApp } from 'vue'
 import { createPinia } from "pinia";
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
@@ -14,6 +17,8 @@ pinia.use(piniaPluginPersistedstate);
 app.use(naive)
 app.use(pinia)
 app.use(router)
+app.use(MotionPlugin)
+app.use(autoAnimatePlugin)
 
 app.config.errorHandler = (err, instance, info) => {
   console.error("Global Error:", err);

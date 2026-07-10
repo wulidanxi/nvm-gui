@@ -8,15 +8,24 @@ import {
   SwapHorizontalOutline,
 } from "@vicons/ionicons5";
 import type { InstalledNodeVersion } from "@common/types";
+import OperationFeedback from "@render/components/OperationFeedback.vue";
 import { useI18n } from "@render/i18n";
 import { consumeNodeEnvDirty } from "@render/utils/nodeEnvDirty";
 import { useInstalledNodeVersions } from "@render/utils/useInstalledNodeVersions";
+import { useAppMotion } from "@render/utils/motionPresets";
 import { useNvmOperations } from "@render/utils/useNvmOperations";
 
 const { versions, loading, nvmMissing, currentVersion, refresh } =
   useInstalledNodeVersions();
 const nvmOperations = useNvmOperations();
 const { t } = useI18n();
+const operationState = nvmOperations.operationState;
+const {
+  autoAnimateOptions,
+  cardMotion,
+  controlMotion,
+  headingMotion,
+} = useAppMotion();
 
 const keyword = ref("");
 const checkedRowKeysRef = ref<string[]>([]);
@@ -175,7 +184,7 @@ async function handleCheck(rowKeys: string[]) {
 
 <template>
   <div class="app-page local-page">
-    <div class="page-heading">
+    <div class="page-heading" v-motion="headingMotion">
       <div>
         <div class="page-kicker">{{ t("local.kicker") }}</div>
         <h1 class="page-title">{{ t("local.title") }}</h1>
@@ -183,7 +192,7 @@ async function handleCheck(rowKeys: string[]) {
           {{ t("local.description") }}
         </div>
       </div>
-      <n-button :loading="loading" @click="detail(true)">
+      <n-button v-motion="controlMotion" :loading="loading" @click="detail(true)">
         <template #icon>
           <n-icon><RefreshOutline /></n-icon>
         </template>
@@ -191,15 +200,18 @@ async function handleCheck(rowKeys: string[]) {
       </n-button>
     </div>
 
-    <div class="page-scroll-body">
+    <div v-auto-animate="autoAnimateOptions" class="page-scroll-body">
+      <OperationFeedback :state="operationState" />
+
       <n-alert v-if="nvmMissing" type="warning" class="page-alert">
         {{ t("local.nvmMissingAlert") }}
       </n-alert>
 
-      <section class="summary-grid">
+      <section class="summary-grid" v-auto-animate="autoAnimateOptions">
         <n-card
           v-for="item in summaryItems"
           :key="item.label"
+          v-motion="cardMotion"
           class="panel-card summary-card"
           :bordered="false"
         >
@@ -208,7 +220,7 @@ async function handleCheck(rowKeys: string[]) {
         </n-card>
       </section>
 
-      <div class="toolbar-card">
+      <div class="toolbar-card" v-motion="cardMotion">
         <n-input
           v-model:value="keyword"
           clearable
@@ -226,7 +238,7 @@ async function handleCheck(rowKeys: string[]) {
         </n-tag>
       </div>
 
-      <n-card class="panel-card table-card" :bordered="false">
+      <n-card v-motion="cardMotion" class="panel-card table-card" :bordered="false">
         <n-data-table
           v-model:checked-row-keys="checkedRowKeysRef"
           :bordered="false"

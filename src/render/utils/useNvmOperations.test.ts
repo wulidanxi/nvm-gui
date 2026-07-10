@@ -4,11 +4,40 @@ import { useNvmOperations } from './useNvmOperations'
 
 describe('useNvmOperations', () => {
   afterEach(() => {
+    vi.useRealTimers()
     vi.unstubAllGlobals()
     consumeNodeEnvDirty()
   })
 
-  it('marks the node environment dirty after a successful install', async () => {
+  it('exposes the running state while an operation is in flight', async () => {
+    let resolveInstall: (value: { success: boolean, message: string }) => void
+
+    vi.stubGlobal('window', {
+      nvmGui: {
+        nvm: {
+          install: vi.fn(() => new Promise<{ success: boolean, message: string }>((resolve) => {
+            resolveInstall = resolve
+          })),
+        },
+      },
+    })
+
+    const operations = useNvmOperations()
+    const installPromise = operations.install('v22.12.0')
+
+    expect(operations.operatingVersion.value).toBe('v22.12.0')
+    expect(operations.operationState.value).toEqual({
+      kind: 'install',
+      version: 'v22.12.0',
+      phase: 'running',
+    })
+
+    resolveInstall!({ success: true, message: 'installed' })
+    await installPromise
+  })
+
+  it('marks the node environment dirty and keeps a short success state after install', async () => {
+    vi.useFakeTimers()
     vi.stubGlobal('window', {
       nvmGui: {
         nvm: {
@@ -21,10 +50,21 @@ describe('useNvmOperations', () => {
     await operations.install('v22.12.0')
 
     expect(operations.operatingVersion.value).toBeNull()
+    expect(operations.operationState.value).toEqual({
+      kind: 'install',
+      version: 'v22.12.0',
+      phase: 'success',
+      message: 'installed',
+    })
     expect(consumeNodeEnvDirty()).toBe(true)
+
+    vi.advanceTimersByTime(2400)
+
+    expect(operations.operationState.value).toBeNull()
   })
 
-  it('clears the busy version after a failed operation', async () => {
+  it('clears the busy version and keeps a short error state after failure', async () => {
+    vi.useFakeTimers()
     vi.stubGlobal('window', {
       nvmGui: {
         nvm: {
@@ -39,7 +79,16 @@ describe('useNvmOperations', () => {
 
     await expect(operations.use('22.12.0')).rejects.toThrow('switch failed')
     expect(operations.operatingVersion.value).toBeNull()
+    expect(operations.operationState.value).toEqual({
+      kind: 'use',
+      version: '22.12.0',
+      phase: 'error',
+      message: 'switch failed',
+    })
     expect(consumeNodeEnvDirty()).toBe(false)
+
+    vi.advanceTimersByTime(2400)
+
+    expect(operations.operationState.value).toBeNull()
   })
 })
-

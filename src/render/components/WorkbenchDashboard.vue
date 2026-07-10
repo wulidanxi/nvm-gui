@@ -9,9 +9,18 @@ import {
 } from "@vicons/ionicons5";
 import { currentNvmManagerVersion, nvmCurrent } from "@render/api";
 import { useI18n } from "@render/i18n";
+import { useAppMotion } from "@render/utils/motionPresets";
 
 const router = useRouter();
 const { t } = useI18n();
+const {
+  autoAnimateOptions,
+  cardMotion,
+  controlMotion,
+  headingMotion,
+  heroMotion,
+  tileMotion,
+} = useAppMotion();
 
 const nodeStatus = ref<"loading" | "missing" | "ready">("loading");
 const nvmStatus = ref<"loading" | "missing" | "ready">("loading");
@@ -109,7 +118,7 @@ onMounted(() => {
 
 <template>
   <div class="app-page dashboard-page">
-    <div class="page-heading">
+    <div class="page-heading" v-motion="headingMotion">
       <div>
         <div class="page-kicker">{{ t("dashboard.kicker") }}</div>
         <h1 class="page-title">{{ t("dashboard.title") }}</h1>
@@ -117,7 +126,7 @@ onMounted(() => {
           {{ t("dashboard.description") }}
         </div>
       </div>
-      <n-button type="primary" @click="openAction('/available')">
+      <n-button v-motion="controlMotion" type="primary" @click="openAction('/available')">
         <template #icon>
           <n-icon><CloudDownloadOutline /></n-icon>
         </template>
@@ -125,8 +134,8 @@ onMounted(() => {
       </n-button>
     </div>
 
-    <div class="page-scroll-body">
-      <section class="hero-panel">
+    <div v-auto-animate="autoAnimateOptions" class="page-scroll-body">
+      <section class="hero-panel" v-motion="heroMotion">
       <div class="hero-copy">
         <div class="hero-eyebrow">{{ t("dashboard.currentRuntime") }}</div>
         <div class="hero-version">{{ nodeVersionLabel }}</div>
@@ -141,12 +150,18 @@ onMounted(() => {
       </div>
       </section>
 
-      <section class="dashboard-grid">
-      <n-card class="panel-card" :bordered="false" :title="t('dashboard.healthTitle')">
-        <div class="health-list">
+      <section class="dashboard-grid" v-auto-animate="autoAnimateOptions">
+      <n-card
+        v-motion="cardMotion"
+        class="panel-card"
+        :bordered="false"
+        :title="t('dashboard.healthTitle')"
+      >
+        <div class="health-list" v-auto-animate="autoAnimateOptions">
           <div
             v-for="item in healthItems"
             :key="item.label"
+            v-motion="tileMotion"
             class="health-row"
           >
             <div class="health-leading">
@@ -168,11 +183,17 @@ onMounted(() => {
         </div>
       </n-card>
 
-      <n-card class="panel-card" :bordered="false" :title="t('dashboard.quickActionsTitle')">
-        <div class="action-grid">
+      <n-card
+        v-motion="cardMotion"
+        class="panel-card"
+        :bordered="false"
+        :title="t('dashboard.quickActionsTitle')"
+      >
+        <div class="action-grid" v-auto-animate="autoAnimateOptions">
           <button
             v-for="item in quickActions"
             :key="item.title"
+            v-motion="tileMotion"
             class="action-tile"
             type="button"
             @click="openAction(item.path)"

@@ -118,6 +118,20 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 0;
+}
+
+::view-transition-new(root) {
+  z-index: 1;
+}
+
 html,
 body,
 #app {
@@ -164,6 +178,11 @@ table {
 }
 
 .app-theme {
+  --motion-fast: 140ms;
+  --motion-normal: 220ms;
+  --motion-slow: 820ms;
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --app-bg: #f5f7f4;
   --app-bg-soft: #eef4ed;
   --app-surface: rgba(255, 255, 255, 0.82);
@@ -184,6 +203,9 @@ table {
   height: 100%;
   color: var(--app-text);
   background: var(--app-bg);
+  transition:
+    color var(--motion-normal) var(--motion-ease-standard),
+    background-color var(--motion-normal) var(--motion-ease-standard);
 }
 
 .app-theme-dark {
@@ -299,6 +321,25 @@ table {
   padding-bottom: 10px;
 }
 
+.app-shell,
+.app-sidebar,
+.topbar,
+.panel-card,
+.toolbar-card,
+.summary-card,
+.runtime-mini,
+.theme-switch,
+.nav-item,
+.hero-panel,
+.health-row,
+.action-tile {
+  transition:
+    color var(--motion-normal) var(--motion-ease-standard),
+    background-color var(--motion-normal) var(--motion-ease-standard),
+    border-color var(--motion-normal) var(--motion-ease-standard),
+    box-shadow var(--motion-normal) var(--motion-ease-standard);
+}
+
 .n-data-table {
   overflow: hidden;
   border-radius: 8px;
@@ -363,5 +404,21 @@ table {
 
   .summary-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
   }
 }

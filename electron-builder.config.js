@@ -17,7 +17,7 @@ const config = {
     output: 'dist/electron',
   },
   appId: 'com.nvm-sh.cn',
-  buildVersion: '0.0.9.5',
+  buildVersion: '0.0.10.0',
   win: {
     icon: './nvm-logo-color-avatar.png',
     requestedExecutionLevel: 'requireAdministrator',

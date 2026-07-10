@@ -20,6 +20,7 @@ import {
 } from "@render/api";
 import { useI18n } from "@render/i18n";
 import { useThemeStore } from "@render/stores/ThemeStore";
+import { useAppMotion } from "@render/utils/motionPresets";
 import logoIconBlack from "@render/assets/nvm-logo-color-avatar.png";
 import logoIconWhite from "@render/assets/nvm-logo-white.svg";
 import config from "../../../package.json";
@@ -28,8 +29,17 @@ const router = useRouter();
 const route = useRoute();
 const themeStore = useThemeStore();
 const { t } = useI18n();
+const {
+  autoAnimateOptions,
+  cardMotion,
+  controlMotion,
+  navMotion,
+  pageMotion,
+} = useAppMotion();
 
 const showModal = ref(false);
+const themeSwitchRef = ref<HTMLElement | null>(null);
+const themeTransitionOrigin = ref({ x: 0, y: 0 });
 const currentNodeStatus = ref<"loading" | "missing" | "ready">("loading");
 const nvmManagerStatus = ref<"loading" | "missing" | "ready">("loading");
 const nvmCliStatus = ref<"loading" | "missing" | "ready">("loading");
@@ -39,10 +49,7 @@ const nvmCliVersion = ref("");
 
 const version = config.version;
 
-const isDark = computed({
-  get: () => themeStore.theme === "dark",
-  set: (value: boolean) => themeStore.toggleTheme(value ? "dark" : "light"),
-});
+const isDark = computed(() => themeStore.theme === "dark");
 
 const logoIcon = computed(() => (isDark.value ? logoIconWhite : logoIconBlack));
 
@@ -112,6 +119,81 @@ const activePath = computed(() => {
   return current?.path || "/dashboard";
 });
 
+type ViewTransitionLike = {
+  ready: Promise<void>;
+};
+
+type ViewTransitionDocument = Document & {
+  startViewTransition?: (callback: () => void) => ViewTransitionLike;
+};
+
+const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+function rememberThemeTransitionOrigin(event: PointerEvent) {
+  themeTransitionOrigin.value = {
+    x: event.clientX,
+    y: event.clientY,
+  };
+}
+
+function resolveThemeTransitionOrigin() {
+  if (themeTransitionOrigin.value.x || themeTransitionOrigin.value.y) {
+    return themeTransitionOrigin.value;
+  }
+
+  const switchRect = themeSwitchRef.value?.getBoundingClientRect();
+  if (switchRect) {
+    return {
+      x: switchRect.left + switchRect.width / 2,
+      y: switchRect.top + switchRect.height / 2,
+    };
+  }
+
+  return {
+    x: window.innerWidth - 48,
+    y: 32,
+  };
+}
+
+function updateThemeMode(value: boolean) {
+  const nextTheme = value ? "dark" : "light";
+  if (themeStore.theme === nextTheme) return;
+
+  const transitionDocument = document as ViewTransitionDocument;
+  if (!transitionDocument.startViewTransition || reduceMotionQuery.matches) {
+    themeStore.toggleTheme(nextTheme);
+    return;
+  }
+
+  const { x, y } = resolveThemeTransitionOrigin();
+  const endRadius = Math.hypot(
+    Math.max(x, window.innerWidth - x),
+    Math.max(y, window.innerHeight - y),
+  );
+
+  const transition = transitionDocument.startViewTransition(() => {
+    themeStore.toggleTheme(nextTheme);
+  });
+
+  transition.ready
+    .then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: 820,
+          easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+          pseudoElement: "::view-transition-new(root)",
+        },
+      );
+    })
+    .catch(() => {});
+}
+
 function go(path: string) {
   if (route.path !== path) {
     router.push(path);
@@ -161,7 +243,7 @@ onMounted(() => {
 <template>
   <div class="app-shell">
     <aside class="app-sidebar">
-      <div class="brand-block">
+      <div class="brand-block" v-motion="controlMotion">
         <img class="brand-logo" :src="logoIcon" alt="NVM GUI" />
         <div>
           <div class="brand-title">NVM GUI</div>
@@ -169,10 +251,15 @@ onMounted(() => {
         </div>
       </div>
 
-      <nav class="nav-list" :aria-label="t('shell.navLabel')">
+      <nav
+        v-auto-animate="autoAnimateOptions"
+        class="nav-list"
+        :aria-label="t('shell.navLabel')"
+      >
         <button
           v-for="item in navItems"
           :key="item.path"
+          v-motion="navMotion"
           class="nav-item"
           :class="{ 'is-active': activePath === item.path }"
           type="button"
@@ -189,7 +276,7 @@ onMounted(() => {
       </nav>
 
       <div class="sidebar-footer">
-        <div class="runtime-mini">
+        <div class="runtime-mini" v-motion="cardMotion">
           <div class="status-dot" />
           <div>
             <div class="runtime-mini-label">{{ t("common.currentNode") }}</div>
@@ -216,7 +303,7 @@ onMounted(() => {
         <div class="topbar-right">
           <n-tooltip trigger="hover">
             <template #trigger>
-              <n-button quaternary circle @click="onOpenSource">
+              <n-button v-motion="controlMotion" quaternary circle @click="onOpenSource">
                 <template #icon>
                   <n-icon><LogoGithub /></n-icon>
                 </template>
@@ -227,7 +314,7 @@ onMounted(() => {
 
           <n-tooltip trigger="hover">
             <template #trigger>
-              <n-button quaternary circle @click="showModal = true">
+              <n-button v-motion="controlMotion" quaternary circle @click="showModal = true">
                 <template #icon>
                   <n-icon><InformationCircleOutline /></n-icon>
                 </template>
@@ -236,20 +323,33 @@ onMounted(() => {
             {{ t("shell.about") }}
           </n-tooltip>
 
-          <div class="theme-switch">
+          <div
+            ref="themeSwitchRef"
+            v-motion="controlMotion"
+            class="theme-switch"
+            @pointerdown="rememberThemeTransitionOrigin"
+          >
             <n-icon size="16">
               <SunnyOutline v-if="!isDark" />
               <MoonOutline v-else />
             </n-icon>
-            <n-switch v-model:value="isDark" size="small" />
+            <n-switch
+              :value="isDark"
+              size="small"
+              @update:value="updateThemeMode"
+            />
           </div>
         </div>
       </header>
 
       <section class="content-frame">
-        <router-view v-slot="{ Component }">
+        <router-view v-slot="{ Component, route }">
           <keep-alive>
-            <component :is="Component" />
+            <component
+              :is="Component"
+              :key="route.path"
+              v-motion="pageMotion"
+            />
           </keep-alive>
         </router-view>
       </section>

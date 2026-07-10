@@ -9,6 +9,7 @@ import {
   TerminalOutline,
 } from "@vicons/ionicons5";
 import { useI18n } from "@render/i18n";
+import { useAppMotion } from "@render/utils/motionPresets";
 import GeneralSettings from "./Setting/GeneralAppearanceSettings.vue";
 import AdvancedSettings from "./Setting/AdvancedSettings.vue";
 import NvmManager from "./Setting/NvmManager.vue";
@@ -24,6 +25,13 @@ const activeKey = ref("general");
 const generalSettingsRef = ref<SettingsExpose | null>(null);
 const advancedSettingsRef = ref<SettingsExpose | null>(null);
 const { t } = useI18n();
+const {
+  autoAnimateOptions,
+  cardMotion,
+  controlMotion,
+  headingMotion,
+  navMotion,
+} = useAppMotion();
 
 const settingGroups = computed(() => [
   {
@@ -77,7 +85,7 @@ function saveAllSettings() {
 
 <template>
   <div class="app-page setting-page">
-    <div class="page-heading">
+    <div class="page-heading" v-motion="headingMotion">
       <div>
         <div class="page-kicker">{{ t("settings.kicker") }}</div>
         <h1 class="page-title">{{ t("settings.title") }}</h1>
@@ -87,11 +95,16 @@ function saveAllSettings() {
       </div>
     </div>
 
-    <section class="settings-workspace">
-      <aside class="settings-nav panel-card">
+    <section class="settings-workspace" v-auto-animate="autoAnimateOptions">
+      <aside
+        v-motion="cardMotion"
+        v-auto-animate="autoAnimateOptions"
+        class="settings-nav panel-card"
+      >
         <button
           v-for="item in settingGroups"
           :key="item.key"
+          v-motion="navMotion"
           class="settings-nav-item"
           :class="{ 'is-active': activeKey === item.key }"
           type="button"
@@ -105,8 +118,8 @@ function saveAllSettings() {
         </button>
       </aside>
 
-      <main class="settings-panel panel-card">
-        <header class="settings-panel-header">
+      <main v-motion="cardMotion" class="settings-panel panel-card">
+        <header class="settings-panel-header" v-motion="headingMotion">
           <div>
             <div class="settings-panel-kicker">{{ t("settings.panelKicker") }}</div>
             <h2>{{ activeGroup.label }}</h2>
@@ -114,24 +127,38 @@ function saveAllSettings() {
           <n-tag round :bordered="false">{{ activeGroup.description }}</n-tag>
         </header>
 
-        <div class="settings-panel-body">
-          <GeneralSettings
-            v-show="activeKey === 'general'"
-            ref="generalSettingsRef"
-          />
-          <AdvancedSettings
-            v-show="activeKey === 'advanced'"
-            ref="advancedSettingsRef"
-          />
-          <RegistryManager v-show="activeKey === 'registry'" />
-          <MigrationHelper v-show="activeKey === 'migration'" />
-          <ProjectDetector v-show="activeKey === 'project'" />
-          <NvmManager v-show="activeKey === 'nvm-manager'" />
+        <div class="settings-panel-body" v-auto-animate="autoAnimateOptions">
+          <Transition name="settings-section" appear>
+            <GeneralSettings
+              v-show="activeKey === 'general'"
+              ref="generalSettingsRef"
+            />
+          </Transition>
+          <Transition name="settings-section" appear>
+            <AdvancedSettings
+              v-show="activeKey === 'advanced'"
+              ref="advancedSettingsRef"
+            />
+          </Transition>
+          <Transition name="settings-section" appear>
+            <RegistryManager v-show="activeKey === 'registry'" />
+          </Transition>
+          <Transition name="settings-section" appear>
+            <MigrationHelper v-show="activeKey === 'migration'" />
+          </Transition>
+          <Transition name="settings-section" appear>
+            <ProjectDetector v-show="activeKey === 'project'" />
+          </Transition>
+          <Transition name="settings-section" appear>
+            <NvmManager v-show="activeKey === 'nvm-manager'" />
+          </Transition>
         </div>
 
-        <footer class="settings-footer">
+        <footer class="settings-footer" v-motion="cardMotion">
           <span class="text-muted">{{ t("settings.footerHint") }}</span>
-          <n-button type="primary" @click="saveAllSettings">{{ t("common.saveSettings") }}</n-button>
+          <n-button v-motion="controlMotion" type="primary" @click="saveAllSettings">
+            {{ t("common.saveSettings") }}
+          </n-button>
         </footer>
       </main>
     </section>

@@ -8,8 +8,10 @@ import {
   SearchOutline,
 } from "@vicons/ionicons5";
 import type { NodeReleaseSummary } from "@common/types";
+import OperationFeedback from "@render/components/OperationFeedback.vue";
 import { useI18n } from "@render/i18n";
 import { useAvailableNodeReleases } from "@render/utils/useAvailableNodeReleases";
+import { useAppMotion } from "@render/utils/motionPresets";
 import { useNvmOperations } from "@render/utils/useNvmOperations";
 
 const {
@@ -23,6 +25,13 @@ const {
 } = useAvailableNodeReleases();
 const nvmOperations = useNvmOperations();
 const { t } = useI18n();
+const operationState = nvmOperations.operationState;
+const {
+  autoAnimateOptions,
+  cardMotion,
+  controlMotion,
+  headingMotion,
+} = useAppMotion();
 
 const pagination = {
   pageSize: 4,
@@ -152,7 +161,7 @@ onBeforeMount(() => {
 
 <template>
   <div class="app-page available-page">
-    <div class="page-heading">
+    <div class="page-heading" v-motion="headingMotion">
       <div>
         <div class="page-kicker">{{ t("available.kicker") }}</div>
         <h1 class="page-title">{{ t("available.title") }}</h1>
@@ -160,7 +169,7 @@ onBeforeMount(() => {
           {{ t("available.description") }}
         </div>
       </div>
-      <n-button :loading="loading" @click="initData">
+      <n-button v-motion="controlMotion" :loading="loading" @click="initData">
         <template #icon>
           <n-icon><RefreshOutline /></n-icon>
         </template>
@@ -168,15 +177,18 @@ onBeforeMount(() => {
       </n-button>
     </div>
 
-    <div class="page-scroll-body">
+    <div v-auto-animate="autoAnimateOptions" class="page-scroll-body">
+      <OperationFeedback :state="operationState" />
+
       <n-alert v-if="nvmMissing" type="warning" class="page-alert">
         {{ t("local.nvmMissingAlert") }}
       </n-alert>
 
-      <section class="summary-grid">
+      <section class="summary-grid" v-auto-animate="autoAnimateOptions">
         <n-card
           v-for="item in summaryItems"
           :key="item.label"
+          v-motion="cardMotion"
           class="panel-card summary-card"
           :bordered="false"
         >
@@ -185,7 +197,7 @@ onBeforeMount(() => {
         </n-card>
       </section>
 
-      <div class="toolbar-card">
+      <div class="toolbar-card" v-motion="cardMotion">
         <n-input
           v-model:value="keyword"
           clearable
@@ -201,7 +213,7 @@ onBeforeMount(() => {
         </n-checkbox>
       </div>
 
-      <n-card class="panel-card table-card" :bordered="false">
+      <n-card v-motion="cardMotion" class="panel-card table-card" :bordered="false">
         <n-data-table
           :bordered="false"
           :single-line="false"

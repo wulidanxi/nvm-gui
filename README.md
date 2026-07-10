@@ -5,7 +5,7 @@
 ![GitHub License](https://img.shields.io/github/license/wulidanxi/nvm-gui) ![GitHub Release](https://img.shields.io/github/v/release/wulidanxi/nvm-gui)
 ![CI](https://github.com/wulidanxi/nvm-gui/actions/workflows/ci.yml/badge.svg?branch=main)
 
-当前版本：`0.0.9-5`
+当前版本：`0.0.10`
 
 # ⚡ NVM GUI（Vite + Vue + Electron）
 
@@ -18,6 +18,7 @@
 - 项目版本检测：识别 `.nvmrc`，检测是否匹配，一键安装/切换
 - 主题与基础布局：基于 Naive UI，支持暗色与浅色主题
 - 多语言界面：支持中英文切换，并跟随用户偏好持久化保存
+- 动效与操作反馈：统一页面切换、卡片和控件动效，实时展示 Node.js 安装、切换与卸载状态
 
 ## 环境要求
 
@@ -54,7 +55,7 @@ npm run build:linux
 ## 下载与发布
 
 - 最新安装包下载：在 GitHub Releases 页面（基于 tag 的自动发布）
-- 推送发布：创建符合语义化的 tag（例如 `v0.0.9-5`），CI 会自动构建并附加三平台安装包
+- 推送发布：创建符合语义化的 tag（例如 `v0.0.10`），CI 会自动构建并附加三平台安装包
 
 ## 常见问题
 

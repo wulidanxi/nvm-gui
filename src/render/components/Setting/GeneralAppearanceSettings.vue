@@ -2,13 +2,6 @@
   <div class="general-settings">
     <n-card :bordered="false" size="small">
       <n-form label-placement="top" label-width="auto">
-        <n-form-item :label="t('appearance.mode')">
-          <n-select
-            v-model:value="selectedTheme"
-            :options="themeOptions"
-            :placeholder="t('appearance.modePlaceholder')"
-          />
-        </n-form-item>
         <n-form-item :label="t('common.language')">
           <n-select
             v-model:value="selectedLocale"
@@ -16,10 +9,11 @@
           />
         </n-form-item>
         <n-form-item :label="t('appearance.accent')">
-          <div class="accent-grid">
+          <div class="accent-grid" v-auto-animate="autoAnimateOptions">
             <button
               v-for="item in themeAccentOptions"
               :key="item.key"
+              v-motion="tileMotion"
               class="accent-option"
               :class="{ 'is-active': selectedAccent === item.key }"
               type="button"
@@ -42,33 +36,24 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { ref, watch } from "vue";
 import { NCard, NForm, NFormItem, NSelect } from "naive-ui";
 import { localeOptions, useI18n } from "@render/i18n";
 import { type AppLocale, useLocaleStore } from "@render/stores/LocaleStore";
 import {
   themeAccentOptions,
   type ThemeAccentKey,
-  type ThemeMode,
   useThemeStore,
 } from "@render/stores/ThemeStore";
+import { useAppMotion } from "@render/utils/motionPresets";
 
 const store = useThemeStore();
 const localeStore = useLocaleStore();
 const { t } = useI18n();
+const { autoAnimateOptions, tileMotion } = useAppMotion();
 
-const themeOptions = computed(() => [
-  { label: t("appearance.light"), value: "light" },
-  { label: t("appearance.dark"), value: "dark" },
-]);
-
-const selectedTheme = ref<ThemeMode>(store.theme || "light");
 const selectedAccent = ref<ThemeAccentKey>(store.accent || "node-green");
 const selectedLocale = ref<AppLocale>(localeStore.locale);
-
-watch(() => store.theme, (value) => {
-  selectedTheme.value = value;
-});
 
 watch(() => store.accent, (value) => {
   selectedAccent.value = value;
@@ -79,7 +64,6 @@ watch(() => localeStore.locale, (value) => {
 });
 
 const saveSettings = () => {
-  store.setThemeMode(selectedTheme.value);
   store.setAccent(selectedAccent.value);
   localeStore.setLocale(selectedLocale.value);
 };

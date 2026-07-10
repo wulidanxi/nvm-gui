@@ -28,6 +28,20 @@ export const enUSMessages: Messages = {
     uninstall: 'Uninstall',
     use: 'Use',
   },
+  operation: {
+    installRunning: 'Installing Node.js {version}',
+    installSuccess: 'Node.js {version} installed',
+    installError: 'Node.js {version} install failed',
+    useRunning: 'Switching to Node.js {version}',
+    useSuccess: 'Switched to Node.js {version}',
+    useError: 'Node.js {version} switch failed',
+    uninstallRunning: 'Uninstalling Node.js {version}',
+    uninstallSuccess: 'Node.js {version} uninstalled',
+    uninstallError: 'Node.js {version} uninstall failed',
+    runningHint: 'The command is running. Keep this window open.',
+    successHint: 'The environment state has been updated and related lists will refresh after the operation.',
+    errorDetail: 'Error: {message}',
+  },
   locale: {
     chinese: '简体中文',
     english: 'English',
@@ -130,10 +144,6 @@ export const enUSMessages: Messages = {
     nvmManagerDescription: 'Detect, install, and upgrade',
   },
   appearance: {
-    mode: 'Appearance mode:',
-    modePlaceholder: 'Select appearance mode',
-    light: 'Light',
-    dark: 'Dark',
     accent: 'Accent color:',
   },
   advanced: {

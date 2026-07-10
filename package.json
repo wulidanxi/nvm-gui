@@ -1,6 +1,6 @@
 {
   "name": "nvm-gui",
-  "version": "0.0.9-5",
+  "version": "0.0.10",
   "description": "Vite + Electron + Vue Nvm GUI",
   "author": {
     "name": "wulidanxi",
@@ -28,6 +28,8 @@
     "postuninstall": "electron-builder install-app-deps"
   },
   "dependencies": {
+    "@formkit/auto-animate": "^0.9.0",
+    "@vueuse/motion": "^3.0.3",
     "dayjs": "^1.11.19",
     "einf": "^1.5.3",
     "pinia": "^3.0.4",

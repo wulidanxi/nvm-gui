@@ -1,0 +1,70 @@
+.settings-section-enter-active,
+.settings-section-leave-active {
+  transition:
+    opacity 190ms var(--motion-ease-standard),
+    transform 240ms var(--motion-ease-out),
+    filter 190ms var(--motion-ease-standard);
+}
+
+.settings-section-enter-from,
+.settings-section-leave-to {
+  opacity: 0;
+  transform: translateY(10px) scale(0.992);
+  filter: blur(4px);
+}
+
+.brand-block,
+.nav-item,
+.theme-switch,
+.runtime-mini,
+.panel-card,
+.toolbar-card,
+.summary-card,
+.hero-panel,
+.health-row,
+.action-tile,
+.settings-nav-item,
+.accent-option,
+.topbar-right .n-button {
+  transform: translateZ(0);
+  transition:
+    color var(--motion-normal) var(--motion-ease-standard),
+    background-color var(--motion-normal) var(--motion-ease-standard),
+    border-color var(--motion-normal) var(--motion-ease-standard),
+    box-shadow var(--motion-normal) var(--motion-ease-standard);
+}
+
+.n-data-table .n-data-table-tr,
+.n-data-table .n-data-table-td {
+  transition:
+    background-color var(--motion-fast) var(--motion-ease-standard),
+    color var(--motion-fast) var(--motion-ease-standard),
+    border-color var(--motion-fast) var(--motion-ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-section-enter-active,
+  .settings-section-leave-active {
+    transition: none !important;
+  }
+
+  .operation-feedback-progress span {
+    animation: none !important;
+  }
+
+  .brand-block,
+  .nav-item,
+  .theme-switch,
+  .runtime-mini,
+  .panel-card,
+  .toolbar-card,
+  .summary-card,
+  .hero-panel,
+  .health-row,
+  .action-tile,
+  .settings-nav-item,
+  .accent-option,
+  .topbar-right .n-button {
+    transform: none !important;
+  }
+}

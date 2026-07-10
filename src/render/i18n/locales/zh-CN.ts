@@ -26,6 +26,20 @@ export const zhCNMessages = {
     uninstall: '卸载',
     use: '使用',
   },
+  operation: {
+    installRunning: '正在安装 Node.js {version}',
+    installSuccess: 'Node.js {version} 安装完成',
+    installError: 'Node.js {version} 安装失败',
+    useRunning: '正在切换到 Node.js {version}',
+    useSuccess: '已切换到 Node.js {version}',
+    useError: 'Node.js {version} 切换失败',
+    uninstallRunning: '正在卸载 Node.js {version}',
+    uninstallSuccess: 'Node.js {version} 已卸载',
+    uninstallError: 'Node.js {version} 卸载失败',
+    runningHint: '命令正在执行，请保持当前窗口打开。',
+    successHint: '环境状态已更新，相关列表会在操作完成后刷新。',
+    errorDetail: '错误信息：{message}',
+  },
   locale: {
     chinese: '简体中文',
     english: 'English',
@@ -128,10 +142,6 @@ export const zhCNMessages = {
     nvmManagerDescription: '检测、安装与升级',
   },
   appearance: {
-    mode: '外观模式：',
-    modePlaceholder: '选择外观模式',
-    light: '亮色',
-    dark: '暗色',
     accent: '主题色：',
   },
   advanced: {

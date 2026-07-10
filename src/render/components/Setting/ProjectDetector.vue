@@ -1,8 +1,16 @@
 <template>
-  <div class="project-detector">
-    <n-card :title="t('project.title')" size="small">
+  <div class="project-detector" v-auto-animate="autoAnimateOptions">
+    <OperationFeedback :state="operationState" />
+
+    <n-card v-motion="cardMotion" :title="t('project.title')" size="small">
       <template #header-extra>
-        <n-button size="small" type="primary" dashed @click="selectProject">
+        <n-button
+          v-motion="controlMotion"
+          size="small"
+          type="primary"
+          dashed
+          @click="selectProject"
+        >
           <template #icon
             ><n-icon><FolderOpenOutline /></n-icon
           ></template>
@@ -33,14 +41,18 @@
 
         <n-flex justify="end" class="mt-4" v-if="!currentProject.match">
           <n-button
+            v-motion="controlMotion"
             type="primary"
+            :loading="operatingVersion === currentProject.version"
             @click="switchToVersion(currentProject.version)"
           >
             {{ t("project.switchTo", { version: currentProject.version }) }}
           </n-button>
         </n-flex>
         <n-flex justify="end" class="mt-4" v-else>
-          <n-button type="success" secondary disabled>{{ t("project.matched") }}</n-button>
+          <n-button v-motion="controlMotion" type="success" secondary disabled>
+            {{ t("project.matched") }}
+          </n-button>
         </n-flex>
       </div>
     </n-card>
@@ -66,12 +78,21 @@ import {
   listInstalledNodeVersions,
   openDirectoryDialog,
 } from "@render/api";
+import OperationFeedback from "@render/components/OperationFeedback.vue";
 import { useI18n } from "@render/i18n";
+import { useAppMotion } from "@render/utils/motionPresets";
 import { useNvmOperations } from "@render/utils/useNvmOperations";
 
 const message = useMessage();
 const nvmOperations = useNvmOperations();
 const { t } = useI18n();
+const operatingVersion = nvmOperations.operatingVersion;
+const operationState = nvmOperations.operationState;
+const {
+  autoAnimateOptions,
+  cardMotion,
+  controlMotion,
+} = useAppMotion();
 
 interface ProjectInfo {
   name: string;
