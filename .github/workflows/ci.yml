@@ -45,8 +45,10 @@ jobs:
     env:
       WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
       WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
-      ELECTRON_BUILDER_PUBLISH: ${{ startsWith(github.ref, 'refs/tags/v') && 'always' || 'never' }}
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # The release job uploads all installers and update metadata after every
+      # platform build succeeds. Prevent parallel build jobs from creating the
+      # same GitHub Release themselves.
+      ELECTRON_BUILDER_PUBLISH: never
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -99,8 +101,7 @@ jobs:
   build_macos:
     runs-on: macos-latest
     env:
-      ELECTRON_BUILDER_PUBLISH: ${{ startsWith(github.ref, 'refs/tags/v') && 'always' || 'never' }}
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ELECTRON_BUILDER_PUBLISH: never
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -136,8 +137,7 @@ jobs:
   build_linux:
     runs-on: ubuntu-latest
     env:
-      ELECTRON_BUILDER_PUBLISH: ${{ startsWith(github.ref, 'refs/tags/v') && 'always' || 'never' }}
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ELECTRON_BUILDER_PUBLISH: never
     steps:
       - uses: actions/checkout@v4
       - name: Install Linux packaging dependencies
