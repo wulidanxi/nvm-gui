@@ -5,8 +5,18 @@ const requireConfig = createRequire(import.meta.url)
 const configPath = requireConfig.resolve('../../electron-builder.config.js')
 
 describe('electron-builder config', () => {
-  it('includes the embedded nvm-windows installer only for Windows builds', () => {
+  it('includes legal notices in every package and the NVM installer only for Windows builds', () => {
     expect(loadConfigForTarget('win').extraResources).toEqual([
+      {
+        from: 'LICENSE',
+        to: 'licenses/LICENSE',
+        filter: ['**/*'],
+      },
+      {
+        from: 'THIRD_PARTY_NOTICES.md',
+        to: 'licenses/THIRD_PARTY_NOTICES.md',
+        filter: ['**/*'],
+      },
       {
         from: 'resources/nvm-windows/nvm-setup.exe',
         to: 'nvm-manager/nvm-setup.exe',
@@ -14,8 +24,20 @@ describe('electron-builder config', () => {
       },
     ])
 
-    expect(loadConfigForTarget('mac').extraResources).toEqual([])
-    expect(loadConfigForTarget('linux').extraResources).toEqual([])
+    const legalNoticeResources = [
+      {
+        from: 'LICENSE',
+        to: 'licenses/LICENSE',
+        filter: ['**/*'],
+      },
+      {
+        from: 'THIRD_PARTY_NOTICES.md',
+        to: 'licenses/THIRD_PARTY_NOTICES.md',
+        filter: ['**/*'],
+      },
+    ]
+    expect(loadConfigForTarget('mac').extraResources).toEqual(legalNoticeResources)
+    expect(loadConfigForTarget('linux').extraResources).toEqual(legalNoticeResources)
   })
 
   it('declares macOS and Linux package targets', () => {
@@ -34,7 +56,7 @@ describe('electron-builder config', () => {
 
   it('runs the Windows application as the invoking user', () => {
     expect(loadConfigForTarget('win').win.requestedExecutionLevel).toBe('asInvoker')
-    expect(loadConfigForTarget('win').buildVersion).toBe('0.0.14.0')
+    expect(loadConfigForTarget('win').buildVersion).toBe('0.0.14.1')
   })
 })
 

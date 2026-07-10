@@ -1,11 +1,12 @@
 {
   "name": "nvm-gui",
-  "version": "0.0.14",
+  "version": "0.0.14-a",
   "description": "Vite + Electron + Vue Nvm GUI",
   "author": {
     "name": "wulidanxi",
     "email": "wulidanxi@gmail.com"
   },
+  "license": "MIT",
   "main": "dist/main/index.js",
   "icon": "__dirname + 'logo.ico'",
   "scripts": {

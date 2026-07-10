@@ -12,12 +12,25 @@ const windowsExtraResources = [
   },
 ]
 
+const legalNoticeResources = [
+  {
+    from: 'LICENSE',
+    to: 'licenses/LICENSE',
+    filter: ['**/*'],
+  },
+  {
+    from: 'THIRD_PARTY_NOTICES.md',
+    to: 'licenses/THIRD_PARTY_NOTICES.md',
+    filter: ['**/*'],
+  },
+]
+
 const config = {
   directories: {
     output: 'dist/electron',
   },
   appId: 'com.nvm-sh.cn',
-  buildVersion: '0.0.14.0',
+  buildVersion: '0.0.14.1',
   win: {
     icon: './nvm-logo-color-avatar.png',
     requestedExecutionLevel: 'asInvoker',
@@ -41,7 +54,9 @@ const config = {
   npmRebuild: false,
 
   files: ['dist/main/**/*', 'dist/preload/**/*', 'dist/render/**/*'],
-  extraResources: buildTarget === 'win' ? windowsExtraResources : [],
+  extraResources: buildTarget === 'win'
+    ? [...legalNoticeResources, ...windowsExtraResources]
+    : legalNoticeResources,
 }
 
 module.exports = config
