@@ -148,6 +148,8 @@ export const enUSMessages: Messages = {
   appearance: {
     accent: 'Accent color:',
     autoUpdate: 'Check for updates on startup',
+    prereleaseUpdate: 'Receive preview updates',
+    prereleaseUpdateHint: 'When enabled, check for the latest preview; when disabled, receive only stable versions that are not older than the current version.',
   },
   commandLog: {
     kicker: 'Execution history', title: 'Command Log Center', description: 'Inspect controlled NVM, NPM, and manager operation output and errors.',

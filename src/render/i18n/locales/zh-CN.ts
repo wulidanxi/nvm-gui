@@ -146,6 +146,8 @@ export const zhCNMessages = {
   appearance: {
     accent: '主题色：',
     autoUpdate: '启动时自动检查更新',
+    prereleaseUpdate: '接收预览版更新',
+    prereleaseUpdateHint: '开启后检查最新预览版；关闭后仅接收版本不低于当前版本的稳定版。',
   },
   commandLog: {
     kicker: '执行历史', title: '命令日志中心', description: '查看受控 NVM、NPM 和管理器操作的执行结果与错误输出。',

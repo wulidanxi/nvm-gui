@@ -230,7 +230,7 @@ function onOpenOffice() {
 }
 
 async function checkUpdate() {
-  updateStatus.value = await checkForAppUpdate();
+  updateStatus.value = await checkForAppUpdate(updateStore.includePrerelease);
   if (updateStatus.value.phase === "up-to-date")
     window.$message.success(t("update.upToDate"));
   if (updateStatus.value.phase === "error")

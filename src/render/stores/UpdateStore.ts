@@ -3,12 +3,17 @@ import { ref } from 'vue'
 
 export const useUpdateStore = defineStore('update', () => {
   const autoCheck = ref(true)
+  const includePrerelease = ref(false)
 
   function setAutoCheck(value: boolean) {
     autoCheck.value = value
   }
 
-  return { autoCheck, setAutoCheck }
+  function setIncludePrerelease(value: boolean) {
+    includePrerelease.value = value
+  }
+
+  return { autoCheck, includePrerelease, setAutoCheck, setIncludePrerelease }
 }, {
   persist: true,
 })

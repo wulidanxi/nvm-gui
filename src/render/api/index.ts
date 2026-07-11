@@ -125,8 +125,8 @@ export function getAppUpdateStatus(): Promise<AppUpdateStatus> {
   return invokeGui(() => getNvmGui().update.status())
 }
 
-export function checkForAppUpdate(): Promise<AppUpdateStatus> {
-  return invokeGui(() => getNvmGui().update.check())
+export function checkForAppUpdate(includePrerelease: boolean): Promise<AppUpdateStatus> {
+  return invokeGui(() => getNvmGui().update.check(includePrerelease))
 }
 
 export function downloadAppUpdate(): Promise<AppUpdateStatus> {

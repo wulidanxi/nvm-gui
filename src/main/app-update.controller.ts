@@ -9,8 +9,10 @@ export class AppUpdateController {
   }
 
   @IpcHandle('app-update-check')
-  public async check() {
-    return appUpdateService.check()
+  public async check(includePrerelease: boolean) {
+    if (typeof includePrerelease !== 'boolean')
+      throw new Error('Invalid prerelease update preference.')
+    return appUpdateService.check(includePrerelease)
   }
 
   @IpcHandle('app-update-download')

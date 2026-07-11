@@ -33,6 +33,10 @@
         <n-form-item :label="t('appearance.autoUpdate')">
           <n-switch v-model:value="autoCheck" />
         </n-form-item>
+        <n-form-item :label="t('appearance.prereleaseUpdate')">
+          <n-switch v-model:value="includePrerelease" />
+          <span class="setting-hint">{{ t('appearance.prereleaseUpdateHint') }}</span>
+        </n-form-item>
       </n-form>
     </n-card>
   </div>
@@ -60,6 +64,7 @@ const { autoAnimateOptions, tileMotion } = useAppMotion();
 const selectedAccent = ref<ThemeAccentKey>(store.accent || "node-green");
 const selectedLocale = ref<AppLocale>(localeStore.locale);
 const autoCheck = ref(updateStore.autoCheck);
+const includePrerelease = ref(updateStore.includePrerelease);
 
 watch(() => store.accent, (value) => {
   selectedAccent.value = value;
@@ -73,6 +78,7 @@ const saveSettings = () => {
   store.setAccent(selectedAccent.value);
   localeStore.setLocale(selectedLocale.value);
   updateStore.setAutoCheck(autoCheck.value);
+  updateStore.setIncludePrerelease(includePrerelease.value);
 };
 
 defineExpose({
@@ -94,6 +100,13 @@ defineExpose({
   min-width: 0;
   line-height: 1.35;
   white-space: normal;
+}
+
+.setting-hint {
+  margin-left: 10px;
+  color: var(--app-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .accent-grid {

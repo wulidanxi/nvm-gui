@@ -49,7 +49,7 @@ type NvmGuiApi = {
   }
   update: {
     status: () => Promise<AppUpdateStatus>
-    check: () => Promise<AppUpdateStatus>
+    check: (includePrerelease: boolean) => Promise<AppUpdateStatus>
     download: () => Promise<AppUpdateStatus>
     quitAndInstall: () => Promise<void>
     onStatus: (listener: (status: AppUpdateStatus) => void) => () => void

@@ -41,7 +41,7 @@ contextBridge.exposeInMainWorld('nvmGui', {
   },
   update: {
     status: () => invoke('app-update-status'),
-    check: () => invoke('app-update-check'),
+    check: (includePrerelease: boolean) => invoke('app-update-check', includePrerelease),
     download: () => invoke('app-update-download'),
     quitAndInstall: () => invoke('app-update-quit-and-install'),
     onStatus: (listener: (status: AppUpdateStatus) => void) => {
