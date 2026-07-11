@@ -315,7 +315,7 @@ onUnmounted(() => {
 <template>
   <div class="app-shell">
     <aside class="app-sidebar">
-      <div class="brand-block" v-motion="controlMotion">
+      <div class="brand-block">
         <img class="brand-logo" :src="logoIcon" alt="NVM GUI" />
         <div>
           <div class="brand-title">NVM GUI</div>
@@ -406,7 +406,6 @@ onUnmounted(() => {
 
           <div
             ref="themeSwitchRef"
-            v-motion="controlMotion"
             class="theme-switch"
             @pointerdown="rememberThemeTransitionOrigin"
           >

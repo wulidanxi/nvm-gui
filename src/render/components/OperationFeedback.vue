@@ -24,7 +24,6 @@ const props = defineProps<{
 const { t } = useI18n()
 const {
   autoAnimateOptions,
-  controlMotion,
   feedbackMotion,
 } = useAppMotion()
 
@@ -92,7 +91,7 @@ const description = computed(() => {
     role="status"
     aria-live="polite"
   >
-    <div class="operation-feedback-icon" v-motion="controlMotion">
+    <div class="operation-feedback-icon">
       <n-icon size="22">
         <component :is="statusIcon" />
       </n-icon>
@@ -172,6 +171,14 @@ const description = computed(() => {
   background: rgba(224, 49, 49, 0.12);
 }
 
+.operation-feedback.is-success .operation-feedback-icon {
+  animation: operation-success-pop 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.operation-feedback.is-error .operation-feedback-icon {
+  animation: operation-error-shake 280ms ease-out both;
+}
+
 .operation-feedback-title {
   color: var(--app-text);
   font-size: 14px;
@@ -197,10 +204,39 @@ const description = computed(() => {
 .operation-feedback-progress span {
   position: absolute;
   inset: 0 auto 0 0;
-  width: 42%;
   border-radius: inherit;
   background: var(--app-accent);
+  width: 42%;
   animation: operation-progress-slide 1150ms var(--motion-ease-standard) infinite;
+}
+
+@keyframes operation-success-pop {
+  0% {
+    transform: scale(0.88);
+  }
+
+  60% {
+    transform: scale(1.08);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes operation-error-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  30% {
+    transform: translateX(-3px);
+  }
+
+  65% {
+    transform: translateX(3px);
+  }
 }
 
 @keyframes operation-progress-slide {
@@ -210,6 +246,17 @@ const description = computed(() => {
 
   to {
     transform: translateX(260%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .operation-feedback-icon,
+  .operation-feedback-progress span {
+    animation: none !important;
+  }
+
+  .operation-feedback-progress span {
+    width: 100%;
   }
 }
 </style>

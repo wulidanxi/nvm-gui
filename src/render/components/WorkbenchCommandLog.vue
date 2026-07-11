@@ -14,7 +14,7 @@ const { autoAnimateOptions, cardMotion, controlMotion, headingMotion } = useAppM
 const entries = ref<CommandLogEntry[]>([])
 const total = ref(0)
 const page = ref(1)
-const pageSize = 20
+const pageSize = 8
 const loading = ref(false)
 const search = ref('')
 const status = ref<CommandLogStatus | undefined>()
@@ -95,11 +95,11 @@ onMounted(load)
     </div>
     <div class="page-scroll-body" v-auto-animate="autoAnimateOptions">
       <n-card v-motion="cardMotion" class="panel-card" :bordered="false">
-        <n-space class="filters" wrap>
-          <n-input v-model:value="search" clearable :placeholder="t('commandLog.search')" @keyup.enter="page = 1; load()" />
-          <n-select v-model:value="status" clearable :options="[{ label: t('common.success'), value: 'success' }, { label: t('commandLog.failed'), value: 'error' }]" :placeholder="t('commandLog.allResults')" @update:value="page = 1; load()" />
+        <div class="filters">
+          <n-input class="filter-search" v-model:value="search" clearable :placeholder="t('commandLog.search')" @keyup.enter="page = 1; load()" />
+          <n-select class="filter-status" v-model:value="status" clearable :options="[{ label: t('common.success'), value: 'success' }, { label: t('commandLog.failed'), value: 'error' }]" :placeholder="t('commandLog.allResults')" @update:value="page = 1; load()" />
           <n-button @click="page = 1; load()">{{ t('common.refresh') }}</n-button>
-        </n-space>
+        </div>
         <n-data-table :columns="columns" :data="entries" :loading="loading" :row-key="row => row.id" />
         <div class="pagination"><n-pagination v-model:page="page" :page-size="pageSize" :item-count="total" @update:page="load" /></div>
       </n-card>
@@ -122,10 +122,20 @@ onMounted(load)
 
 <style scoped>
 .command-log-page { gap: 0; }
-.filters { margin-bottom: 14px; }
-.filters :deep(.n-input), .filters :deep(.n-select) { width: min(100%, 280px); }
+.filters { display: grid; grid-template-columns: minmax(220px, 280px) 160px max-content; gap: 12px; align-items: center; margin-bottom: 14px; }
+.filter-search, .filter-status { width: 100%; min-width: 0; }
 .pagination { display: flex; justify-content: flex-end; margin-top: 14px; }
 .result-success { color: var(--app-success); }.result-error { color: var(--app-error); }
 .log-link { border: 0; color: var(--app-accent); background: transparent; cursor: pointer; }
 .log-output { max-height: 62vh; margin: 0; padding: 12px; overflow: auto; border: 1px solid var(--app-border); border-radius: 8px; background: var(--app-surface-raised); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+@media (max-width: 760px) {
+  .filters { grid-template-columns: minmax(0, 1fr) 150px; }
+  .filters > :deep(.n-button) { grid-column: 1 / -1; justify-self: start; }
+}
+
+@media (max-width: 520px) {
+  .filters { grid-template-columns: minmax(0, 1fr); }
+  .filters > :deep(.n-button) { grid-column: auto; }
+}
 </style>

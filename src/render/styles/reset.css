@@ -203,9 +203,6 @@ table {
   height: 100%;
   color: var(--app-text);
   background: var(--app-bg);
-  transition:
-    color var(--motion-normal) var(--motion-ease-standard),
-    background-color var(--motion-normal) var(--motion-ease-standard);
 }
 
 .app-theme-dark {
@@ -323,23 +320,6 @@ table {
 
 .app-shell,
 .app-sidebar,
-.topbar,
-.panel-card,
-.toolbar-card,
-.summary-card,
-.runtime-mini,
-.theme-switch,
-.nav-item,
-.hero-panel,
-.health-row,
-.action-tile {
-  transition:
-    color var(--motion-normal) var(--motion-ease-standard),
-    background-color var(--motion-normal) var(--motion-ease-standard),
-    border-color var(--motion-normal) var(--motion-ease-standard),
-    box-shadow var(--motion-normal) var(--motion-ease-standard);
-}
-
 .n-data-table {
   overflow: hidden;
   border-radius: 8px;
