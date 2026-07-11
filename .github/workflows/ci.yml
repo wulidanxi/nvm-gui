@@ -214,6 +214,7 @@ jobs:
           printf '\n\n> WARNING: The Windows installer is currently unsigned. SmartScreen may show a warning on first run. Download only from this GitHub Release.\n' >> CHANGELOG_RELEASE.md
       - uses: softprops/action-gh-release@v1
         with:
+          prerelease: ${{ contains(github.ref_name, '-') }}
           files: |
             dist/electron/*.exe
             dist/electron/*.exe.blockmap

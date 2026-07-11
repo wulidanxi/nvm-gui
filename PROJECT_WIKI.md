@@ -299,6 +299,8 @@ npm config set registry <url>
 
 ## 10. 构建与发布
 
+版本标记：`vX.Y.Z` 表示稳定版；`vX.Y.Z-alpha.N`、`vX.Y.Z-beta.N`、`vX.Y.Z-rc.N` 表示预览版。发布工作流会根据 tag 是否含 `-` 自动设置 GitHub Release 的 Pre-release 标记。
+
 构建入口：
 
 - 渲染层 root：`src/render`

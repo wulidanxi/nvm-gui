@@ -59,6 +59,8 @@ npm run build:linux
 - 最新安装包下载：在 GitHub Releases 页面（基于 tag 的自动发布）
 - 推送发布：创建符合语义化的 tag（例如 `v0.0.11`），CI 会自动构建并附加三平台安装包
 
+版本标记约定：`vX.Y.Z` 为稳定版；带连字符后缀的 `vX.Y.Z-alpha.N`、`vX.Y.Z-beta.N`、`vX.Y.Z-rc.N` 为预览版，GitHub Release 会自动标记为 Pre-release。
+
 ## 常见问题
 
 - 启动白屏或报错：已修复 Router 重定向与全局 Message Provider 注入，若仍出现问题请在开发者工具查看 Console 日志

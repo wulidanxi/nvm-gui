@@ -120,6 +120,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
+          prerelease: ${{ contains(github.ref_name, '-') }}
           files: |
             dist/electron/*.exe
             dist/electron/*.exe.blockmap

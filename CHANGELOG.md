@@ -10,6 +10,7 @@
 - 通过 Yarn resolution 将生产依赖 `js-yaml` 升级至 `4.3.0`，修复 CVE-2026-53550 的算法复杂度拒绝服务风险。
 
 ### Changed
+- GitHub Release 现根据 tag 是否含预发布后缀自动标记为 Pre-release；稳定版使用无后缀 tag。
 - 应用版本升级至 `0.0.15-a`；Windows 资源版本映射为纯数字 `0.0.15.1`，以兼容 Windows 文件版本格式。
 - 新增 MIT 包元数据、第三方声明和安装包内许可证资源，覆盖 nvm-windows 与 Font Awesome 图标的分发要求。
 
