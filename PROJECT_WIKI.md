@@ -107,16 +107,16 @@ npm run lint      通过
    - 关闭 `nodeIntegration`。
    - 通过 preload 暴露受控桥接对象。
 5. `src/render/main.ts` 创建 Vue 应用，注册 Naive UI、Pinia、Router。
-6. 根路由进入 `src/render/components/AppShell.vue` 工作台壳层，再渲染具体功能页。
+6. 根路由进入 `src/render/shell/AppShell.vue` 工作台壳层，再渲染具体功能页。
 
 ## 6. 路由与页面
 
 | 路由         | 组件                         | 说明                                  |
 | ------------ | ---------------------------- | ------------------------------------- |
-| `/dashboard` | `WorkbenchDashboard.vue`     | 当前 Node 运行时、环境健康和快捷操作  |
-| `/local`     | `WorkbenchLocalNode.vue`     | 查看本地 Node 版本，搜索、切换和卸载  |
-| `/available` | `WorkbenchAvailableNode.vue` | 查看 Node.js 发行记录，筛选和安装版本 |
-| `/setting`   | `WorkbenchSetting.vue`       | 设置中心，包含多个子功能              |
+| `/dashboard` | `features/dashboard/DashboardPage.vue`               | 当前 Node 运行时、环境健康和快捷操作  |
+| `/local`     | `features/node-versions/LocalVersionsPage.vue`        | 查看本地 Node 版本，搜索、切换和卸载  |
+| `/available` | `features/node-versions/AvailableVersionsPage.vue`    | 查看 Node.js 发行记录，筛选和安装版本 |
+| `/setting`   | `features/settings/SettingsPage.vue`                  | 设置中心，包含多个子功能              |
 
 根路径 `/` 重定向到 `/dashboard`。
 
@@ -162,7 +162,7 @@ Windows 下 `nvm-list` 会过滤缺少 `node.exe` 的不完整版本目录，`nv
 
 ### Dashboard
 
-文件：`src/render/components/WorkbenchDashboard.vue`
+文件：`src/render/features/dashboard/DashboardPage.vue`
 
 职责：
 
@@ -172,7 +172,7 @@ Windows 下 `nvm-list` 会过滤缺少 `node.exe` 的不完整版本目录，`nv
 
 ### 本机 Node 环境
 
-文件：`src/render/components/WorkbenchLocalNode.vue`
+文件：`src/render/features/node-versions/LocalVersionsPage.vue`
 
 职责：
 
@@ -191,7 +191,7 @@ Windows 下 `nvm-list` 会过滤缺少 `node.exe` 的不完整版本目录，`nv
 
 ### Node.js 发行记录
 
-文件：`src/render/components/WorkbenchAvailableNode.vue`
+文件：`src/render/features/node-versions/AvailableVersionsPage.vue`
 
 职责：
 
@@ -211,7 +211,7 @@ https://nodejs.org/dist/index.json
 
 ### 设置页
 
-文件：`src/render/components/WorkbenchSetting.vue`
+文件：`src/render/features/settings/SettingsPage.vue`
 
 子模块：
 
@@ -339,7 +339,7 @@ Electron Builder 配置：
 建议：
 
 - 不暴露原始 `ipcRenderer`。
-- 改为白名单 API，例如 `window.nvmGui.nvm.list()`、`window.nvmGui.project.checkNvmrc()`。
+- 改为白名单 API，例如 `desktopApi.nvm.listInstalled()`、`desktopApi.project.checkNvmrc()`。
 - `versions.system()` 只返回必要字段或方法，例如 `platform`、`getSystemVersion()`。
 
 ### P1：`runCmd` 仍可从主进程执行任意命令
@@ -380,8 +380,7 @@ Electron Builder 配置：
 位置：
 
 - `src/main/app.controller.ts:128`
-- `src/render/components/Setting/ProjectDetector.vue:111`
-- `src/render/components/Setting/ProjectDetector.vue:119`
+- `src/render/features/settings/components/ProjectDetector.vue`
 
 当前主进程版本校验只接受 `x.y.z` 或 `vx.y.z`，但 `.nvmrc` 常见内容包括 `20`、`lts/*`、`lts/iron` 等。前端也只做精确等值比较，导致项目检测功能对真实项目的兼容性有限。
 
@@ -434,9 +433,9 @@ Electron Builder 配置：
   - `src/render/router/index.ts`
   - `src/render/stores/ThemeStore.ts`
   - `src/render/styles/reset.css`
-  - `src/render/components/AppShell.vue`
-  - `src/render/components/Workbench*.vue`
-  - `src/render/components/Setting/GeneralAppearanceSettings.vue`
+  - `src/render/shell/AppShell.vue`
+  - `src/render/features/*/*Page.vue`
+  - `src/render/features/settings/components/GeneralAppearanceSettings.vue`
 
 ## 15. v0.0.5 NVM 管理器集成
 
@@ -450,7 +449,7 @@ Electron Builder 配置：
 
 ## 16. v0.0.5 后续界面与构建修正
 
-- `src/render/components/Setting.vue`：设置页固定在父级内容区内，使用 `height: 100%`、`box-sizing: border-box`、`overflow: hidden`，底部保存按钮改为页面内 `absolute` 定位，避免设置页上下滑动。
+- `src/render/features/settings/SettingsPage.vue`：设置页固定在父级内容区内，使用 `height: 100%`、`box-sizing: border-box`、`overflow: hidden`，底部保存按钮改为页面内定位，避免设置页上下滑动。
 - `src/render/components/Dashboard.vue`：Dashboard 卡片布局由 `n-flex` + `width: 50vh` + `margin-left` 改为两列 CSS Grid，四个信息卡统一宽度、统一间距，并在小屏下自动切换为单列。
 - `package.json`：`build` 脚本改为 `vue-tsc && vite build`，跳过清理 `dist`，避免 Windows 下旧打包产物 `app.asar` 被运行中应用、Explorer 或安全软件锁住时导致 `EBUSY/EPERM`。
 - 构建注意：如果需要彻底清理 `dist`，先关闭正在运行的 `nvm-gui`、关闭打开在 `dist/electron/win-unpacked` 的 Explorer 窗口，再手动删除 `dist` 后执行 `npm run build`。
@@ -459,7 +458,7 @@ Electron Builder 配置：
 ## 17. v0.0.6 工作台 UI 与主题色
 
 - 应用壳层切换到 `AppShell.vue`：左侧导航、顶部运行状态条、统一内容滚动区。
-- 路由切换到新版 Workbench 页面：`WorkbenchDashboard.vue`、`WorkbenchLocalNode.vue`、`WorkbenchAvailableNode.vue`、`WorkbenchSetting.vue`。
+- 路由切换到按业务能力组织的 Dashboard、Node Versions 与 Settings 页面。
 - 顶部运行状态条展示系统版本、NVM 管理器版本和 Electron 版本，标签背景、边框和文字色跟随当前主题色。
 - Dashboard 移除四个重复版本信息卡片，保留当前 Node 运行时、环境健康和快捷操作。
 - 本地版本页和可安装版本页支持搜索、摘要卡、稳定列宽、横向滚动和每页 4 条数据；可安装版本页操作列固定在最右侧。
@@ -472,7 +471,7 @@ Electron Builder 配置：
 
 ## 18. v0.0.6b 标题固定与 NVM 版本完整性修复
 
-- 所有新版 Workbench 页面保留顶部 `.page-heading` 为固定区域，滚动移动到标题下方 `.page-scroll-body`。
+- 所有功能页面保留顶部 `.page-heading` 为固定区域，滚动移动到标题下方 `.page-scroll-body`。
 - `AppShell.vue` 的内容框不再作为整页滚动源，避免顶部标题区和页面主体一起滑动。
 - 设置中心保留右侧面板底部保存区作为唯一保存入口；左侧分类与右侧内容分别在展示框内部滚动。
 - Windows NVM 命令增加版本完整性检查：`nvm ls` 结果过滤缺少 `node.exe` 的目录，`nvm use` 切换前再次校验。
