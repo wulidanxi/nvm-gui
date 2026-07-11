@@ -212,9 +212,20 @@ jobs:
         shell: bash
         run: |
           printf '\n\n> WARNING: The Windows installer is currently unsigned. SmartScreen may show a warning on first run. Download only from this GitHub Release.\n' >> CHANGELOG_RELEASE.md
+      - name: Remove previously uploaded release assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          assets="$(gh release view "$GITHUB_REF_NAME" --json assets --jq '.assets[].name' 2>/dev/null || true)"
+          while IFS= read -r asset; do
+            [ -z "$asset" ] || gh release delete-asset "$GITHUB_REF_NAME" "$asset" --yes
+          done <<< "$assets"
       - uses: softprops/action-gh-release@v1
         with:
           prerelease: ${{ contains(github.ref_name, '-') }}
+          overwrite_files: true
+          preserve_order: true
           files: |
             dist/electron/*.exe
             dist/electron/*.exe.blockmap
