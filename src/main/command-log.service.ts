@@ -164,7 +164,10 @@ export function getCommandLogService(): CommandLogService {
 function getElectronAppAdapter(): CommandLogAppAdapter {
   // Delayed loading keeps this filesystem-only service unit-testable without an
   // installed Electron binary, while production code still receives Electron's userData path.
-  const loadModule = createRequire(import.meta.url)
+  // The main process is bundled as CommonJS, where esbuild cannot preserve
+  // import.meta.url. __filename remains an absolute path in both development
+  // and the packaged app, so createRequire can safely resolve Electron here.
+  const loadModule = createRequire(__filename)
   const { app } = loadModule('electron') as typeof import('electron')
   return app
 }
