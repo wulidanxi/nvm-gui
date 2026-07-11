@@ -5,7 +5,6 @@ const invoke = ipcRenderer.invoke.bind(ipcRenderer)
 
 contextBridge.exposeInMainWorld('nvmGui', {
   nvm: {
-    list: () => invoke('nvm-list-installed'),
     listInstalled: () => invoke('nvm-list-installed'),
     listAvailableReleases: (releaseUrl?: string) => invoke('nvm-list-available-releases', releaseUrl),
     current: () => invoke('nvm-current'),

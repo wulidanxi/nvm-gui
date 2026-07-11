@@ -7,13 +7,6 @@ const Dashboard = () => import('@render/components/WorkbenchDashboard.vue')
 const Setting = () => import('@render/components/WorkbenchSetting.vue')
 const CommandLog = () => import('@render/components/WorkbenchCommandLog.vue')
 
-const routes = [
-  { path: '/dashboard', component: Dashboard },
-  { path: '/local', component: LocalNode},
-  { path: '/available', component: AvailableNode},
-  { path: '/setting', component: Setting },
-];
-
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
@@ -24,22 +17,28 @@ const router = createRouter({
       children: [
         {
           path: "dashboard",
+          name: "dashboard",
           component: Dashboard
         },
         {
           path: "local",
+          name: "local-node-versions",
           component: LocalNode
         },
         {
           path: "available",
+          name: "available-node-versions",
           component: AvailableNode
         },
         {
           path: "setting",
+          name: "settings",
+          meta: { section: "general" },
           component: Setting
         },
         {
           path: "logs",
+          name: "command-logs",
           component: CommandLog
         }
       ]

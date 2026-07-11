@@ -14,7 +14,6 @@ import type {
 
 type NvmGuiApi = {
   nvm: {
-    list: () => Promise<InstalledNodeVersion[]>
     listInstalled: () => Promise<InstalledNodeVersion[]>
     listAvailableReleases: (releaseUrl?: string) => Promise<NodeReleaseSummary[]>
     current: () => Promise<string>

@@ -9,10 +9,6 @@ import type {
   CommandLogQuery,
 } from '@common/types'
 
-export function nvmList() {
-  return invokeGui(async () => installedVersionsToStdout(await getNvmGui().nvm.listInstalled()))
-}
-
 export function listInstalledNodeVersions(): Promise<InstalledNodeVersion[]> {
   return invokeGui(() => getNvmGui().nvm.listInstalled())
 }
@@ -168,12 +164,6 @@ async function invokeGui<T>(action: () => Promise<T>): Promise<T> {
   catch (error) {
     throw new Error(formatIpcError(error))
   }
-}
-
-function installedVersionsToStdout(versions: InstalledNodeVersion[]): string {
-  return versions
-    .map(item => `${item.active ? '* ' : '  '}${item.version}`)
-    .join('\n')
 }
 
 function getNvmGui() {
