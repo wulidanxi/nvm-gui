@@ -49,7 +49,7 @@ export default defineConfig(({ mode }) => {
       VitePluginDoubleshot({
         type: 'electron',
         main: 'dist/main/index.js',
-        entry: 'src/main/index.ts',
+        entry: 'src/main/bootstrap/index.ts',
         outDir: 'dist/main',
         external: ['electron'],
         electron: {

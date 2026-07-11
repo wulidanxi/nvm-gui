@@ -95,7 +95,7 @@ npm run lint      通过
 
 ## 5. 应用启动流程
 
-1. `src/main/index.ts` 启动 Electron 应用。
+1. `src/main/bootstrap/index.ts` 启动 Electron 应用。
 2. `electronAppInit()` 注册窗口关闭、开发环境退出信号等 Electron 生命周期逻辑。
 3. `createEinf()` 注册窗口工厂和控制器：
    - `AppController`
@@ -304,7 +304,7 @@ npm config set registry <url>
 构建入口：
 
 - 渲染层 root：`src/render`
-- 主进程入口：`src/main/index.ts`
+- 主进程入口：`src/main/bootstrap/index.ts`
 - preload 入口：`src/preload/index.ts`
 
 构建输出：

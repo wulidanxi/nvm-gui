@@ -4,7 +4,7 @@ import { assertRegistryUrl } from '../common/validation'
 
 @Controller()
 export class NpmController {
-  private readonly nvmManager = new NvmManagerService()
+  public constructor(private readonly nvmManager: NvmManagerService = new NvmManagerService()) {}
 
   @IpcHandle('npm-get-registry')
   public async getNpmRegistry(): Promise<string> {

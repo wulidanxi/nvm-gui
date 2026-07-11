@@ -3,11 +3,12 @@ import { dialog } from 'electron'
 import type { CommandLogQuery } from '../common/types'
 import { assertCommandLogQuery } from '../common/validation'
 import { getCommandLogService } from './command-log.service'
+import type { CommandLogService } from './command-log.service'
 import { writeFile } from 'node:fs/promises'
 
 @Controller()
 export class CommandLogController {
-  private readonly commandLog = getCommandLogService()
+  public constructor(private readonly commandLog: CommandLogService = getCommandLogService()) {}
 
   @IpcHandle('command-log-list')
   public async list(query?: CommandLogQuery) {

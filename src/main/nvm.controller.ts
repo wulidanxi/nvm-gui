@@ -5,7 +5,7 @@ import { NvmManagerService } from './nvm-manager.service'
 
 @Controller()
 export class NvmController {
-  private readonly nvmManager = new NvmManagerService()
+  public constructor(private readonly nvmManager: NvmManagerService = new NvmManagerService()) {}
 
   @IpcHandle('nvm-list-installed')
   public async listInstalledVersions() {

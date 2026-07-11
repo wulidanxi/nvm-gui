@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applyUpdateChannelPreference, compareVersions, findNewerRelease } from './app-update-policy'
+import { applyUpdateChannelPreference, compareVersions, findNewerRelease } from './update-policy'
 
 describe('application update policy', () => {
   it('applies the selected channel without allowing downgrades', () => {

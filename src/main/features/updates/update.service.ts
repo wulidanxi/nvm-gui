@@ -1,7 +1,7 @@
 import { BrowserWindow, app } from 'electron'
 import { autoUpdater } from 'electron-updater'
-import type { AppUpdateStatus } from '../common/types'
-import { applyUpdateChannelPreference, findNewerRelease, type ReleaseCandidate } from './app-update-policy'
+import type { AppUpdateStatus } from '../../../common/types'
+import { applyUpdateChannelPreference, findNewerRelease, type ReleaseCandidate } from './update-policy'
 
 const RELEASE_API = 'https://api.github.com/repos/wulidanxi/nvm-gui/releases'
 
