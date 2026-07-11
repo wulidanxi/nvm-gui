@@ -56,7 +56,7 @@ describe('electron-builder config', () => {
 
   it('runs the Windows application as the invoking user', () => {
     expect(loadConfigForTarget('win').win.requestedExecutionLevel).toBe('asInvoker')
-    expect(loadConfigForTarget('win').buildVersion).toBe('0.0.16.0')
+    expect(loadConfigForTarget('win').buildVersion).toBe('0.0.17.0')
   })
 })
 

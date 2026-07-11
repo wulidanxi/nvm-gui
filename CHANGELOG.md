@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.0.17] - 2026-07-12
+
+### Added
+- 新增稳定版与预发布版更新通道选择，用户偏好可持久化保存。
+
+### Changed
+- 统一 preload、Window 声明与 renderer 使用的 `DesktopApi` 跨进程契约，并集中校验 IPC 输入。
+- renderer 按业务能力重组，统一运行环境、应用更新与 NVM 操作状态，清理旧版页面、重复路由和废弃 API。
+- 主进程启动入口收敛到 `bootstrap`，自动更新归入独立 feature，Controller 支持构造函数依赖注入。
+- 应用版本升级至 `0.0.17`；Windows 资源版本同步为 `0.0.17.0`。
+
 ## [0.0.16] - 2026-07-11
 
 ### Fixed

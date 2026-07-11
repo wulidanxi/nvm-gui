@@ -5,7 +5,7 @@
 ![GitHub License](https://img.shields.io/github/license/wulidanxi/nvm-gui) ![GitHub Release](https://img.shields.io/github/v/release/wulidanxi/nvm-gui)
 ![CI](https://github.com/wulidanxi/nvm-gui/actions/workflows/ci.yml/badge.svg?branch=main)
 
-当前版本：`0.0.16`
+当前版本：`0.0.17`
 
 # ⚡ NVM GUI（Vite + Vue + Electron）
 

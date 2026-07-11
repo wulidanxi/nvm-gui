@@ -17,7 +17,7 @@
 - 记录受控 NVM/NPM/NVM 管理器操作，支持筛选、导出与清理命令日志。
 - 检查应用更新；Windows 支持下载并重启安装，macOS/Linux 跳转 Release 页面下载。
 
-当前版本：`0.0.16`。
+当前版本：`0.0.17`。
 
 ## 2. 技术栈
 
@@ -535,3 +535,11 @@ Electron Builder 配置：
 - 操作反馈增加执行中进度流动、成功轻微弹出和失败短暂晃动，并继续遵循 `prefers-reduced-motion`。
 - 命令日志调整为每页 8 条，查询栏改为响应式 Grid，避免结果筛选框在空间不足时被压缩。
 - 当前应用版本同步为 `0.0.16`，Windows 资源版本保持四段数字 `0.0.16.0`，发布说明已记录在 `CHANGELOG.md`。
+
+## 26. v0.0.17 架构重构与更新通道优化
+
+- preload、全局 Window 声明与 renderer 统一使用 `DesktopApi` 跨进程契约，并补充 IPC 输入校验。
+- renderer 按 Dashboard、Node Versions、Updates、Command Logs 和 Settings 业务能力重新组织，运行状态、更新状态与 NVM 操作状态统一管理。
+- 主进程启动入口迁移到 `bootstrap`，自动更新归入独立 feature，Controller 支持构造函数依赖注入。
+- 新增稳定版与预发布版更新通道选择，同时保持现有 IPC channel、路由地址和持久化配置兼容。
+- 当前应用版本同步为 `0.0.17`，Windows 资源版本保持四段数字 `0.0.17.0`。
