@@ -1,5 +1,6 @@
 import { Controller, IpcHandle } from 'einf'
 import { appUpdateService } from './app-update.service'
+import { assertUpdatePreference } from '../common/validation'
 
 @Controller()
 export class AppUpdateController {
@@ -10,8 +11,7 @@ export class AppUpdateController {
 
   @IpcHandle('app-update-check')
   public async check(includePrerelease: boolean) {
-    if (typeof includePrerelease !== 'boolean')
-      throw new Error('Invalid prerelease update preference.')
+    assertUpdatePreference(includePrerelease)
     return appUpdateService.check(includePrerelease)
   }
 

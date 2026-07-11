@@ -32,6 +32,7 @@ import { useAppMotion } from "@render/utils/motionPresets";
 import logoIconBlack from "@render/assets/nvm-logo-color-avatar.png";
 import logoIconWhite from "@render/assets/nvm-logo-white.svg";
 import config from "../../../package.json";
+import { desktopApi } from "@render/api/desktop";
 
 const router = useRouter();
 const route = useRoute();
@@ -65,7 +66,7 @@ const isDark = computed(() => themeStore.theme === "dark");
 const logoIcon = computed(() => (isDark.value ? logoIconWhite : logoIconBlack));
 
 const platformLabel = computed(() => {
-  const platform = window.nvmGui.system.platform;
+  const platform = desktopApi.system.platform;
   if (platform === "darwin") return "macOS";
   if (platform === "win32") return "Windows";
   if (platform === "linux") return "Linux";
@@ -73,11 +74,11 @@ const platformLabel = computed(() => {
 });
 
 const systemVersionLabel = computed(() => {
-  return `${platformLabel.value} ${window.nvmGui.system.systemVersion}`;
+  return `${platformLabel.value} ${desktopApi.system.systemVersion}`;
 });
 
 const electronVersionLabel = computed(() => {
-  return `Electron ${window.nvmGui.system.electronVersion}`;
+  return `Electron ${desktopApi.system.electronVersion}`;
 });
 
 const currentNodeVersionLabel = computed(() => {

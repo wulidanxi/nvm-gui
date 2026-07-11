@@ -1,9 +1,10 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { AppUpdateStatus } from '../common/types'
+import type { AppUpdateStatus, ExternalLinkTarget } from '../common/types'
+import type { DesktopApi } from '../common/desktop-api'
 
 const invoke = ipcRenderer.invoke.bind(ipcRenderer)
 
-contextBridge.exposeInMainWorld('nvmGui', {
+const desktopApi = {
   nvm: {
     listInstalled: () => invoke('nvm-list-installed'),
     listAvailableReleases: (releaseUrl?: string) => invoke('nvm-list-available-releases', releaseUrl),
@@ -38,7 +39,7 @@ contextBridge.exposeInMainWorld('nvmGui', {
     clear: () => invoke('command-log-clear'),
     export: () => invoke('command-log-export'),
   },
-  update: {
+  updates: {
     status: () => invoke('app-update-status'),
     check: (includePrerelease: boolean) => invoke('app-update-check', includePrerelease),
     download: () => invoke('app-update-download'),
@@ -50,7 +51,7 @@ contextBridge.exposeInMainWorld('nvmGui', {
     },
   },
   shell: {
-    openUrl: (target: 'project' | 'nvmWindows') => invoke('openUrl', target),
+    openUrl: (target: ExternalLinkTarget) => invoke('openUrl', target),
   },
   system: {
     platform: process.platform,
@@ -61,4 +62,6 @@ contextBridge.exposeInMainWorld('nvmGui', {
     chromeVersion: process.versions.chrome,
     electronVersion: process.versions.electron,
   },
-})
+} satisfies DesktopApi
+
+contextBridge.exposeInMainWorld('nvmGui', desktopApi)

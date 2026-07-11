@@ -1,5 +1,6 @@
 import { Controller, IpcHandle } from 'einf'
 import { NvmManagerService } from './nvm-manager.service'
+import { assertRegistryUrl } from '../common/validation'
 
 @Controller()
 export class NpmController {
@@ -12,7 +13,7 @@ export class NpmController {
 
   @IpcHandle('npm-set-registry')
   public async setNpmRegistry(registry: string): Promise<string> {
-    this.validateRegistryUrl(registry)
+    assertRegistryUrl(registry)
     return this.nvmManager.runNpmCommand(['config', 'set', 'registry', registry])
   }
 
@@ -29,24 +30,8 @@ export class NpmController {
 
   @IpcHandle('npm-test-registry-speed')
   public async testRegistrySpeed(registry: string): Promise<number> {
-    this.validateRegistryUrl(registry)
+    assertRegistryUrl(registry)
     return this.nvmManager.testRegistrySpeed(registry)
-  }
-
-  private validateRegistryUrl(registry: string) {
-    let parsedUrl: URL
-    try {
-      parsedUrl = new URL(registry)
-    }
-    catch {
-      throw new Error('Invalid registry URL')
-    }
-
-    if (!['http:', 'https:'].includes(parsedUrl.protocol))
-      throw new Error('Only http and https registries are allowed')
-
-    if (!/^[a-zA-Z0-9:/.?=_~%-]+$/.test(registry))
-      throw new Error('Registry URL contains unsupported characters')
   }
 
   private validatePackageName(pkg: string) {
@@ -54,4 +39,3 @@ export class NpmController {
       throw new Error('Invalid package name')
   }
 }
-

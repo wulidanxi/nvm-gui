@@ -10,6 +10,7 @@ import {
 import { currentNvmManagerVersion, nvmCurrent } from "@render/api";
 import { useI18n } from "@render/i18n";
 import { useAppMotion } from "@render/utils/motionPresets";
+import { desktopApi } from "@render/api/desktop";
 
 const router = useRouter();
 const { t } = useI18n();
@@ -112,7 +113,7 @@ getCurrentNodeVersion();
 getNvmManagerVersion();
 
 onMounted(() => {
-  electronVersion.value = window.nvmGui.system.electronVersion;
+  electronVersion.value = desktopApi.system.electronVersion;
 });
 </script>
 

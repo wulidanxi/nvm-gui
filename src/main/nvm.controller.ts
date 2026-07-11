@@ -1,5 +1,6 @@
 import { Controller, IpcHandle } from 'einf'
 import type { NvmManagerInstallOptions } from '../common/types'
+import { assertNodeVersion } from '../common/validation'
 import { NvmManagerService } from './nvm-manager.service'
 
 @Controller()
@@ -28,19 +29,19 @@ export class NvmController {
 
   @IpcHandle('nvm-use-version')
   public async useNodeVersion(version: string) {
-    this.validateVersion(version)
+    assertNodeVersion(version)
     return this.nvmManager.useNodeVersion(version)
   }
 
   @IpcHandle('nvm-install-version')
   public async installNodeVersion(version: string) {
-    this.validateVersion(version)
+    assertNodeVersion(version)
     return this.nvmManager.installNodeVersion(version)
   }
 
   @IpcHandle('nvm-uninstall-version')
   public async uninstallNodeVersion(version: string) {
-    this.validateVersion(version)
+    assertNodeVersion(version)
     return this.nvmManager.uninstallNodeVersion(version)
   }
 
@@ -69,9 +70,5 @@ export class NvmController {
     return this.nvmManager.refreshEnv()
   }
 
-  private validateVersion(version: string) {
-    if (!version || !/^v?\d+\.\d+\.\d+$/.test(version))
-      throw new Error(`Invalid version format: ${version}`)
-  }
 }
 

@@ -1,6 +1,7 @@
 import { Controller, IpcHandle } from 'einf'
 import { dialog } from 'electron'
 import type { CommandLogQuery } from '../common/types'
+import { assertCommandLogQuery } from '../common/validation'
 import { getCommandLogService } from './command-log.service'
 import { writeFile } from 'node:fs/promises'
 
@@ -10,6 +11,7 @@ export class CommandLogController {
 
   @IpcHandle('command-log-list')
   public async list(query?: CommandLogQuery) {
+    assertCommandLogQuery(query)
     return this.commandLog.list(query)
   }
 

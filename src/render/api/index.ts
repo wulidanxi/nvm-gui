@@ -8,6 +8,7 @@ import type {
   CommandLogPage,
   CommandLogQuery,
 } from '@common/types'
+import { desktopApi } from './desktop'
 
 export function listInstalledNodeVersions(): Promise<InstalledNodeVersion[]> {
   return invokeGui(() => getNvmGui().nvm.listInstalled())
@@ -118,23 +119,23 @@ export function exportCommandLogs() {
 }
 
 export function getAppUpdateStatus(): Promise<AppUpdateStatus> {
-  return invokeGui(() => getNvmGui().update.status())
+  return invokeGui(() => getNvmGui().updates.status())
 }
 
 export function checkForAppUpdate(includePrerelease: boolean): Promise<AppUpdateStatus> {
-  return invokeGui(() => getNvmGui().update.check(includePrerelease))
+  return invokeGui(() => getNvmGui().updates.check(includePrerelease))
 }
 
 export function downloadAppUpdate(): Promise<AppUpdateStatus> {
-  return invokeGui(() => getNvmGui().update.download())
+  return invokeGui(() => getNvmGui().updates.download())
 }
 
 export function quitAndInstallAppUpdate() {
-  return invokeGui(() => getNvmGui().update.quitAndInstall())
+  return invokeGui(() => getNvmGui().updates.quitAndInstall())
 }
 
 export function onAppUpdateStatus(listener: (status: AppUpdateStatus) => void) {
-  return getNvmGui().update.onStatus(listener)
+  return getNvmGui().updates.onStatus(listener)
 }
 
 export async function executeNvmSafely(
@@ -167,7 +168,7 @@ async function invokeGui<T>(action: () => Promise<T>): Promise<T> {
 }
 
 function getNvmGui() {
-  return window.nvmGui
+  return desktopApi
 }
 
 function formatIpcError(error: unknown): string {
