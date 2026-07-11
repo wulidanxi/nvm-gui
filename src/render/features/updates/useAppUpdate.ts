@@ -5,7 +5,7 @@ import {
   openUrl, quitAndInstallAppUpdate,
 } from '@render/api'
 import { useI18n } from '@render/i18n'
-import { useUpdateStore } from '@render/stores/UpdateStore'
+import { useUpdateStore } from './UpdateStore'
 
 export function useAppUpdate() {
   const { t } = useI18n()

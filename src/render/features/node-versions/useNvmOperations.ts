@@ -1,7 +1,7 @@
 import { storeToRefs } from 'pinia'
-import { useNvmOperationStore } from '@render/stores/NvmOperationStore'
+import { useNvmOperationStore } from './NvmOperationStore'
 
-export type { NvmOperationKind, NvmOperationPhase, NvmOperationState } from '@render/stores/NvmOperationStore'
+export type { NvmOperationKind, NvmOperationPhase, NvmOperationState } from './NvmOperationStore'
 
 export function useNvmOperations() {
   const store = useNvmOperationStore()

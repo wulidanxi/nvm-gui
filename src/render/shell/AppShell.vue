@@ -18,7 +18,7 @@ import { openUrl } from "@render/api";
 import { useI18n } from "@render/i18n";
 import { useThemeStore } from "@render/stores/ThemeStore";
 import { useRuntimeStore } from "@render/stores/RuntimeStore";
-import { useAppUpdate } from "@render/utils/useAppUpdate";
+import { useAppUpdate } from "@render/features/updates/useAppUpdate";
 import { useAppMotion } from "@render/utils/motionPresets";
 import logoIconBlack from "@render/assets/nvm-logo-color-avatar.png";
 import logoIconWhite from "@render/assets/nvm-logo-white.svg";

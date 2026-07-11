@@ -1,11 +1,11 @@
 import { createRouter, createWebHashHistory } from "vue-router";
-import Layout from '@render/components/AppShell.vue'
+import Layout from '@render/shell/AppShell.vue'
 
-const LocalNode = () => import('@render/components/WorkbenchLocalNode.vue')
-const AvailableNode = () => import('@render/components/WorkbenchAvailableNode.vue')
-const Dashboard = () => import('@render/components/WorkbenchDashboard.vue')
-const Setting = () => import('@render/components/WorkbenchSetting.vue')
-const CommandLog = () => import('@render/components/WorkbenchCommandLog.vue')
+const LocalNode = () => import('@render/features/node-versions/LocalVersionsPage.vue')
+const AvailableNode = () => import('@render/features/node-versions/AvailableVersionsPage.vue')
+const Dashboard = () => import('@render/features/dashboard/DashboardPage.vue')
+const Setting = () => import('@render/features/settings/SettingsPage.vue')
+const CommandLog = () => import('@render/features/command-logs/CommandLogsPage.vue')
 
 const router = createRouter({
   history: createWebHashHistory(),

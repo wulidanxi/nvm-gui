@@ -1,6 +1,6 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { consumeNodeEnvDirty } from './nodeEnvDirty'
+import { consumeNodeEnvDirty } from '@render/utils/nodeEnvDirty'
 import { useNvmOperations } from './useNvmOperations'
 
 describe('useNvmOperations', () => {

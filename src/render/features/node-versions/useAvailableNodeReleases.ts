@@ -2,7 +2,7 @@ import { computed, ref } from 'vue'
 import type { NodeReleaseSummary } from '@common/types'
 import { listAvailableNodeReleases } from '@render/api'
 import { useNodeURLStore } from '@render/stores/NodeURLStore'
-import { isNvmMissingError } from './nvmErrors'
+import { isNvmMissingError } from '@render/utils/nvmErrors'
 
 export function useAvailableNodeReleases() {
   const releases = ref<NodeReleaseSummary[]>([])
@@ -49,4 +49,3 @@ export function useAvailableNodeReleases() {
     refresh,
   }
 }
-

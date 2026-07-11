@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import type { InstalledNodeVersion } from '@common/types'
 import { listInstalledNodeVersions } from '@render/api'
-import { isNvmMissingError } from './nvmErrors'
+import { isNvmMissingError } from '@render/utils/nvmErrors'
 
 export function useInstalledNodeVersions() {
   const versions = ref<InstalledNodeVersion[]>([])
@@ -35,4 +35,3 @@ export function useInstalledNodeVersions() {
     refresh,
   }
 }
-

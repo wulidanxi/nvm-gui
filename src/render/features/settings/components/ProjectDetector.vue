@@ -78,10 +78,9 @@ import {
   listInstalledNodeVersions,
   openDirectoryDialog,
 } from "@render/api";
-import OperationFeedback from "@render/components/OperationFeedback.vue";
+import { OperationFeedback, useNvmOperations } from "@render/features/node-versions";
 import { useI18n } from "@render/i18n";
 import { useAppMotion } from "@render/utils/motionPresets";
-import { useNvmOperations } from "@render/utils/useNvmOperations";
 import { useProjectStore } from "@render/stores/ProjectStore";
 
 const message = useMessage();

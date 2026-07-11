@@ -8,11 +8,11 @@ import {
   SearchOutline,
 } from "@vicons/ionicons5";
 import type { NodeReleaseSummary } from "@common/types";
-import OperationFeedback from "@render/components/OperationFeedback.vue";
+import OperationFeedback from "./OperationFeedback.vue";
 import { useI18n } from "@render/i18n";
-import { useAvailableNodeReleases } from "@render/utils/useAvailableNodeReleases";
+import { useAvailableNodeReleases } from "./useAvailableNodeReleases";
 import { useAppMotion } from "@render/utils/motionPresets";
-import { useNvmOperations } from "@render/utils/useNvmOperations";
+import { useNvmOperations } from "./useNvmOperations";
 
 const {
   releases,

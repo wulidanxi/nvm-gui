@@ -53,7 +53,7 @@ import {
   useThemeStore,
 } from "@render/stores/ThemeStore";
 import { useAppMotion } from "@render/utils/motionPresets";
-import { useUpdateStore } from "@render/stores/UpdateStore";
+import { useUpdateStore } from "@render/features/updates/UpdateStore";
 
 const store = useThemeStore();
 const localeStore = useLocaleStore();

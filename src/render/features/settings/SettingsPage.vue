@@ -10,12 +10,12 @@ import {
 } from "@vicons/ionicons5";
 import { useI18n } from "@render/i18n";
 import { useAppMotion } from "@render/utils/motionPresets";
-import GeneralSettings from "./Setting/GeneralAppearanceSettings.vue";
-import AdvancedSettings from "./Setting/AdvancedSettings.vue";
-import NvmManager from "./Setting/NvmManager.vue";
-import RegistryManager from "./Setting/RegistryManager.vue";
-import MigrationHelper from "./Setting/MigrationHelper.vue";
-import ProjectDetector from "./Setting/ProjectDetector.vue";
+import GeneralSettings from "./components/GeneralAppearanceSettings.vue";
+import AdvancedSettings from "./components/AdvancedSettings.vue";
+import NvmManager from "./components/NvmManager.vue";
+import RegistryManager from "./components/RegistryManager.vue";
+import MigrationHelper from "./components/MigrationHelper.vue";
+import ProjectDetector from "./components/ProjectDetector.vue";
 
 interface SettingsExpose {
   saveSettings?: () => void;

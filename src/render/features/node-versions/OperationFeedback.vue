@@ -14,7 +14,7 @@ import type {
   NvmOperationKind,
   NvmOperationPhase,
   NvmOperationState,
-} from '@render/utils/useNvmOperations'
+} from './useNvmOperations'
 import { useAppMotion } from '@render/utils/motionPresets'
 
 const props = defineProps<{

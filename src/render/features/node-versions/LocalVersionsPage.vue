@@ -8,12 +8,12 @@ import {
   SwapHorizontalOutline,
 } from "@vicons/ionicons5";
 import type { InstalledNodeVersion } from "@common/types";
-import OperationFeedback from "@render/components/OperationFeedback.vue";
+import OperationFeedback from "./OperationFeedback.vue";
 import { useI18n } from "@render/i18n";
 import { consumeNodeEnvDirty } from "@render/utils/nodeEnvDirty";
-import { useInstalledNodeVersions } from "@render/utils/useInstalledNodeVersions";
+import { useInstalledNodeVersions } from "./useInstalledNodeVersions";
 import { useAppMotion } from "@render/utils/motionPresets";
-import { useNvmOperations } from "@render/utils/useNvmOperations";
+import { useNvmOperations } from "./useNvmOperations";
 
 const { versions, loading, nvmMissing, currentVersion, refresh } =
   useInstalledNodeVersions();
