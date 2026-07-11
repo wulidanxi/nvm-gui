@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
+import { storeToRefs } from "pinia";
 import { useRoute, useRouter } from "vue-router";
 import {
   AlbumsOutline,
@@ -13,21 +14,11 @@ import {
   SettingsOutline,
   SunnyOutline,
 } from "@vicons/ionicons5";
-import {
-  currentNvmManagerVersion,
-  nvmCurrent,
-  nvmVersion as getNvmCliVersion,
-  openUrl,
-  checkForAppUpdate,
-  downloadAppUpdate,
-  getAppUpdateStatus,
-  onAppUpdateStatus,
-  quitAndInstallAppUpdate,
-} from "@render/api";
+import { openUrl } from "@render/api";
 import { useI18n } from "@render/i18n";
 import { useThemeStore } from "@render/stores/ThemeStore";
-import { useUpdateStore } from "@render/stores/UpdateStore";
-import type { AppUpdateStatus } from "@common/types";
+import { useRuntimeStore } from "@render/stores/RuntimeStore";
+import { useAppUpdate } from "@render/utils/useAppUpdate";
 import { useAppMotion } from "@render/utils/motionPresets";
 import logoIconBlack from "@render/assets/nvm-logo-color-avatar.png";
 import logoIconWhite from "@render/assets/nvm-logo-white.svg";
@@ -37,7 +28,12 @@ import { desktopApi } from "@render/api/desktop";
 const router = useRouter();
 const route = useRoute();
 const themeStore = useThemeStore();
-const updateStore = useUpdateStore();
+const runtimeStore = useRuntimeStore();
+const {
+  currentNodeStatus, nvmManagerStatus, nvmCliStatus,
+  currentNodeVersion, nvmManagerVersion, nvmCliVersion,
+} = storeToRefs(runtimeStore);
+const { status: updateStatus, buttonLabel: updateButtonLabel, handle: handleUpdate } = useAppUpdate();
 const { t } = useI18n();
 const {
   autoAnimateOptions,
@@ -50,14 +46,6 @@ const {
 const showModal = ref(false);
 const themeSwitchRef = ref<HTMLElement | null>(null);
 const themeTransitionOrigin = ref({ x: 0, y: 0 });
-const currentNodeStatus = ref<"loading" | "missing" | "ready">("loading");
-const nvmManagerStatus = ref<"loading" | "missing" | "ready">("loading");
-const nvmCliStatus = ref<"loading" | "missing" | "ready">("loading");
-const currentNodeVersion = ref("");
-const nvmManagerVersion = ref("");
-const nvmCliVersion = ref("");
-const updateStatus = ref<AppUpdateStatus>({ phase: "idle" });
-let removeUpdateListener: (() => void) | undefined;
 
 const version = config.version;
 
@@ -230,86 +218,8 @@ function onOpenOffice() {
   window.$message.info(t("shell.officialSiteUnavailable"));
 }
 
-async function checkUpdate() {
-  updateStatus.value = await checkForAppUpdate(updateStore.includePrerelease);
-  if (updateStatus.value.phase === "up-to-date")
-    window.$message.success(t("update.upToDate"));
-  if (updateStatus.value.phase === "error")
-    window.$message.error(t("update.failed", { message: updateStatus.value.error || "-" }));
-}
-
-async function handleUpdate() {
-  if (updateStatus.value.phase === "available" && updateStatus.value.manualDownload) {
-    await openUrl("projectReleases");
-    return;
-  }
-  if (updateStatus.value.phase === "available") {
-    if (updateStatus.value.unsignedWarning) {
-      window.$dialog.warning({
-        title: t("update.download"), content: t("update.unsignedWarning"), closable: false, maskClosable: false,
-        positiveText: t("update.download"), negativeText: t("common.cancel"),
-        onPositiveClick: async () => { updateStatus.value = await downloadAppUpdate(); },
-      });
-      return;
-    }
-    updateStatus.value = await downloadAppUpdate();
-    return;
-  }
-  if (updateStatus.value.phase === "downloaded") {
-    quitAndInstallAppUpdate();
-    return;
-  }
-  await checkUpdate();
-}
-
-const updateButtonLabel = computed(() => {
-  if (updateStatus.value.phase === "checking") return t("update.checking");
-  if (updateStatus.value.phase === "available") return updateStatus.value.manualDownload ? t("update.manualDownload") : t("update.download");
-  if (updateStatus.value.phase === "downloading") return t("update.downloading", { progress: updateStatus.value.progress || 0 });
-  if (updateStatus.value.phase === "downloaded") return t("update.restart");
-  return t("update.check");
-});
-
-async function refreshRuntimeStatus() {
-  try {
-    currentNodeVersion.value = await nvmCurrent();
-    currentNodeStatus.value = "ready";
-  } catch {
-    currentNodeStatus.value = "missing";
-  }
-
-  try {
-    nvmManagerVersion.value = await currentNvmManagerVersion();
-    nvmManagerStatus.value = "ready";
-  } catch {
-    nvmManagerStatus.value = "missing";
-  }
-
-  try {
-    nvmCliVersion.value = await getNvmCliVersion();
-    nvmCliStatus.value = "ready";
-  } catch {
-    nvmCliStatus.value = "missing";
-  }
-}
-
 onMounted(() => {
-  refreshRuntimeStatus();
-  removeUpdateListener = onAppUpdateStatus((status) => {
-    updateStatus.value = status;
-  });
-  getAppUpdateStatus().then((status) => {
-    updateStatus.value = status;
-  });
-  if (updateStore.autoCheck) {
-    setTimeout(() => {
-      checkUpdate().catch(() => {});
-    }, 800);
-  }
-});
-
-onUnmounted(() => {
-  removeUpdateListener?.();
+  runtimeStore.refresh();
 });
 </script>
 

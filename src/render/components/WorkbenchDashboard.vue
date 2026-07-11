@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted } from "vue";
+import { storeToRefs } from "pinia";
 import { useRouter } from "vue-router";
 import {
   CloudDownloadOutline,
@@ -7,10 +8,9 @@ import {
   SettingsOutline,
   SwapHorizontalOutline,
 } from "@vicons/ionicons5";
-import { currentNvmManagerVersion, nvmCurrent } from "@render/api";
 import { useI18n } from "@render/i18n";
 import { useAppMotion } from "@render/utils/motionPresets";
-import { desktopApi } from "@render/api/desktop";
+import { useRuntimeStore } from "@render/stores/RuntimeStore";
 
 const router = useRouter();
 const { t } = useI18n();
@@ -23,11 +23,14 @@ const {
   tileMotion,
 } = useAppMotion();
 
-const nodeStatus = ref<"loading" | "missing" | "ready">("loading");
-const nvmStatus = ref<"loading" | "missing" | "ready">("loading");
-const nodeVersion = ref("");
-const nvmManagerVersion = ref("");
-const electronVersion = ref("");
+const runtimeStore = useRuntimeStore();
+const {
+  currentNodeStatus: nodeStatus,
+  nvmManagerStatus: nvmStatus,
+  currentNodeVersion: nodeVersion,
+  nvmManagerVersion,
+} = storeToRefs(runtimeStore);
+const electronVersion = computed(() => runtimeStore.system.electronVersion);
 
 const nodeReady = computed(() => nodeStatus.value === "ready");
 const nvmReady = computed(() => nvmStatus.value === "ready");
@@ -87,33 +90,12 @@ const quickActions = computed(() => [
   },
 ]);
 
-async function getCurrentNodeVersion() {
-  try {
-    nodeVersion.value = await nvmCurrent();
-    nodeStatus.value = "ready";
-  } catch {
-    nodeStatus.value = "missing";
-  }
-}
-
-async function getNvmManagerVersion() {
-  try {
-    nvmManagerVersion.value = await currentNvmManagerVersion();
-    nvmStatus.value = "ready";
-  } catch {
-    nvmStatus.value = "missing";
-  }
-}
-
 function openAction(path: string) {
   router.push(path);
 }
 
-getCurrentNodeVersion();
-getNvmManagerVersion();
-
 onMounted(() => {
-  electronVersion.value = desktopApi.system.electronVersion;
+  runtimeStore.refresh();
 });
 </script>
 

@@ -1,8 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { consumeNodeEnvDirty } from './nodeEnvDirty'
 import { useNvmOperations } from './useNvmOperations'
 
 describe('useNvmOperations', () => {
+  beforeEach(() => setActivePinia(createPinia()))
   it('rejects a second operation while one is active', async () => {
     let resolveInstall: (() => void) | undefined
     vi.stubGlobal('window', {
