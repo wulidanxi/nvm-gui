@@ -158,6 +158,7 @@ export const zhCNMessages = {
   update: {
     check: '检查更新', checking: '正在检查更新', available: '发现新版本 {version}', download: '下载更新', downloading: '正在下载 {progress}%',
     restart: '重启并安装', upToDate: '已是最新版本', manualDownload: '前往下载页', unsignedWarning: 'Windows 更新包当前未签名，安装时可能出现 SmartScreen 警告。', failed: '更新失败：{message}',
+    title: '发现新版本', currentVersion: '当前版本', newVersion: '新版本', releaseNotes: '更新内容', noReleaseNotes: '此版本暂未提供更新说明。', downloaded: '下载完成，正在重启并启动安装程序…', installHint: '下载完成后，应用将自动重启并启动安装程序。',
   },
   advanced: {
     nodeSource: 'Node.js 数据源：',

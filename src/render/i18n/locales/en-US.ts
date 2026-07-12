@@ -160,6 +160,7 @@ export const enUSMessages: Messages = {
   update: {
     check: 'Check for updates', checking: 'Checking for updates', available: 'Version {version} is available', download: 'Download update', downloading: 'Downloading {progress}%',
     restart: 'Restart and install', upToDate: 'You are up to date', manualDownload: 'Open download page', unsignedWarning: 'The Windows update is unsigned and may trigger a SmartScreen warning.', failed: 'Update failed: {message}',
+    title: 'Update available', currentVersion: 'Current version', newVersion: 'New version', releaseNotes: 'What\'s new', noReleaseNotes: 'No release notes were provided for this version.', downloaded: 'Download complete. Restarting to install the update…', installHint: 'The app will restart and launch the installer automatically after the download completes.',
   },
   advanced: {
     nodeSource: 'Node.js data source:',

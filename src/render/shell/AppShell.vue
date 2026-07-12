@@ -33,7 +33,14 @@ const {
   currentNodeStatus, nvmManagerStatus, nvmCliStatus,
   currentNodeVersion, nvmManagerVersion, nvmCliVersion,
 } = storeToRefs(runtimeStore);
-const { status: updateStatus, buttonLabel: updateButtonLabel, handle: handleUpdate } = useAppUpdate();
+const {
+  status: updateStatus,
+  dialogVisible: updateDialogVisible,
+  installing: updateInstalling,
+  buttonLabel: updateButtonLabel,
+  handle: handleUpdate,
+  downloadAndInstall,
+} = useAppUpdate();
 const { t } = useI18n();
 const {
   autoAnimateOptions,
@@ -347,6 +354,67 @@ onMounted(() => {
     </main>
 
     <n-modal
+      v-model:show="updateDialogVisible"
+      preset="card"
+      class="update-modal"
+      :title="t('update.title')"
+      :closable="updateStatus.phase !== 'downloading'"
+      :mask-closable="updateStatus.phase !== 'downloading'"
+      transform-origin="center"
+    >
+      <n-space vertical :size="18">
+        <div class="update-version-row">
+          <div>
+            <n-text depth="3">{{ t("update.currentVersion") }}</n-text>
+            <div class="update-version">{{ version }}</div>
+          </div>
+          <div class="update-version-arrow">→</div>
+          <div>
+            <n-text depth="3">{{ t("update.newVersion") }}</n-text>
+            <div class="update-version update-version-new">{{ updateStatus.version || "-" }}</div>
+          </div>
+        </div>
+
+        <div>
+          <n-text strong>{{ t("update.releaseNotes") }}</n-text>
+          <div class="update-release-notes">{{ updateStatus.releaseNotes || t("update.noReleaseNotes") }}</div>
+        </div>
+
+        <n-alert v-if="updateStatus.unsignedWarning" type="warning" :show-icon="true">
+          {{ t("update.unsignedWarning") }}
+        </n-alert>
+
+        <div v-if="updateStatus.phase === 'downloading'" class="update-progress">
+          <n-progress type="line" :percentage="updateStatus.progress || 0" :processing="true" />
+          <n-text depth="3">{{ t("update.installHint") }}</n-text>
+        </div>
+
+        <n-alert v-if="updateStatus.phase === 'error'" type="error" :show-icon="true">
+          {{ t("update.failed", { message: updateStatus.error || "-" }) }}
+        </n-alert>
+      </n-space>
+
+      <template #footer>
+        <n-space justify="end">
+          <n-button
+            v-if="updateStatus.phase !== 'downloading'"
+            @click="updateDialogVisible = false"
+          >
+            {{ t("common.cancel") }}
+          </n-button>
+          <n-button
+            type="primary"
+            :loading="updateInstalling || updateStatus.phase === 'downloading'"
+            :disabled="updateStatus.phase === 'downloading'"
+            @click="downloadAndInstall"
+          >
+            {{ updateStatus.manualDownload ? t("update.manualDownload") : t("update.download") }}
+          </n-button>
+        </n-space>
+      </template>
+    </n-modal>
+
+    <n-modal
       v-model:show="showModal"
       :show-icon="false"
       preset="dialog"
@@ -572,6 +640,53 @@ onMounted(() => {
 .about-app-title {
   font-size: 18px;
   font-weight: 800;
+}
+
+.update-modal {
+  width: min(560px, calc(100vw - 32px));
+}
+
+.update-version-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  background: var(--app-surface-soft);
+}
+
+.update-version {
+  margin-top: 4px;
+  font-size: 18px;
+  font-weight: 750;
+}
+
+.update-version-new,
+.update-version-arrow {
+  color: var(--app-accent);
+}
+
+.update-version-arrow {
+  font-size: 22px;
+}
+
+.update-release-notes {
+  max-height: 220px;
+  margin-top: 8px;
+  padding: 12px 14px;
+  overflow: auto;
+  border-radius: 10px;
+  background: var(--app-surface-soft);
+  color: var(--app-text-muted);
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.update-progress {
+  display: grid;
+  gap: 8px;
 }
 
 .about-link {

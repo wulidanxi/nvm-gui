@@ -11,34 +11,44 @@ export function useAppUpdate() {
   const { t } = useI18n()
   const preferences = useUpdateStore()
   const status = ref<AppUpdateStatus>({ phase: 'idle' })
+  const dialogVisible = ref(false)
+  const installing = ref(false)
   let removeListener: (() => void) | undefined
   let autoCheckTimer: ReturnType<typeof setTimeout> | undefined
 
   async function check() {
     status.value = await checkForAppUpdate(preferences.includePrerelease)
+    if (status.value.phase === 'available') dialogVisible.value = true
     if (status.value.phase === 'up-to-date') window.$message.success(t('update.upToDate'))
     if (status.value.phase === 'error') window.$message.error(t('update.failed', { message: status.value.error || '-' }))
   }
 
   async function handle() {
-    if (status.value.phase === 'available' && status.value.manualDownload) return openUrl('projectReleases')
-    if (status.value.phase === 'available' && status.value.unsignedWarning) {
-      window.$dialog.warning({
-        title: t('update.download'), content: t('update.unsignedWarning'), closable: false, maskClosable: false,
-        positiveText: t('update.download'), negativeText: t('common.cancel'),
-        onPositiveClick: async () => { status.value = await downloadAppUpdate() },
-      })
-      return
-    }
-    if (status.value.phase === 'available') {
-      status.value = await downloadAppUpdate()
-      return
-    }
+    if (status.value.phase === 'available') return void (dialogVisible.value = true)
+    if (status.value.phase === 'downloading') return void (dialogVisible.value = true)
     if (status.value.phase === 'downloaded') {
       await quitAndInstallAppUpdate()
       return
     }
     await check()
+  }
+
+  async function downloadAndInstall() {
+    if (status.value.manualDownload) {
+      await openUrl('projectReleases')
+      return
+    }
+    installing.value = true
+    try {
+      status.value = await downloadAppUpdate()
+      if (status.value.phase === 'downloaded') {
+        window.$message.success(t('update.downloaded'))
+        await quitAndInstallAppUpdate()
+      }
+    }
+    finally {
+      installing.value = false
+    }
   }
 
   const buttonLabel = computed(() => {
@@ -52,6 +62,8 @@ export function useAppUpdate() {
   onMounted(() => {
     removeListener = onAppUpdateStatus((value) => {
       status.value = value
+      if (value.phase === 'available' || value.phase === 'downloading' || value.phase === 'downloaded')
+        dialogVisible.value = true
     })
     getAppUpdateStatus().then((value) => {
       status.value = value
@@ -67,5 +79,5 @@ export function useAppUpdate() {
     if (autoCheckTimer) clearTimeout(autoCheckTimer)
   })
 
-  return { status, buttonLabel, check, handle }
+  return { status, dialogVisible, installing, buttonLabel, check, handle, downloadAndInstall }
 }
