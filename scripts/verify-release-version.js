@@ -17,15 +17,18 @@ if (!changelog.includes(`## [${version}]`))
 console.log(`Release version verified: ${version}`)
 
 function toWindowsBuildVersion(version) {
-  const match = /^(\d+\.\d+\.\d+)(?:-(\d+|[a-z]))?$/.exec(version)
+  const match = /^(\d+\.\d+\.\d+)(?:-(?:(alpha|beta|rc)\.(\d+)|(\d+|[a-z])))?$/.exec(version)
   if (!match)
     throw new Error(`Unsupported package version for Windows buildVersion: ${version}`)
 
-  if (!match[2])
+  if (!match[2] && !match[4])
     return `${match[1]}.0`
 
-  const prereleaseNumber = /^\d+$/.test(match[2])
-    ? Number(match[2])
-    : match[2].charCodeAt(0) - 96
+  const suffix = match[3] || match[4]
+  const prereleaseNumber = /^\d+$/.test(suffix)
+    ? Number(suffix)
+    : suffix.charCodeAt(0) - 96
+  if (prereleaseNumber < 1 || prereleaseNumber > 65535)
+    throw new Error(`Unsupported prerelease number for Windows buildVersion: ${version}`)
   return `${match[1]}.${prereleaseNumber}`
 }
