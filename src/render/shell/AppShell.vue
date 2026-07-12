@@ -356,13 +356,24 @@ onMounted(() => {
     <n-modal
       v-model:show="updateDialogVisible"
       preset="card"
-      class="update-modal"
-      :title="t('update.title')"
+      style="width: min(620px, calc(100vw - 32px))"
       :closable="updateStatus.phase !== 'downloading'"
       :mask-closable="updateStatus.phase !== 'downloading'"
       transform-origin="center"
     >
-      <n-space vertical :size="18">
+      <template #header>
+        <div class="update-heading">
+          <div class="update-heading-icon">
+            <n-icon :size="22"><CloudDownloadOutline /></n-icon>
+          </div>
+          <div>
+            <div class="update-heading-title">{{ t("update.title") }}</div>
+            <n-text depth="3">{{ t("update.available", { version: updateStatus.version || "-" }) }}</n-text>
+          </div>
+        </div>
+      </template>
+
+      <n-space vertical :size="16">
         <div class="update-version-row">
           <div>
             <n-text depth="3">{{ t("update.currentVersion") }}</n-text>
@@ -642,16 +653,34 @@ onMounted(() => {
   font-weight: 800;
 }
 
-.update-modal {
-  width: min(560px, calc(100vw - 32px));
+.update-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.update-heading-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--app-accent-soft);
+  color: var(--app-accent);
+}
+
+.update-heading-title {
+  margin-bottom: 2px;
+  font-size: 18px;
+  font-weight: 800;
 }
 
 .update-version-row {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: 20px;
-  padding: 14px 16px;
+  gap: 16px;
+  padding: 12px 16px;
   border: 1px solid var(--app-border);
   border-radius: 12px;
   background: var(--app-surface-soft);
@@ -673,14 +702,15 @@ onMounted(() => {
 }
 
 .update-release-notes {
-  max-height: 220px;
+  max-height: 210px;
   margin-top: 8px;
   padding: 12px 14px;
   overflow: auto;
   border-radius: 10px;
   background: var(--app-surface-soft);
   color: var(--app-text-muted);
-  line-height: 1.65;
+  font-size: 13px;
+  line-height: 1.75;
   white-space: pre-wrap;
 }
 

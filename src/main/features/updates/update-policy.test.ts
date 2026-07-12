@@ -15,12 +15,12 @@ describe('application update policy', () => {
 
   it('returns only a newer stable release when previews are disabled', () => {
     const releases = [
-      { tag_name: 'v0.0.18-a', prerelease: true },
+      { tag_name: 'v0.0.18-a2', prerelease: true },
       { tag_name: 'v0.0.17', prerelease: false },
       { tag_name: 'v0.0.16', prerelease: false },
     ]
     expect(findNewerRelease(releases, '0.0.17-a', false)?.version).toBe('0.0.17')
-    expect(findNewerRelease(releases, '0.0.17-a', true)?.version).toBe('0.0.18-a')
+    expect(findNewerRelease(releases, '0.0.17-a', true)?.version).toBe('0.0.18-a2')
   })
 
   it('does not offer an older stable release to a preview build', () => {

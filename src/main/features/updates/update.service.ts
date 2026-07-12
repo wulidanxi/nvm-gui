@@ -2,6 +2,7 @@ import { BrowserWindow, app } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import type { AppUpdateStatus } from '../../../common/types'
 import { applyUpdateChannelPreference, findNewerRelease, type ReleaseCandidate } from './update-policy'
+import { formatReleaseNotes } from './update-release-notes'
 
 const RELEASE_API = 'https://api.github.com/repos/wulidanxi/nvm-gui/releases'
 
@@ -39,7 +40,7 @@ export class AppUpdateService {
       }
       else {
         this.setStatus({
-          phase: 'available', version: release.version, releaseNotes: release.notes,
+          phase: 'available', version: release.version, releaseNotes: formatReleaseNotes(release.notes),
           manualDownload: true,
         })
       }
@@ -79,14 +80,14 @@ export class AppUpdateService {
     autoUpdater.on('checking-for-update', () => this.setStatus({ phase: 'checking' }))
     autoUpdater.on('update-not-available', () => this.setStatus({ phase: 'up-to-date' }))
     autoUpdater.on('update-available', info => this.setStatus({
-      phase: 'available', version: info.version, releaseNotes: stringifyReleaseNotes(info.releaseNotes),
+      phase: 'available', version: info.version, releaseNotes: formatReleaseNotes(info.releaseNotes),
       unsignedWarning: true,
     }))
     autoUpdater.on('download-progress', progress => this.setStatus({
       ...this.status, phase: 'downloading', progress: Math.round(progress.percent),
     }))
     autoUpdater.on('update-downloaded', info => this.setStatus({
-      phase: 'downloaded', version: info.version, releaseNotes: stringifyReleaseNotes(info.releaseNotes), unsignedWarning: true,
+      phase: 'downloaded', version: info.version, releaseNotes: formatReleaseNotes(info.releaseNotes), unsignedWarning: true,
     }))
     autoUpdater.on('error', error => this.setStatus({ phase: 'error', error: messageFor(error) }))
   }
@@ -106,12 +107,6 @@ export class AppUpdateService {
     for (const win of BrowserWindow.getAllWindows())
       win.webContents.send('app-update-status', status)
   }
-}
-
-function stringifyReleaseNotes(value: unknown): string | undefined {
-  if (typeof value === 'string') return value
-  if (!Array.isArray(value)) return undefined
-  return value.map((item: { note?: unknown }) => typeof item.note === 'string' ? item.note : '').filter(Boolean).join('\n') || undefined
 }
 
 function messageFor(error: unknown): string {
