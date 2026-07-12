@@ -1,6 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { consumeNodeEnvDirty } from '@render/utils/nodeEnvDirty'
+import { useRuntimeStore } from '@render/stores/RuntimeStore'
 import { useNvmOperations } from './useNvmOperations'
 
 describe('useNvmOperations', () => {
@@ -81,6 +82,28 @@ describe('useNvmOperations', () => {
     vi.advanceTimersByTime(2400)
 
     expect(operations.operationState.value).toBeNull()
+  })
+
+  it('refreshes the shared runtime state after switching versions', async () => {
+    vi.stubGlobal('window', {
+      nvmGui: {
+        nvm: {
+          current: vi.fn(async () => 'v22.12.0'),
+          version: vi.fn(async () => '1.2.1'),
+          use: vi.fn(async () => ({ success: true, message: 'switched' })),
+          manager: {
+            currentVersion: vi.fn(async () => '1.2.1'),
+          },
+        },
+      },
+    })
+
+    const operations = useNvmOperations()
+    await operations.use('22.12.0')
+
+    const runtimeStore = useRuntimeStore()
+    expect(runtimeStore.currentNodeVersion).toBe('v22.12.0')
+    expect(runtimeStore.currentNodeStatus).toBe('ready')
   })
 
   it('clears the busy version and keeps a short error state after failure', async () => {

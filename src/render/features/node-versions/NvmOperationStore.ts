@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { OperationResult } from '@common/types'
 import { installNodeVersion, uninstallNodeVersion, useNodeVersion } from '@render/api'
+import { useRuntimeStore } from '@render/stores/RuntimeStore'
 import { markNodeEnvDirty } from '@render/utils/nodeEnvDirty'
 
 export type NvmOperationKind = 'install' | 'use' | 'uninstall'
@@ -14,6 +15,7 @@ export interface NvmOperationState {
 }
 
 export const useNvmOperationStore = defineStore('nvm-operation', () => {
+  const runtimeStore = useRuntimeStore()
   const operatingVersion = ref<string | null>(null)
   const operationState = ref<NvmOperationState | null>(null)
   let feedbackTimer: ReturnType<typeof setTimeout> | null = null
@@ -28,6 +30,7 @@ export const useNvmOperationStore = defineStore('nvm-operation', () => {
     setState({ kind, version, phase: 'running' })
     try {
       const result = await action()
+      if (kind === 'use') await runtimeStore.refresh()
       markNodeEnvDirty()
       operationState.value = { kind, version, phase: 'success', message: result.message }
       scheduleClear()
