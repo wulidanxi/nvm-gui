@@ -56,11 +56,14 @@ export class AppUpdateService {
       throw new Error('In-app download is supported only by packaged Windows builds.')
     if (this.status.phase !== 'available')
       throw new Error('No update is ready to download.')
+    this.setStatus({ ...this.status, phase: 'downloading', progress: 0, error: undefined })
     try {
       await autoUpdater.downloadUpdate()
     }
     catch (error) {
-      this.setStatus({ phase: 'error', error: messageFor(error) })
+      this.setStatus({
+        ...this.status, phase: 'available', progress: undefined, error: messageFor(error),
+      })
     }
     return this.status
   }
@@ -89,7 +92,15 @@ export class AppUpdateService {
     autoUpdater.on('update-downloaded', info => this.setStatus({
       phase: 'downloaded', version: info.version, releaseNotes: formatReleaseNotes(info.releaseNotes), unsignedWarning: true,
     }))
-    autoUpdater.on('error', error => this.setStatus({ phase: 'error', error: messageFor(error) }))
+    autoUpdater.on('error', (error) => {
+      const canRetry = this.status.phase === 'available' || this.status.phase === 'downloading'
+      this.setStatus({
+        ...this.status,
+        phase: canRetry ? 'available' : 'error',
+        progress: undefined,
+        error: messageFor(error),
+      })
+    })
   }
 
   private async findLatestRelease(includePrerelease: boolean): Promise<{ version: string, notes?: string } | undefined> {

@@ -400,7 +400,7 @@ onMounted(() => {
           <n-text depth="3">{{ t("update.installHint") }}</n-text>
         </div>
 
-        <n-alert v-if="updateStatus.phase === 'error'" type="error" :show-icon="true">
+        <n-alert v-if="updateStatus.error" type="error" :show-icon="true">
           {{ t("update.failed", { message: updateStatus.error || "-" }) }}
         </n-alert>
       </n-space>

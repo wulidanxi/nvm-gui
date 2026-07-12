@@ -30,12 +30,14 @@ const config = {
     output: 'dist/electron',
   },
   appId: 'com.nvm-sh.cn',
-  buildVersion: '0.0.18.3',
+  buildVersion: '0.0.18.4',
   win: {
     icon: './nvm-logo-color-avatar.png',
     requestedExecutionLevel: 'asInvoker',
   },
   nsis: {
+    // eslint-disable-next-line no-template-curly-in-string
+    artifactName: '${productName}-Setup-${version}.${ext}',
     oneClick: false,
     allowToChangeInstallationDirectory: true,
   },
