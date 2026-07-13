@@ -127,7 +127,7 @@ function saveAllSettings() {
           <n-tag round :bordered="false">{{ activeGroup.description }}</n-tag>
         </header>
 
-        <div class="settings-panel-body" v-auto-animate="autoAnimateOptions">
+        <div class="settings-panel-body">
           <Transition name="settings-section" appear>
             <GeneralSettings
               v-show="activeKey === 'general'"
@@ -273,11 +273,41 @@ function saveAllSettings() {
 }
 
 .settings-panel-body {
+  position: relative;
   flex: 1 1 auto;
   min-height: 0;
   padding: 18px;
   overflow: auto;
   overscroll-behavior: contain;
+}
+
+.settings-section-enter-active,
+.settings-section-leave-active {
+  transition:
+    opacity 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.settings-section-leave-active {
+  position: absolute;
+  inset: 18px;
+}
+
+.settings-section-enter-from {
+  opacity: 0;
+  transform: translate3d(10px, 0, 0);
+}
+
+.settings-section-leave-to {
+  opacity: 0;
+  transform: translate3d(-8px, 0, 0);
+}
+
+.settings-section-enter-to,
+.settings-section-leave-from {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
 }
 
 .settings-footer {

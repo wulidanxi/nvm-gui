@@ -2,4 +2,11 @@
   .n-button {
     transform: none !important;
   }
+
+  .route-page-enter-active,
+  .route-page-leave-active,
+  .settings-section-enter-active,
+  .settings-section-leave-active {
+    transition-duration: 0.01ms !important;
+  }
 }

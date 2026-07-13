@@ -47,7 +47,6 @@ const {
   cardMotion,
   controlMotion,
   navMotion,
-  pageMotion,
 } = useAppMotion();
 
 const showModal = ref(false);
@@ -133,7 +132,7 @@ const activePath = computed(() => {
 });
 
 type ViewTransitionLike = {
-  ready: Promise<void>;
+  finished: Promise<void>;
 };
 
 type ViewTransitionDocument = Document & {
@@ -184,27 +183,23 @@ function updateThemeMode(value: boolean) {
     Math.max(y, window.innerHeight - y),
   );
 
+  const root = document.documentElement;
+  root.style.setProperty("--theme-transition-x", `${x}px`);
+  root.style.setProperty("--theme-transition-y", `${y}px`);
+  root.style.setProperty("--theme-transition-radius", `${endRadius}px`);
+  root.classList.add("is-theme-transitioning");
+
   const transition = transitionDocument.startViewTransition(() => {
     themeStore.toggleTheme(nextTheme);
   });
 
-  transition.ready
-    .then(() => {
-      document.documentElement.animate(
-        {
-          clipPath: [
-            `circle(0px at ${x}px ${y}px)`,
-            `circle(${endRadius}px at ${x}px ${y}px)`,
-          ],
-        },
-        {
-          duration: 820,
-          easing: "cubic-bezier(0.16, 1, 0.3, 1)",
-          pseudoElement: "::view-transition-new(root)",
-        },
-      );
-    })
-    .catch(() => {});
+  const finishTransition = () => {
+    root.classList.remove("is-theme-transitioning");
+    root.style.removeProperty("--theme-transition-x");
+    root.style.removeProperty("--theme-transition-y");
+    root.style.removeProperty("--theme-transition-radius");
+  };
+  transition.finished.then(finishTransition, finishTransition);
 }
 
 function go(path: string) {
@@ -342,13 +337,14 @@ onMounted(() => {
 
       <section class="content-frame">
         <router-view v-slot="{ Component, route }">
-          <keep-alive>
-            <component
-              :is="Component"
-              :key="route.path"
-              v-motion="pageMotion"
-            />
-          </keep-alive>
+          <Transition name="route-page" mode="out-in" appear>
+            <keep-alive>
+              <component
+                :is="Component"
+                :key="route.path"
+              />
+            </keep-alive>
+          </Transition>
         </router-view>
       </section>
     </main>
@@ -646,6 +642,36 @@ onMounted(() => {
   min-height: 0;
   overflow: hidden;
   overscroll-behavior: contain;
+}
+
+.route-page-enter-active {
+  transition:
+    opacity 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 340ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.route-page-leave-active {
+  transition:
+    opacity 160ms ease,
+    transform 180ms ease;
+  will-change: opacity, transform;
+}
+
+.route-page-enter-from {
+  opacity: 0;
+  transform: translate3d(0, 12px, 0) scale(0.995);
+}
+
+.route-page-leave-to {
+  opacity: 0;
+  transform: translate3d(0, -6px, 0) scale(0.998);
+}
+
+.route-page-enter-to,
+.route-page-leave-from {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
 }
 
 .about-app-title {
