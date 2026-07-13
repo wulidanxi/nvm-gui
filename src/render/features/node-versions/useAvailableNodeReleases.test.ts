@@ -13,19 +13,21 @@ describe('useAvailableNodeReleases', () => {
   })
 
   it('loads releases through the structured renderer API', async () => {
+    const listAvailableReleases = vi.fn(async () => ({
+      items: [{
+        version: 'v22.12.0',
+        major: 22,
+        lts: false as const,
+        status: 'current' as const,
+        installed: false,
+      }],
+      source: 'network' as const,
+      fetchedAt: '2026-07-13T00:00:00.000Z',
+    }))
     vi.stubGlobal('window', {
       nvmGui: {
         nvm: {
-          listAvailableReleases: vi.fn(async () => ({
-            items: [{
-              version: 'v22.12.0',
-              major: 22,
-              lts: false,
-              installed: false,
-            }],
-            source: 'network',
-            fetchedAt: '2026-07-13T00:00:00.000Z',
-          })),
+          listAvailableReleases,
         },
       },
     })
@@ -37,6 +39,10 @@ describe('useAvailableNodeReleases', () => {
     expect(composableValue(composable.filteredReleases)).toHaveLength(1)
     expect(composable.nvmMissing.value).toBe(false)
     expect(composable.source.value).toBe('network')
+    expect(listAvailableReleases).toHaveBeenCalledWith({
+      releaseUrl: 'https://nodejs.org/dist/index.json',
+      cacheHours: 24,
+    })
   })
 
   it('marks NVM missing errors', async () => {

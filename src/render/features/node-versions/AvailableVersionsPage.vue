@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, h, onBeforeMount } from "vue";
+import { computed, h, onBeforeMount, ref, watch } from "vue";
 import type { DataTableColumns } from "naive-ui";
 import { NButton, NTag } from "naive-ui";
 import {
@@ -12,6 +12,7 @@ import OperationFeedback from "./OperationFeedback.vue";
 import { useI18n } from "@render/i18n";
 import { useAvailableNodeReleases } from "./useAvailableNodeReleases";
 import { useAppMotion } from "@render/utils/motionPresets";
+import { DEFAULT_TABLE_PAGE_SIZE, TABLE_PAGE_SIZES } from "@render/utils/tablePagination";
 import { useNvmOperations } from "./useNvmOperations";
 
 const {
@@ -36,12 +37,10 @@ const {
   headingMotion,
 } = useAppMotion();
 
-const pagination = {
-  pageSize: 4,
-  picker: true,
-};
+const page = ref(1);
+const pageSize = ref(DEFAULT_TABLE_PAGE_SIZE);
 
-const tableScrollX = 940;
+const tableScrollX = 1100;
 
 const summaryItems = computed(() => [
   {
@@ -54,9 +53,23 @@ const summaryItems = computed(() => [
   },
   {
     label: t("available.lts"),
-    value: String(releases.value.filter((item) => item.lts !== false).length),
+    value: String(releases.value.filter((item) => item.status === "lts").length),
   },
 ]);
+
+const pagedReleases = computed(() => {
+  const start = (page.value - 1) * pageSize.value;
+  return filteredReleases.value.slice(start, start + pageSize.value);
+});
+
+watch([keyword, ltsOnly, pageSize], () => {
+  page.value = 1;
+});
+
+watch(filteredReleases, (items) => {
+  const lastPage = Math.max(1, Math.ceil(items.length / pageSize.value));
+  if (page.value > lastPage) page.value = lastPage;
+});
 
 const availableColumns = computed<DataTableColumns<NodeReleaseSummary>>(() => [
   {
@@ -90,27 +103,35 @@ const availableColumns = computed<DataTableColumns<NodeReleaseSummary>>(() => [
     width: 120,
   },
   {
-    title: t("available.lts"),
-    key: "lts",
-    width: 160,
+    title: t("available.firstReleased"),
+    key: "firstReleased",
+    width: 140,
+  },
+  {
+    title: t("available.lastReleaseUpdate"),
+    key: "lastUpdated",
+    width: 140,
+  },
+  {
+    title: t("available.status"),
+    key: "status",
+    width: 120,
     render(row) {
+      const statusKey = row.status === "eol"
+        ? "available.statusEol"
+        : row.status === "lts"
+          ? "available.statusLts"
+          : "available.statusCurrent";
       return h(
         NTag,
         {
-          type: row.lts !== false ? "success" : "default",
+          type: row.status === "lts" ? "success" : row.status === "current" ? "info" : "error",
           bordered: false,
           round: true,
         },
-        {
-          default: () => (row.lts !== false ? row.lts : t("available.nonLts")),
-        },
+        { default: () => t(statusKey) },
       );
     },
-  },
-  {
-    title: t("available.releaseDate"),
-    key: "date",
-    width: 130,
   },
   {
     title: t("common.action"),
@@ -147,9 +168,9 @@ async function installNode(row: NodeReleaseSummary) {
   }
 }
 
-async function initData(forceRefresh = false) {
+async function initData() {
   try {
-    await refresh(forceRefresh);
+    await refresh();
   } catch (error: any) {
     window.$message.error(
       t("available.loadFailed", { message: error.message || t("common.failedUnknown") }),
@@ -172,7 +193,7 @@ onBeforeMount(() => {
           {{ t("available.description") }}
         </div>
       </div>
-      <n-button v-motion="controlMotion" :loading="loading" @click="initData(true)">
+      <n-button v-motion="controlMotion" :loading="loading" @click="initData">
         <template #icon>
           <n-icon><RefreshOutline /></n-icon>
         </template>
@@ -180,7 +201,7 @@ onBeforeMount(() => {
       </n-button>
     </div>
 
-    <div v-auto-animate="autoAnimateOptions" class="page-scroll-body">
+    <div v-auto-animate="autoAnimateOptions" class="page-scroll-body table-page-body">
       <OperationFeedback :state="operationState" />
 
       <n-alert v-if="nvmMissing" type="warning" class="page-alert">
@@ -211,32 +232,39 @@ onBeforeMount(() => {
         </n-card>
       </section>
 
-      <div class="toolbar-card" v-motion="cardMotion">
-        <n-input
-          v-model:value="keyword"
-          clearable
-          :placeholder="t('available.searchPlaceholder')"
-        >
-          <template #prefix>
-            <n-icon><SearchOutline /></n-icon>
-          </template>
-        </n-input>
-        <n-checkbox v-model:checked="ltsOnly">
-          <n-icon><FilterOutline /></n-icon>
-          {{ t("available.ltsOnly") }}
-        </n-checkbox>
-      </div>
-
-      <n-card v-motion="cardMotion" class="panel-card table-card" :bordered="false">
+      <n-card v-motion="cardMotion" class="panel-card table-panel-card" :bordered="false">
+        <div class="table-panel-filters">
+          <n-input
+            v-model:value="keyword"
+            class="table-panel-search"
+            clearable
+            :placeholder="t('available.searchPlaceholder')"
+          >
+            <template #prefix>
+              <n-icon><SearchOutline /></n-icon>
+            </template>
+          </n-input>
+          <n-checkbox v-model:checked="ltsOnly">
+            <n-icon><FilterOutline /></n-icon>
+            {{ t("available.ltsOnly") }}
+          </n-checkbox>
+        </div>
         <n-data-table
-          :bordered="false"
-          :single-line="false"
+          flex-height
           :columns="availableColumns"
-          :data="filteredReleases"
-          :pagination="pagination"
+          :data="pagedReleases"
           :loading="loading"
           :scroll-x="tableScrollX"
         />
+        <div class="table-panel-pagination">
+          <n-pagination
+            v-model:page="page"
+            v-model:page-size="pageSize"
+            show-size-picker
+            :page-sizes="TABLE_PAGE_SIZES"
+            :item-count="filteredReleases.length"
+          />
+        </div>
       </n-card>
     </div>
   </div>

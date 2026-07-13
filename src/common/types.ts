@@ -48,7 +48,9 @@ export interface NodeReleaseSummary {
   major: number
   npm?: string
   lts: string | false
-  date?: string
+  firstReleased?: string
+  lastUpdated?: string
+  status: 'current' | 'lts' | 'eol'
   installed: boolean
 }
 

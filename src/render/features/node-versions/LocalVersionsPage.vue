@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, h, onActivated, onMounted, ref } from "vue";
+import { computed, h, onActivated, onMounted, ref, watch } from "vue";
 import type { DataTableColumns } from "naive-ui";
 import { NButton, NTag } from "naive-ui";
 import {
@@ -13,6 +13,7 @@ import { useI18n } from "@render/i18n";
 import { consumeNodeEnvDirty } from "@render/utils/nodeEnvDirty";
 import { useInstalledNodeVersions } from "./useInstalledNodeVersions";
 import { useAppMotion } from "@render/utils/motionPresets";
+import { DEFAULT_TABLE_PAGE_SIZE, TABLE_PAGE_SIZES } from "@render/utils/tablePagination";
 import { useNvmOperations } from "./useNvmOperations";
 
 const { versions, loading, nvmMissing, currentVersion, refresh } =
@@ -30,10 +31,8 @@ const {
 const keyword = ref("");
 const checkedRowKeysRef = ref<string[]>([]);
 
-const pagination = {
-  pageSize: 4,
-  picker: true,
-};
+const page = ref(1);
+const pageSize = ref(DEFAULT_TABLE_PAGE_SIZE);
 
 const tableScrollX = 760;
 
@@ -46,6 +45,20 @@ const filteredData = computed(() => {
   return versions.value.filter((item) =>
     item.version.toLowerCase().includes(query),
   );
+});
+
+const pagedData = computed(() => {
+  const start = (page.value - 1) * pageSize.value;
+  return filteredData.value.slice(start, start + pageSize.value);
+});
+
+watch([keyword, pageSize], () => {
+  page.value = 1;
+});
+
+watch(filteredData, (items) => {
+  const lastPage = Math.max(1, Math.ceil(items.length / pageSize.value));
+  if (page.value > lastPage) page.value = lastPage;
 });
 
 const summaryItems = computed(() => [
@@ -200,7 +213,7 @@ async function handleCheck(rowKeys: string[]) {
       </n-button>
     </div>
 
-    <div v-auto-animate="autoAnimateOptions" class="page-scroll-body">
+    <div v-auto-animate="autoAnimateOptions" class="page-scroll-body table-page-body">
       <OperationFeedback :state="operationState" />
 
       <n-alert v-if="nvmMissing" type="warning" class="page-alert">
@@ -220,37 +233,44 @@ async function handleCheck(rowKeys: string[]) {
         </n-card>
       </section>
 
-      <div class="toolbar-card" v-motion="cardMotion">
-        <n-input
-          v-model:value="keyword"
-          clearable
-          :placeholder="t('local.searchPlaceholder')"
-        >
-          <template #prefix>
-            <n-icon><SearchOutline /></n-icon>
-          </template>
-        </n-input>
-        <n-tag round :bordered="false" type="success">
-          <template #icon>
-            <n-icon><SwapHorizontalOutline /></n-icon>
-          </template>
-          {{ t("local.currentLabel", { version: currentVersionLabel }) }}
-        </n-tag>
-      </div>
-
-      <n-card v-motion="cardMotion" class="panel-card table-card" :bordered="false">
+      <n-card v-motion="cardMotion" class="panel-card table-panel-card" :bordered="false">
+        <div class="table-panel-filters">
+          <n-input
+            v-model:value="keyword"
+            class="table-panel-search"
+            clearable
+            :placeholder="t('local.searchPlaceholder')"
+          >
+            <template #prefix>
+              <n-icon><SearchOutline /></n-icon>
+            </template>
+          </n-input>
+          <n-tag round :bordered="false" type="success">
+            <template #icon>
+              <n-icon><SwapHorizontalOutline /></n-icon>
+            </template>
+            {{ t("local.currentLabel", { version: currentVersionLabel }) }}
+          </n-tag>
+        </div>
         <n-data-table
           v-model:checked-row-keys="checkedRowKeysRef"
-          :bordered="false"
-          :single-line="false"
+          flex-height
           :columns="titleField"
-          :data="filteredData"
+          :data="pagedData"
           :loading="loading"
-          :pagination="pagination"
           :row-key="(row) => row.version"
           :scroll-x="tableScrollX"
           @update:checked-row-keys="handleCheck"
         />
+        <div class="table-panel-pagination">
+          <n-pagination
+            v-model:page="page"
+            v-model:page-size="pageSize"
+            show-size-picker
+            :page-sizes="TABLE_PAGE_SIZES"
+            :item-count="filteredData.length"
+          />
+        </div>
       </n-card>
     </div>
   </div>

@@ -91,11 +91,12 @@ export class ReleaseClient {
 export function summarizeNodeReleases(
   records: NodeReleaseRecord[],
   installedVersions: InstalledNodeVersion[],
+  now = new Date(),
 ): NodeReleaseSummary[] {
     const installed = new Set(
       installedVersions.map(item => normalizeNodeVersion(item.version)),
     )
-    const newestByMajor = new Map<number, NodeReleaseSummary>()
+    const releasesByMajor = new Map<number, Omit<NodeReleaseSummary, 'status'>>()
 
     for (const item of records) {
       if (!item.version)
@@ -105,21 +106,38 @@ export function summarizeNodeReleases(
       if (major === null)
         continue
 
-      const summary: NodeReleaseSummary = {
-        version: item.version,
-        major,
-        npm: item.npm,
-        lts: item.lts ?? false,
-        date: item.date,
-        installed: installed.has(normalizeNodeVersion(item.version)),
+      const existing = releasesByMajor.get(major)
+      if (!existing) {
+        releasesByMajor.set(major, {
+          version: item.version,
+          major,
+          npm: item.npm,
+          lts: item.lts ?? false,
+          firstReleased: item.date,
+          lastUpdated: item.date,
+          installed: installed.has(normalizeNodeVersion(item.version)),
+        })
+        continue
       }
 
-      const existing = newestByMajor.get(major)
-      if (!existing || compareDate(summary.date, existing.date) > 0)
-        newestByMajor.set(major, summary)
+      if (isEarlierDate(item.date, existing.firstReleased))
+        existing.firstReleased = item.date
+
+      if (isLaterDate(item.date, existing.lastUpdated)) {
+        existing.version = item.version
+        existing.npm = item.npm
+        existing.lts = item.lts ?? false
+        existing.lastUpdated = item.date
+        existing.installed = installed.has(normalizeNodeVersion(item.version))
+      }
     }
 
-    return Array.from(newestByMajor.values())
+    const newestMajor = Math.max(...releasesByMajor.keys())
+    return Array.from(releasesByMajor.values())
+      .map(summary => ({
+        ...summary,
+        status: resolveReleaseStatus(summary, newestMajor, now),
+      }))
       .sort((a, b) => b.major - a.major)
 }
 
@@ -243,6 +261,38 @@ function parseMajor(version: string): number | null {
   return match ? Number(match[1]) : null
 }
 
-function compareDate(a?: string, b?: string): number {
-  return Date.parse(a || '') - Date.parse(b || '')
+function isEarlierDate(candidate?: string, current?: string): boolean {
+  const candidateTime = Date.parse(candidate || '')
+  const currentTime = Date.parse(current || '')
+  return Number.isFinite(candidateTime) && (!Number.isFinite(currentTime) || candidateTime < currentTime)
+}
+
+function isLaterDate(candidate?: string, current?: string): boolean {
+  const candidateTime = Date.parse(candidate || '')
+  const currentTime = Date.parse(current || '')
+  return Number.isFinite(candidateTime) && (!Number.isFinite(currentTime) || candidateTime > currentTime)
+}
+
+function resolveReleaseStatus(
+  summary: Pick<NodeReleaseSummary, 'major' | 'lts' | 'firstReleased'>,
+  newestMajor: number,
+  now: Date,
+): NodeReleaseSummary['status'] {
+  if (hasReachedEndOfLife(summary.major, summary.firstReleased, now))
+    return 'eol'
+  if (summary.lts !== false)
+    return 'lts'
+  return summary.major === newestMajor ? 'current' : 'eol'
+}
+
+function hasReachedEndOfLife(major: number, firstReleased: string | undefined, now: Date): boolean {
+  const releasedAt = Date.parse(firstReleased || '')
+  if (!Number.isFinite(releasedAt))
+    return false
+
+  const releaseYear = new Date(releasedAt).getUTCFullYear()
+  const endOfLife = major % 2 === 0
+    ? Date.UTC(releaseYear + 3, 3, 30, 23, 59, 59, 999)
+    : Date.UTC(releaseYear + 1, 5, 1, 23, 59, 59, 999)
+  return now.getTime() > endOfLife
 }

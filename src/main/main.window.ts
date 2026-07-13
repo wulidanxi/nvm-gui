@@ -6,8 +6,8 @@ const isDev = !app.isPackaged
 
 export async function createWindow() {
   const win = new BrowserWindow({
-    width: 1024,
-    height: 845,
+    width: 1800,
+    height: 1080,
     icon: join('./nvm-logo-color-avatar.png'),
     webPreferences: {
       // Renderer code must use the preload bridge instead of direct Node access.

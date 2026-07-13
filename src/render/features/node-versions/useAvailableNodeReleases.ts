@@ -22,19 +22,19 @@ export function useAvailableNodeReleases() {
         || item.version.toLowerCase().includes(query)
         || `node.js ${item.major}`.includes(query)
         || String(item.lts || '').toLowerCase().includes(query)
-      const matchesLts = !ltsOnly.value || item.lts !== false
+        || item.status.includes(query)
+      const matchesLts = !ltsOnly.value || item.status === 'lts'
       return matchesKeyword && matchesLts
     })
   })
 
-  async function refresh(forceRefresh = false) {
+  async function refresh() {
     loading.value = true
     nvmMissing.value = false
     try {
       const result = await listAvailableNodeReleases({
         releaseUrl: store.nodeUrl,
         cacheHours: store.cacheHours,
-        forceRefresh,
       })
       releases.value = result.items
       source.value = result.source
