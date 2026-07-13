@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { AppUpdateStatus, ExternalLinkTarget } from '../common/types'
+import type { AppUpdateStatus, ExternalLinkTarget, NodeReleaseRequest } from '../common/types'
 import type { DesktopApi } from '../common/desktop-api'
 
 const invoke = ipcRenderer.invoke.bind(ipcRenderer)
@@ -7,7 +7,7 @@ const invoke = ipcRenderer.invoke.bind(ipcRenderer)
 const desktopApi = {
   nvm: {
     listInstalled: () => invoke('nvm-list-installed'),
-    listAvailableReleases: (releaseUrl?: string) => invoke('nvm-list-available-releases', releaseUrl),
+    listAvailableReleases: (request?: NodeReleaseRequest) => invoke('nvm-list-available-releases', request),
     current: () => invoke('nvm-current'),
     version: () => invoke('nvm-version'),
     use: (version: string) => invoke('nvm-use-version', version),

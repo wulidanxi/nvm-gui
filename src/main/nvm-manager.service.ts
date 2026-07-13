@@ -4,7 +4,8 @@ import { join } from 'node:path'
 import { app, dialog } from 'electron'
 import type {
   InstalledNodeVersion,
-  NodeReleaseSummary,
+  NodeReleaseRequest,
+  NodeReleaseResult,
   NvmManagerInstallOptions,
   NvmManagerPaths,
   NvmManagerProvider,
@@ -25,7 +26,9 @@ import {
 } from './nvm-provider'
 import type { NvmProvider } from './nvm-provider'
 import { providerForPlatform, resolvePosixNvmDir } from './nvm-manager.shared'
-import { isDefaultNodeReleaseUrl, ReleaseClient, validateNodeReleaseUrl } from './release-client'
+import { isDefaultNodeReleaseUrl, ReleaseClient, summarizeNodeReleases, validateNodeReleaseUrl } from './release-client'
+import { NodeReleaseCacheService } from './node-release-cache.service'
+import type { CacheEntry } from './node-release-cache.service'
 
 const DEFAULT_NODE_RELEASE_URL = 'https://nodejs.org/dist/index.json'
 
@@ -39,6 +42,8 @@ export class NvmManagerService {
   private readonly windowsProvider?: WindowsNvmProvider
   private readonly installer: NvmInstaller
   private readonly releaseClient: ReleaseClient
+  private readonly releaseCache: NodeReleaseCacheService
+  private readonly commandLog = getCommandLogService()
   private readonly elevated: ElevatedExecutor
   private readonly mutationMutex = new AsyncMutex()
 
@@ -62,6 +67,7 @@ export class NvmManagerService {
       app,
     )
     this.releaseClient = new ReleaseClient(this.providerName)
+    this.releaseCache = new NodeReleaseCacheService(app)
     this.elevated = new ElevatedExecutor(getCommandLogService())
   }
 
@@ -143,11 +149,25 @@ export class NvmManagerService {
     }
   }
 
-  public async listAvailableNodeReleases(
-    releaseUrl: string = DEFAULT_NODE_RELEASE_URL,
-  ): Promise<NodeReleaseSummary[]> {
+  public async listAvailableNodeReleases(request: NodeReleaseRequest = {}): Promise<NodeReleaseResult> {
+    const startedAt = Date.now()
+    const cacheHours = normalizeCacheHours(request.cacheHours)
+    let validatedUrl = DEFAULT_NODE_RELEASE_URL
+    let cached: CacheEntry | undefined
     try {
-      const validatedUrl = validateNodeReleaseUrl(releaseUrl)
+      validatedUrl = validateNodeReleaseUrl(request.releaseUrl || DEFAULT_NODE_RELEASE_URL)
+      cached = cacheHours > 0 ? await this.releaseCache.get(validatedUrl) : undefined
+      const cacheAge = cached ? Date.now() - Date.parse(cached.fetchedAt) : Number.POSITIVE_INFINITY
+      if (!request.forceRefresh && cached && cacheAge <= cacheHours * 60 * 60 * 1000) {
+        const result = {
+          items: summarizeNodeReleases(cached.records, await this.listInstalledVersions()),
+          source: 'cache' as const,
+          fetchedAt: cached.fetchedAt,
+        }
+        await this.recordReleaseRequest('success', startedAt, validatedUrl, `Cache hit from ${cached.fetchedAt}; ${result.items.length} summarized releases.`)
+        return result
+      }
+
       if (!isDefaultNodeReleaseUrl(validatedUrl)) {
         const response = await dialog.showMessageBox({
           type: 'warning', buttons: ['Cancel', 'Allow once'], defaultId: 0, cancelId: 0,
@@ -157,14 +177,45 @@ export class NvmManagerService {
         if (response.response !== 1)
           throw new Error('Custom Node release source was not approved')
       }
-      return await this.releaseClient.listNodeReleaseSummaries(
-        validatedUrl,
-        await this.listInstalledVersions(),
-      )
+      const records = await this.releaseClient.fetchNodeReleaseRecords(validatedUrl)
+      const fetchedAt = new Date().toISOString()
+      if (cacheHours > 0) {
+        await this.releaseCache.set(validatedUrl, records, fetchedAt).catch((error) => {
+          console.warn('Failed to persist Node release cache', error)
+        })
+      }
+      const result = {
+        items: summarizeNodeReleases(records, await this.listInstalledVersions()),
+        source: 'network' as const,
+        fetchedAt,
+      }
+      await this.recordReleaseRequest('success', startedAt, validatedUrl, `Network fetch completed; ${records.length} records, ${result.items.length} summarized releases.`)
+      return result
     }
     catch (error) {
-      throw new Error(this.runner.formatError(error))
+      const message = this.runner.formatError(error)
+      if (cacheHours > 0 && cached) {
+        const result = {
+          items: summarizeNodeReleases(cached.records, await this.listInstalledVersions()),
+          source: 'stale-cache' as const,
+          fetchedAt: cached.fetchedAt,
+          warning: message,
+        }
+        await this.recordReleaseRequest('error', startedAt, validatedUrl, `Network fetch failed; stale cache from ${cached.fetchedAt} was used. ${message}`)
+        return result
+      }
+      await this.recordReleaseRequest('error', startedAt, validatedUrl, message)
+      throw new Error(message)
     }
+  }
+
+  private async recordReleaseRequest(status: 'success' | 'error', startedAt: number, url: string, output: string): Promise<void> {
+    await this.commandLog.record({
+      category: 'release', operation: 'Node release metadata', command: 'GET', args: [url],
+      status, durationMs: Date.now() - startedAt, output,
+    }).catch((error) => {
+      console.warn('Failed to persist Node release request log', error)
+    })
   }
 
   public async installNodeVersion(version: string): Promise<OperationResult> {
@@ -249,4 +300,12 @@ export class NvmManagerService {
   private getPosixNvmDir(): string {
     return resolvePosixNvmDir(process.env, homedir())
   }
+}
+
+function normalizeCacheHours(value: number | undefined): number {
+  if (value === undefined)
+    return 24
+  if (!Number.isInteger(value) || value < 0 || value > 168)
+    throw new Error('Node release cache hours must be an integer between 0 and 168.')
+  return value
 }

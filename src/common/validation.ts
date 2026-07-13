@@ -21,6 +21,7 @@ export function assertCommandLogQuery(value: unknown): asserts value is CommandL
   if (query.page !== undefined && (!Number.isInteger(query.page) || Number(query.page) < 1)) throw new Error('Invalid command log page.')
   if (query.pageSize !== undefined && (!Number.isInteger(query.pageSize) || Number(query.pageSize) < 1 || Number(query.pageSize) > 100)) throw new Error('Invalid command log page size.')
   if (query.status !== undefined && query.status !== 'success' && query.status !== 'error') throw new Error('Invalid command log status.')
+  if (query.category !== undefined && !['nvm', 'npm', 'nvm-manager', 'release', 'system'].includes(String(query.category))) throw new Error('Invalid command log category.')
   if (query.search !== undefined && typeof query.search !== 'string') throw new Error('Invalid command log search.')
 }
 

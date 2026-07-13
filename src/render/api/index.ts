@@ -1,6 +1,7 @@
 import type {
   InstalledNodeVersion,
-  NodeReleaseSummary,
+  NodeReleaseRequest,
+  NodeReleaseResult,
   NvmManagerInstallOptions,
   OperationResult,
   ExternalLinkTarget,
@@ -14,8 +15,8 @@ export function listInstalledNodeVersions(): Promise<InstalledNodeVersion[]> {
   return invokeGui(() => getNvmGui().nvm.listInstalled())
 }
 
-export function listAvailableNodeReleases(releaseUrl?: string): Promise<NodeReleaseSummary[]> {
-  return invokeGui(() => getNvmGui().nvm.listAvailableReleases(releaseUrl))
+export function listAvailableNodeReleases(request?: NodeReleaseRequest): Promise<NodeReleaseResult> {
+  return invokeGui(() => getNvmGui().nvm.listAvailableReleases(request))
 }
 
 export function nvmCurrent() {

@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue'
-import type { NodeReleaseSummary } from '@common/types'
+import type { NodeReleaseDataSource, NodeReleaseSummary } from '@common/types'
 import { listAvailableNodeReleases } from '@render/api'
 import { useNodeURLStore } from '@render/stores/NodeURLStore'
 import { isNvmMissingError } from '@render/utils/nvmErrors'
@@ -8,6 +8,9 @@ export function useAvailableNodeReleases() {
   const releases = ref<NodeReleaseSummary[]>([])
   const loading = ref(false)
   const nvmMissing = ref(false)
+  const source = ref<NodeReleaseDataSource>()
+  const fetchedAt = ref('')
+  const warning = ref('')
   const keyword = ref('')
   const ltsOnly = ref(false)
   const store = useNodeURLStore()
@@ -24,11 +27,19 @@ export function useAvailableNodeReleases() {
     })
   })
 
-  async function refresh() {
+  async function refresh(forceRefresh = false) {
     loading.value = true
     nvmMissing.value = false
     try {
-      releases.value = await listAvailableNodeReleases(store.nodeUrl)
+      const result = await listAvailableNodeReleases({
+        releaseUrl: store.nodeUrl,
+        cacheHours: store.cacheHours,
+        forceRefresh,
+      })
+      releases.value = result.items
+      source.value = result.source
+      fetchedAt.value = result.fetchedAt
+      warning.value = result.warning || ''
     }
     catch (error) {
       nvmMissing.value = isNvmMissingError(error)
@@ -44,6 +55,9 @@ export function useAvailableNodeReleases() {
     filteredReleases,
     loading,
     nvmMissing,
+    source,
+    fetchedAt,
+    warning,
     keyword,
     ltsOnly,
     refresh,

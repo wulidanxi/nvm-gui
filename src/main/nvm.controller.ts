@@ -1,5 +1,5 @@
 import { Controller, IpcHandle } from 'einf'
-import type { NvmManagerInstallOptions } from '../common/types'
+import type { NodeReleaseRequest, NvmManagerInstallOptions } from '../common/types'
 import { assertNodeVersion } from '../common/validation'
 import { NvmManagerService } from './nvm-manager.service'
 
@@ -13,8 +13,9 @@ export class NvmController {
   }
 
   @IpcHandle('nvm-list-available-releases')
-  public async listAvailableNodeReleases(releaseUrl?: string) {
-    return this.nvmManager.listAvailableNodeReleases(releaseUrl)
+  public async listAvailableNodeReleases(request?: NodeReleaseRequest) {
+    assertNodeReleaseRequest(request)
+    return this.nvmManager.listAvailableNodeReleases(request)
   }
 
   @IpcHandle('nvm-current')
@@ -70,5 +71,19 @@ export class NvmController {
     return this.nvmManager.refreshEnv()
   }
 
+}
+
+function assertNodeReleaseRequest(value: unknown): asserts value is NodeReleaseRequest | undefined {
+  if (value === undefined)
+    return
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    throw new Error('Invalid Node release request.')
+  const request = value as Record<string, unknown>
+  if (request.releaseUrl !== undefined && typeof request.releaseUrl !== 'string')
+    throw new Error('Invalid Node release URL.')
+  if (request.cacheHours !== undefined && (!Number.isInteger(request.cacheHours) || Number(request.cacheHours) < 0 || Number(request.cacheHours) > 168))
+    throw new Error('Invalid Node release cache hours.')
+  if (request.forceRefresh !== undefined && typeof request.forceRefresh !== 'boolean')
+    throw new Error('Invalid Node release refresh preference.')
 }
 

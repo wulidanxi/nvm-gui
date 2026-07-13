@@ -1,13 +1,13 @@
 import type {
   AppUpdateStatus, CommandLogPage, CommandLogQuery, ExternalLinkTarget,
-  InstalledNodeVersion, NodeReleaseSummary, NvmManagerInstallOptions,
+  InstalledNodeVersion, NodeReleaseRequest, NodeReleaseResult, NvmManagerInstallOptions,
   NvmManagerStatus, NvmManagerVersionOption, OperationResult,
 } from './types'
 
 export interface DesktopApi {
   nvm: {
     listInstalled: () => Promise<InstalledNodeVersion[]>
-    listAvailableReleases: (releaseUrl?: string) => Promise<NodeReleaseSummary[]>
+    listAvailableReleases: (request?: NodeReleaseRequest) => Promise<NodeReleaseResult>
     current: () => Promise<string>
     version: () => Promise<string>
     use: (version: string) => Promise<OperationResult>

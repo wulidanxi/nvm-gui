@@ -123,6 +123,9 @@ export const zhCNMessages = {
     description: '按主要世代展示最新版本，快速安装 LTS 或当前版本。',
     searchPlaceholder: '搜索版本、世代或 LTS 代号',
     ltsOnly: '仅看 LTS',
+    source: { network: '网络数据', cache: '缓存数据', 'stale-cache': '过期缓存' },
+    lastUpdated: '数据更新时间：{time}',
+    staleWarning: '发行数据请求失败，当前展示过期缓存：{message}',
   },
   settings: {
     kicker: '设置中心概览',
@@ -154,6 +157,7 @@ export const zhCNMessages = {
     time: '时间', operation: '操作', command: '命令', result: '结果', duration: '耗时', failed: '失败', details: '详情',
     search: '搜索操作、命令或输出', allResults: '全部结果', export: '导出 JSON', exported: '日志已导出', clear: '清空日志',
     clearTitle: '清空命令日志', clearConfirm: '此操作会删除本机保存的全部命令日志，且无法恢复。', remove: '删除记录', copy: '复制输出', copied: '输出已复制',
+    category: '类别', allCategories: '全部类别', categoryNvm: 'NVM', categoryNpm: 'NPM', categoryManager: 'NVM 管理器', categoryRelease: '发行请求', categorySystem: '系统',
   },
   update: {
     check: '检查更新', checking: '正在检查更新', available: '发现新版本 {version}', download: '下载更新', downloading: '正在下载 {progress}%',
@@ -164,6 +168,8 @@ export const zhCNMessages = {
     nodeSource: 'Node.js 数据源：',
     nodeSourcePlaceholder: '请输入 Node.js 数据源',
     invalidUrl: '请输入有效的网址格式',
+    cacheHours: '发行数据缓存：',
+    cacheHoursHint: '单位为小时，0 表示关闭缓存，最大 168 小时。',
   },
   registry: {
     title: 'NPM 源管理',

@@ -19,6 +19,9 @@ const {
   filteredReleases,
   loading,
   nvmMissing,
+  source,
+  fetchedAt,
+  warning,
   keyword,
   ltsOnly,
   refresh,
@@ -144,9 +147,9 @@ async function installNode(row: NodeReleaseSummary) {
   }
 }
 
-async function initData() {
+async function initData(forceRefresh = false) {
   try {
-    await refresh();
+    await refresh(forceRefresh);
   } catch (error: any) {
     window.$message.error(
       t("available.loadFailed", { message: error.message || t("common.failedUnknown") }),
@@ -169,7 +172,7 @@ onBeforeMount(() => {
           {{ t("available.description") }}
         </div>
       </div>
-      <n-button v-motion="controlMotion" :loading="loading" @click="initData">
+      <n-button v-motion="controlMotion" :loading="loading" @click="initData(true)">
         <template #icon>
           <n-icon><RefreshOutline /></n-icon>
         </template>
@@ -183,6 +186,17 @@ onBeforeMount(() => {
       <n-alert v-if="nvmMissing" type="warning" class="page-alert">
         {{ t("local.nvmMissingAlert") }}
       </n-alert>
+
+      <n-alert v-if="warning" type="warning" class="page-alert">
+        {{ t("available.staleWarning", { message: warning }) }}
+      </n-alert>
+
+      <div v-if="source && fetchedAt" class="release-source-status">
+        <n-tag size="small" :type="source === 'stale-cache' ? 'warning' : 'info'" :bordered="false" round>
+          {{ t(`available.source.${source}`) }}
+        </n-tag>
+        <span>{{ t("available.lastUpdated", { time: new Date(fetchedAt).toLocaleString() }) }}</span>
+      </div>
 
       <section class="summary-grid" v-auto-animate="autoAnimateOptions">
         <n-card
@@ -236,6 +250,8 @@ onBeforeMount(() => {
 .page-alert {
   margin-bottom: 2px;
 }
+
+.release-source-status { display: flex; align-items: center; gap: 8px; color: var(--app-text-muted); font-size: 12px; }
 
 :deep(.version-cell) {
   display: flex;

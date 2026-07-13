@@ -16,14 +16,16 @@ describe('useAvailableNodeReleases', () => {
     vi.stubGlobal('window', {
       nvmGui: {
         nvm: {
-          listAvailableReleases: vi.fn(async () => [
-            {
+          listAvailableReleases: vi.fn(async () => ({
+            items: [{
               version: 'v22.12.0',
               major: 22,
               lts: false,
               installed: false,
-            },
-          ]),
+            }],
+            source: 'network',
+            fetchedAt: '2026-07-13T00:00:00.000Z',
+          })),
         },
       },
     })
@@ -34,6 +36,7 @@ describe('useAvailableNodeReleases', () => {
     expect(composable.releases.value).toHaveLength(1)
     expect(composableValue(composable.filteredReleases)).toHaveLength(1)
     expect(composable.nvmMissing.value).toBe(false)
+    expect(composable.source.value).toBe('network')
   })
 
   it('marks NVM missing errors', async () => {

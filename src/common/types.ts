@@ -68,7 +68,22 @@ export interface OperationResult {
   message: string
 }
 
-export type CommandLogCategory = 'nvm' | 'npm' | 'nvm-manager' | 'system'
+export interface NodeReleaseRequest {
+  releaseUrl?: string
+  cacheHours?: number
+  forceRefresh?: boolean
+}
+
+export type NodeReleaseDataSource = 'network' | 'cache' | 'stale-cache'
+
+export interface NodeReleaseResult {
+  items: NodeReleaseSummary[]
+  source: NodeReleaseDataSource
+  fetchedAt: string
+  warning?: string
+}
+
+export type CommandLogCategory = 'nvm' | 'npm' | 'nvm-manager' | 'release' | 'system'
 export type CommandLogStatus = 'success' | 'error'
 
 export interface CommandLogEntry {
@@ -87,6 +102,7 @@ export interface CommandLogQuery {
   page?: number
   pageSize?: number
   status?: CommandLogStatus
+  category?: CommandLogCategory
   search?: string
 }
 

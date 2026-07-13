@@ -125,6 +125,9 @@ export const enUSMessages: Messages = {
     description: 'Show the latest version by major line and quickly install LTS or current releases.',
     searchPlaceholder: 'Search version, major, or LTS codename',
     ltsOnly: 'LTS only',
+    source: { network: 'Network data', cache: 'Cached data', 'stale-cache': 'Stale cache' },
+    lastUpdated: 'Data updated: {time}',
+    staleWarning: 'The release request failed. Showing stale cached data: {message}',
   },
   settings: {
     kicker: 'Settings',
@@ -156,6 +159,7 @@ export const enUSMessages: Messages = {
     time: 'Time', operation: 'Operation', command: 'Command', result: 'Result', duration: 'Duration', failed: 'Failed', details: 'Details',
     search: 'Search operations, commands, or output', allResults: 'All results', export: 'Export JSON', exported: 'Logs exported', clear: 'Clear logs',
     clearTitle: 'Clear command logs', clearConfirm: 'This permanently deletes all command logs stored on this device.', remove: 'Remove entry', copy: 'Copy output', copied: 'Output copied',
+    category: 'Category', allCategories: 'All categories', categoryNvm: 'NVM', categoryNpm: 'NPM', categoryManager: 'NVM manager', categoryRelease: 'Release request', categorySystem: 'System',
   },
   update: {
     check: 'Check for updates', checking: 'Checking for updates', available: 'Version {version} is available', download: 'Download update', downloading: 'Downloading {progress}%',
@@ -166,6 +170,8 @@ export const enUSMessages: Messages = {
     nodeSource: 'Node.js data source:',
     nodeSourcePlaceholder: 'Enter the Node.js data source',
     invalidUrl: 'Enter a valid URL',
+    cacheHours: 'Release data cache:',
+    cacheHoursHint: 'Hours; use 0 to disable caching, up to 168 hours.',
   },
   registry: {
     title: 'NPM registry',

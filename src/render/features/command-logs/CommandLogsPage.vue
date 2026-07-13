@@ -2,7 +2,7 @@
 import { computed, h, onMounted, ref } from 'vue'
 import type { DataTableColumns } from 'naive-ui'
 import { useDialog, useMessage } from 'naive-ui'
-import type { CommandLogEntry, CommandLogStatus } from '@common/types'
+import type { CommandLogCategory, CommandLogEntry, CommandLogStatus } from '@common/types'
 import { clearCommandLogs, exportCommandLogs, listCommandLogs, removeCommandLog } from '@render/api'
 import { useI18n } from '@render/i18n'
 import { useAppMotion } from '@render/utils/motionPresets'
@@ -18,7 +18,15 @@ const pageSize = 8
 const loading = ref(false)
 const search = ref('')
 const status = ref<CommandLogStatus | undefined>()
+const category = ref<CommandLogCategory | undefined>()
 const selected = ref<CommandLogEntry | null>(null)
+const categoryOptions = computed(() => [
+  { label: t('commandLog.categoryNvm'), value: 'nvm' },
+  { label: t('commandLog.categoryNpm'), value: 'npm' },
+  { label: t('commandLog.categoryManager'), value: 'nvm-manager' },
+  { label: t('commandLog.categoryRelease'), value: 'release' },
+  { label: t('commandLog.categorySystem'), value: 'system' },
+])
 const drawerVisible = computed({
   get: () => Boolean(selected.value),
   set: (value) => {
@@ -30,6 +38,7 @@ const drawerVisible = computed({
 const columns = computed<DataTableColumns<CommandLogEntry>>(() => [
   { title: t('commandLog.time'), key: 'timestamp', width: 176, render: row => new Date(row.timestamp).toLocaleString() },
   { title: t('commandLog.operation'), key: 'operation', minWidth: 130 },
+  { title: t('commandLog.category'), key: 'category', width: 120, render: row => categoryOptions.value.find(item => item.value === row.category)?.label || row.category },
   { title: t('commandLog.command'), key: 'command', minWidth: 170, render: row => [row.command, ...row.args].join(' ') },
   { title: t('commandLog.result'), key: 'status', width: 92, render: row => h('span', { class: row.status === 'success' ? 'result-success' : 'result-error' }, row.status === 'success' ? t('common.success') : t('commandLog.failed')) },
   { title: t('commandLog.duration'), key: 'durationMs', width: 92, render: row => `${row.durationMs} ms` },
@@ -39,7 +48,7 @@ const columns = computed<DataTableColumns<CommandLogEntry>>(() => [
 async function load() {
   loading.value = true
   try {
-    const data = await listCommandLogs({ page: page.value, pageSize, status: status.value, search: search.value })
+    const data = await listCommandLogs({ page: page.value, pageSize, status: status.value, category: category.value, search: search.value })
     entries.value = data.items
     total.value = data.total
   } catch (error) {
@@ -98,6 +107,7 @@ onMounted(load)
         <div class="filters">
           <n-input class="filter-search" v-model:value="search" clearable :placeholder="t('commandLog.search')" @keyup.enter="page = 1; load()" />
           <n-select class="filter-status" v-model:value="status" clearable :options="[{ label: t('common.success'), value: 'success' }, { label: t('commandLog.failed'), value: 'error' }]" :placeholder="t('commandLog.allResults')" @update:value="page = 1; load()" />
+          <n-select class="filter-category" v-model:value="category" clearable :options="categoryOptions" :placeholder="t('commandLog.allCategories')" @update:value="page = 1; load()" />
           <n-button @click="page = 1; load()">{{ t('common.refresh') }}</n-button>
         </div>
         <n-data-table :columns="columns" :data="entries" :loading="loading" :row-key="row => row.id" />
@@ -110,6 +120,7 @@ onMounted(load)
           <n-descriptions v-if="selected" :column="1" bordered size="small">
             <n-descriptions-item :label="t('commandLog.time')">{{ new Date(selected.timestamp).toLocaleString() }}</n-descriptions-item>
             <n-descriptions-item :label="t('commandLog.command')">{{ [selected.command, ...selected.args].join(' ') }}</n-descriptions-item>
+            <n-descriptions-item :label="t('commandLog.category')">{{ categoryOptions.find(item => item.value === selected?.category)?.label }}</n-descriptions-item>
             <n-descriptions-item :label="t('commandLog.duration')">{{ selected.durationMs }} ms</n-descriptions-item>
           </n-descriptions>
           <pre v-if="selected" class="log-output">{{ selected.output || '-' }}</pre>
@@ -122,7 +133,7 @@ onMounted(load)
 
 <style scoped>
 .command-log-page { gap: 0; }
-.filters { display: grid; grid-template-columns: minmax(220px, 280px) 160px max-content; gap: 12px; align-items: center; margin-bottom: 14px; }
+.filters { display: grid; grid-template-columns: minmax(200px, 1fr) 150px 160px max-content; gap: 12px; align-items: center; margin-bottom: 14px; }
 .filter-search, .filter-status { width: 100%; min-width: 0; }
 .pagination { display: flex; justify-content: flex-end; margin-top: 14px; }
 .result-success { color: var(--app-success); }.result-error { color: var(--app-error); }

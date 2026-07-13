@@ -22,7 +22,7 @@ interface GithubRelease {
   prerelease?: boolean
 }
 
-interface NodeReleaseRecord {
+export interface NodeReleaseRecord {
   version: string
   npm?: string
   lts?: string | false
@@ -60,6 +60,38 @@ export class ReleaseClient {
     installedVersions: InstalledNodeVersion[],
   ): Promise<NodeReleaseSummary[]> {
     const records = await this.fetchNodeReleaseRecords(releaseUrl)
+    return summarizeNodeReleases(records, installedVersions)
+  }
+
+  public async fetchNodeReleaseRecords(releaseUrl: string): Promise<NodeReleaseRecord[]> {
+    const url = validateNodeReleaseUrl(releaseUrl)
+    const response = await safeFetch(url, {
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': 'nvm-gui',
+      },
+    })
+
+    return parseJson(response)
+  }
+
+  private async fetchGithubReleases(): Promise<GithubRelease[]> {
+    const url = `https://api.github.com/repos/${githubRepoForProvider(this.provider)}/releases`
+    const response = await safeFetch(url, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'nvm-gui',
+      },
+    })
+
+    return parseJson(response)
+  }
+}
+
+export function summarizeNodeReleases(
+  records: NodeReleaseRecord[],
+  installedVersions: InstalledNodeVersion[],
+): NodeReleaseSummary[] {
     const installed = new Set(
       installedVersions.map(item => normalizeNodeVersion(item.version)),
     )
@@ -89,31 +121,6 @@ export class ReleaseClient {
 
     return Array.from(newestByMajor.values())
       .sort((a, b) => b.major - a.major)
-  }
-
-  private async fetchGithubReleases(): Promise<GithubRelease[]> {
-    const url = `https://api.github.com/repos/${githubRepoForProvider(this.provider)}/releases`
-    const response = await safeFetch(url, {
-      headers: {
-        Accept: 'application/vnd.github+json',
-        'User-Agent': 'nvm-gui',
-      },
-    })
-
-    return parseJson(response)
-  }
-
-  private async fetchNodeReleaseRecords(releaseUrl: string): Promise<NodeReleaseRecord[]> {
-    const url = validateNodeReleaseUrl(releaseUrl)
-    const response = await safeFetch(url, {
-      headers: {
-        Accept: 'application/json',
-        'User-Agent': 'nvm-gui',
-      },
-    })
-
-    return parseJson(response)
-  }
 }
 
 export function validateHttpUrl(value: string): string {
