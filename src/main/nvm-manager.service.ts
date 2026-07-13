@@ -164,7 +164,13 @@ export class NvmManagerService {
           source: 'cache' as const,
           fetchedAt: cached.fetchedAt,
         }
-        await this.recordReleaseRequest('success', startedAt, validatedUrl, `Cache hit from ${cached.fetchedAt}; ${result.items.length} summarized releases.`)
+        await this.recordReleaseRequest(
+          'success',
+          startedAt,
+          validatedUrl,
+          `Cache hit from ${cached.fetchedAt}; ${result.items.length} summarized releases.`,
+          'CACHE',
+        )
         return result
       }
 
@@ -209,9 +215,15 @@ export class NvmManagerService {
     }
   }
 
-  private async recordReleaseRequest(status: 'success' | 'error', startedAt: number, url: string, output: string): Promise<void> {
+  private async recordReleaseRequest(
+    status: 'success' | 'error',
+    startedAt: number,
+    url: string,
+    output: string,
+    command = 'GET',
+  ): Promise<void> {
     await this.commandLog.record({
-      category: 'release', operation: 'Node release metadata', command: 'GET', args: [url],
+      category: 'release', operation: 'Node release metadata', command, args: [url],
       status, durationMs: Date.now() - startedAt, output,
     }).catch((error) => {
       console.warn('Failed to persist Node release request log', error)
