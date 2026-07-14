@@ -1,5 +1,5 @@
 import type {
-  AppUpdateStatus, CommandLogPage, CommandLogQuery, ExternalLinkTarget,
+  AppUpdateStatus, CommandLogPage, CommandLogQuery, CommandLogStatistics, ExternalLinkTarget,
   InstalledNodeVersion, NodeReleaseRequest, NodeReleaseResult, NvmManagerInstallOptions,
   NvmManagerStatus, NvmManagerVersionOption, OperationResult,
 } from './types'
@@ -38,6 +38,7 @@ export interface DesktopApi {
   }
   commandLog: {
     list: (query?: CommandLogQuery) => Promise<CommandLogPage>
+    statistics: () => Promise<CommandLogStatistics>
     remove: (id: string) => Promise<void>
     clear: () => Promise<void>
     export: () => Promise<string | null>

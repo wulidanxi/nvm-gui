@@ -7,6 +7,7 @@ import type {
   CommandLogEntry,
   CommandLogPage,
   CommandLogQuery,
+  CommandLogStatistics,
   CommandLogStatus,
 } from '../common/types'
 import { AsyncMutex } from './async-mutex'
@@ -86,6 +87,58 @@ export class CommandLogService {
         total: filtered.length,
         page,
         pageSize,
+      }
+    })
+  }
+
+  /** 按系统本地自然日聚合今天及之前 6 天的 Dashboard 使用统计。 */
+  public async statistics(now = new Date()): Promise<CommandLogStatistics> {
+    return this.mutex.runExclusive(async () => {
+      await this.ensureLoaded()
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6)
+      const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
+      const daily = Array.from({ length: 7 }, (_, offset) => {
+        const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + offset)
+        return { date: toLocalDateKey(date), success: 0, error: 0 }
+      })
+      const byDate = new Map(daily.map(item => [item.date, item]))
+      let total = 0
+      let success = 0
+      let totalDurationMs = 0
+      let switchCount = 0
+      let installCount = 0
+      let uninstallCount = 0
+
+      for (const entry of this.entries) {
+        const timestamp = new Date(entry.timestamp)
+        if (!Number.isFinite(timestamp.getTime()) || timestamp < start || timestamp >= end)
+          continue
+        const day = byDate.get(toLocalDateKey(timestamp))
+        if (!day)
+          continue
+        total += 1
+        totalDurationMs += entry.durationMs
+        day[entry.status] += 1
+        if (entry.status !== 'success')
+          continue
+        success += 1
+        if (entry.category !== 'nvm')
+          continue
+        if (entry.operation === 'nvm use') switchCount += 1
+        else if (entry.operation === 'nvm install') installCount += 1
+        else if (entry.operation === 'nvm uninstall') uninstallCount += 1
+      }
+
+      return {
+        from: daily[0].date,
+        to: daily[daily.length - 1].date,
+        total,
+        successRate: total ? Math.round(success / total * 1000) / 10 : null,
+        averageDurationMs: total ? Math.round(totalDurationMs / total) : null,
+        switchCount,
+        installCount,
+        uninstallCount,
+        daily,
       }
     })
   }
@@ -201,6 +254,14 @@ async function pathExists(path: string): Promise<boolean> {
   catch {
     return false
   }
+}
+
+/** 使用本地日期字段生成稳定的 YYYY-MM-DD 键，避免 UTC 跨日偏移。 */
+function toLocalDateKey(value: Date): string {
+  const year = String(value.getFullYear()).padStart(4, '0')
+  const month = String(value.getMonth() + 1).padStart(2, '0')
+  const day = String(value.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 /** 限制单条输出大小，避免失败日志长期挤占 userData 空间。 */

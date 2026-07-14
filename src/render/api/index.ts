@@ -8,6 +8,7 @@ import type {
   AppUpdateStatus,
   CommandLogPage,
   CommandLogQuery,
+  CommandLogStatistics,
 } from '@common/types'
 import { desktopApi } from './desktop'
 
@@ -106,6 +107,10 @@ export function openUrl(target: ExternalLinkTarget) {
 
 export function listCommandLogs(query?: CommandLogQuery): Promise<CommandLogPage> {
   return invokeGui(() => getNvmGui().commandLog.list(query))
+}
+
+export function getCommandLogStatistics(): Promise<CommandLogStatistics> {
+  return invokeGui(() => getNvmGui().commandLog.statistics())
 }
 
 export function removeCommandLog(id: string) {

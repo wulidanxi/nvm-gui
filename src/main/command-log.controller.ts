@@ -17,6 +17,11 @@ export class CommandLogController {
     return this.commandLog.list(query)
   }
 
+  @IpcHandle('command-log-statistics')
+  public async statistics() {
+    return this.commandLog.statistics()
+  }
+
   @IpcHandle('command-log-remove')
   public async remove(id: string): Promise<void> {
     if (!id || id.length > 100)

@@ -57,7 +57,7 @@ describe('electron-builder config', () => {
   it('runs the Windows application as the invoking user', () => {
     const config = loadConfigForTarget('win')
     expect(config.win.requestedExecutionLevel).toBe('asInvoker')
-    expect(config.buildVersion).toBe('0.0.18.2')
+    expect(config.buildVersion).toBe('0.0.18.0')
     // eslint-disable-next-line no-template-curly-in-string
     expect(config.nsis.artifactName).toBe('${productName}-Setup-${version}.${ext}')
   })

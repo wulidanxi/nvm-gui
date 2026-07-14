@@ -36,6 +36,7 @@ const desktopApi = {
   },
   commandLog: {
     list: (query?: unknown) => invoke('command-log-list', query),
+    statistics: () => invoke('command-log-statistics'),
     remove: (id: string) => invoke('command-log-remove', id),
     clear: () => invoke('command-log-clear'),
     export: () => invoke('command-log-export'),

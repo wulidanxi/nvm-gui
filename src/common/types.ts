@@ -136,6 +136,26 @@ export interface CommandLogPage {
   pageSize: number
 }
 
+/** 命令日志按本地自然日聚合后的单日统计。 */
+export interface CommandLogDailyStatistics {
+  date: string
+  success: number
+  error: number
+}
+
+/** Dashboard 使用的固定近 7 天命令日志统计。 */
+export interface CommandLogStatistics {
+  from: string
+  to: string
+  total: number
+  successRate: number | null
+  averageDurationMs: number | null
+  switchCount: number
+  installCount: number
+  uninstallCount: number
+  daily: CommandLogDailyStatistics[]
+}
+
 /** 应用更新流程的有限状态集合。 */
 export type AppUpdatePhase =
   | 'idle'
