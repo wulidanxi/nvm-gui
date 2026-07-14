@@ -1,3 +1,7 @@
+/**
+ * 将 electron-updater 的字符串或数组格式说明转换为适合通知框的纯文本。
+ * 同时移除版本标题、分类标题和警告尾注，保留真正的变更条目。
+ */
 export function formatReleaseNotes(value: unknown): string | undefined {
   const source = typeof value === 'string'
     ? value
@@ -28,11 +32,13 @@ export function formatReleaseNotes(value: unknown): string | undefined {
   return content || undefined
 }
 
+/** 从 updater 的多语言说明项中安全提取 note。 */
 function noteFrom(item: unknown): string {
   if (!item || typeof item !== 'object' || !('note' in item)) return ''
   return typeof item.note === 'string' ? item.note : ''
 }
 
+/** 解码发布说明中常见的命名和数字 HTML 实体。 */
 function decodeHtmlEntities(value: string): string {
   const named: Record<string, string> = {
     amp: '&', apos: "'", gt: '>', lt: '<', nbsp: ' ', quot: '"',

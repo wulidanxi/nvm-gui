@@ -16,11 +16,12 @@ if (!app.isPackaged)
 registerCustomProtocol()
 installIpcSecurityGuard()
 
+/** 安装平台生命周期和开发工具退出钩子。 */
 async function electronAppInit() {
   const isDev = !app.isPackaged
 
   app.on('window-all-closed', () => {
-    // Keep the macOS convention where closing all windows does not quit the app.
+    // 遵循 macOS 关闭全部窗口但不退出应用的惯例。
     if (process.platform !== 'darwin')
       app.exit()
   })
@@ -28,7 +29,7 @@ async function electronAppInit() {
   if (isDev) {
     if (process.platform === 'win32') {
       process.on('message', (data) => {
-        // Vite/electron dev tooling sends this message for a clean restart.
+        // Vite/Electron 开发工具通过此消息请求干净重启。
         if (data === 'graceful-exit')
           app.exit()
       })
@@ -41,11 +42,12 @@ async function electronAppInit() {
   }
 }
 
+/** 启动 Electron 生命周期并注册完整的主进程 IPC 控制器。 */
 async function bootstrap() {
   try {
     await electronAppInit()
 
-    // Controllers define the complete main-process IPC surface exposed through preload.
+    // 控制器集合定义了 preload 可触达的全部主进程 IPC 面。
     await createEinf({
       window: createWindow,
       controllers: [NvmController, NpmController, ProjectController, SystemController, CommandLogController, AppUpdateController],

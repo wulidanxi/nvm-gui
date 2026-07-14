@@ -12,14 +12,17 @@ export const TRUSTED_MANAGER_MANIFEST: Record<string, string> = {
   'nvm-windows/1.2.1': '88a571be0ef1a240f2aa4dfe7bd7e445a0411cee702ab9c17c424658b8ac67e4',
 }
 
+/** 返回内置可信清单中的安装包哈希；未知版本不会被提升执行。 */
 export function trustedManagerHash(provider: NvmManagerProvider, version: string): string | undefined {
   return TRUSTED_MANAGER_MANIFEST[`${provider}/${normalizeManagerVersion(provider, version)}`]
 }
 
+/** 将 Node.js 平台映射为对应的 NVM 实现。 */
 export function providerForPlatform(platform: NodeJS.Platform): NvmManagerProvider {
   return platform === 'win32' ? 'nvm-windows' : 'nvm-sh'
 }
 
+/** 统一 Windows 无 v 前缀、POSIX 有 v 前缀的版本格式。 */
 export function normalizeManagerVersion(
   provider: NvmManagerProvider,
   version: string,
@@ -31,6 +34,7 @@ export function normalizeManagerVersion(
   return trimmed.startsWith('v') ? trimmed : `v${trimmed}`
 }
 
+/** 验证并返回规范化后的管理器精确版本。 */
 export function validateManagerVersion(
   provider: NvmManagerProvider,
   version: string,
@@ -46,14 +50,17 @@ export function validateManagerVersion(
   return normalized
 }
 
+/** 返回上游发布中对应平台的安装资源名。 */
 export function managerAssetName(provider: NvmManagerProvider): string {
   return provider === 'nvm-windows' ? 'nvm-setup.exe' : 'install.sh'
 }
 
+/** 返回对应 NVM 实现的 GitHub 仓库。 */
 export function githubRepoForProvider(provider: NvmManagerProvider): string {
   return provider === 'nvm-windows' ? 'coreybutler/nvm-windows' : 'nvm-sh/nvm'
 }
 
+/** 构造经过版本校验的官方安装资源地址。 */
 export function githubAssetUrl(provider: NvmManagerProvider, version: string): string {
   const normalized = validateManagerVersion(provider, version)
   if (provider === 'nvm-windows') {
@@ -63,6 +70,7 @@ export function githubAssetUrl(provider: NvmManagerProvider, version: string): s
   return `https://raw.githubusercontent.com/${githubRepoForProvider(provider)}/${normalized}/install.sh`
 }
 
+/** 按 NVM_DIR、XDG_CONFIG_HOME、用户目录的优先级解析 nvm-sh 目录。 */
 export function resolvePosixNvmDir(
   env: Record<string, string | undefined>,
   homeDir: string,
@@ -76,6 +84,7 @@ export function resolvePosixNvmDir(
   return posix.join(homeDir, '.nvm')
 }
 
+/** 构造适合当前平台和来源的推荐选项。 */
 export function recommendedManagerOption(
   provider: NvmManagerProvider,
   source: NvmManagerSource,
@@ -93,6 +102,7 @@ export function recommendedManagerOption(
   }
 }
 
+/** 将 GitHub 正式发布标签去重并转换为界面选项。 */
 export function releaseTagsToOptions(
   provider: NvmManagerProvider,
   releases: Array<{ tag_name?: string; draft?: boolean; prerelease?: boolean }>,

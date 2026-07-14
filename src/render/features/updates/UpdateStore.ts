@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
+/** 持久化自动检查和预发布通道偏好。 */
 export const useUpdateStore = defineStore('update', () => {
   const autoCheck = ref(true)
   const includePrerelease = ref(false)

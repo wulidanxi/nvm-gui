@@ -2,6 +2,7 @@ import type { CommandLogCategory } from '../common/types'
 import type { CommandRunner, CommandRunnerOptions } from './command-runner'
 import type { CommandLogService } from './command-log.service'
 
+/** 为任意 CommandRunner 增加成功、失败和耗时审计，不改变实际执行策略。 */
 export class LoggedCommandRunner implements CommandRunner {
   constructor(
     private readonly delegate: CommandRunner,
@@ -13,8 +14,7 @@ export class LoggedCommandRunner implements CommandRunner {
   }
 
   public async runShell(script: string, options?: CommandRunnerOptions): Promise<string> {
-    // Shell scripts can contain profile paths or other environment details. Keep the
-    // audit entry useful without persisting the script itself.
+    // 脚本可能包含用户目录等环境细节，因此日志仅记录类型，不持久化脚本正文。
     return this.record('shell', [], () => this.delegate.runShell(script, options))
   }
 
@@ -26,6 +26,7 @@ export class LoggedCommandRunner implements CommandRunner {
     return this.delegate.isCommandMissingError(error)
   }
 
+  /** 统一包裹命令执行，确保成功和失败都会留下日志，同时保留原始异常。 */
   private async record(command: string, args: string[], action: () => Promise<string>): Promise<string> {
     const startedAt = Date.now()
     try {
@@ -47,6 +48,7 @@ export class LoggedCommandRunner implements CommandRunner {
   }
 }
 
+/** 根据可执行程序名映射日志分类。 */
 function classify(command: string): CommandLogCategory {
   if (command === 'npm') return 'npm'
   if (command === 'nvm') return 'nvm'

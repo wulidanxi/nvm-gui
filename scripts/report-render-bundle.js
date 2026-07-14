@@ -1,6 +1,7 @@
 const fs = require('node:fs')
 const path = require('node:path')
 
+// 汇总构建后最大的十个渲染资源，并在 CI 中写入任务摘要。
 const assetDir = path.join('dist', 'render', 'assets')
 if (!fs.existsSync(assetDir))
   throw new Error('Renderer assets are missing; run a build first')

@@ -2,6 +2,7 @@
 import { computed, onMounted } from "vue";
 import { storeToRefs } from "pinia";
 import { useRouter } from "vue-router";
+import type { RouteLocationRaw } from "vue-router";
 import {
   CloudDownloadOutline,
   CodeSlashOutline,
@@ -28,40 +29,58 @@ const {
   currentNodeStatus: nodeStatus,
   nvmManagerStatus: nvmStatus,
   currentNodeVersion: nodeVersion,
-  nvmManagerVersion,
 } = storeToRefs(runtimeStore);
-const electronVersion = computed(() => runtimeStore.system.electronVersion);
 
+// 所有运行时卡片共用 RuntimeStore，避免仪表盘为每个指标重复执行命令。
 const nodeReady = computed(() => nodeStatus.value === "ready");
 const nvmReady = computed(() => nvmStatus.value === "ready");
 const nodeVersionLabel = computed(() => {
   if (nodeStatus.value === "loading") return t("common.loading");
-  if (nodeStatus.value === "missing") return t("common.nvmMissing");
+  if (nodeStatus.value === "missing") return t("common.unavailable");
   return nodeVersion.value;
 });
-const nvmManagerVersionLabel = computed(() => {
-  if (nvmStatus.value === "loading") return t("common.loading");
-  if (nvmStatus.value === "missing") return t("common.unavailable");
-  return nvmManagerVersion.value;
-});
 
-const healthItems = computed(() => [
-  {
-    label: t("dashboard.nodeRuntime"),
-    value: nodeVersionLabel.value,
-    ready: nodeReady.value,
-  },
-  {
-    label: t("dashboard.nvmManager"),
-    value: nvmManagerVersionLabel.value,
-    ready: nvmReady.value,
-  },
-  {
-    label: t("dashboard.desktopRuntime"),
-    value: `Electron ${electronVersion.value || "-"}`,
-    ready: Boolean(electronVersion.value),
-  },
-]);
+const runtimeState = computed(() => {
+  if (nodeStatus.value === "loading" || nvmStatus.value === "loading") {
+    return {
+      subtitle: t("dashboard.runtimeChecking"),
+      tag: t("common.loading"),
+      tagType: "default" as const,
+      action: null,
+    };
+  }
+
+  if (!nvmReady.value) {
+    return {
+      subtitle: t("dashboard.runtimeNeedsNvm"),
+      tag: t("common.pending"),
+      tagType: "warning" as const,
+      action: {
+        label: t("dashboard.configureNvmManager"),
+        path: { path: "/setting", query: { section: "nvm-manager" } },
+      },
+    };
+  }
+
+  if (!nodeReady.value) {
+    return {
+      subtitle: t("dashboard.runtimeNeedsNode"),
+      tag: t("common.pending"),
+      tagType: "warning" as const,
+      action: {
+        label: t("dashboard.manageLocalTitle"),
+        path: "/local",
+      },
+    };
+  }
+
+  return {
+    subtitle: t("dashboard.runtimeReady"),
+    tag: t("common.ready"),
+    tagType: "success" as const,
+    action: null,
+  };
+});
 
 const quickActions = computed(() => [
   {
@@ -79,18 +98,19 @@ const quickActions = computed(() => [
   {
     title: t("dashboard.projectDetectorTitle"),
     description: t("dashboard.projectDetectorDescription"),
-    path: "/setting",
+    path: { path: "/setting", query: { section: "project" } },
     icon: CodeSlashOutline,
   },
   {
     title: t("dashboard.nvmManager"),
     description: t("dashboard.nvmManagerDescription"),
-    path: "/setting",
+    path: { path: "/setting", query: { section: "nvm-manager" } },
     icon: SettingsOutline,
   },
 ]);
 
-function openAction(path: string) {
+/** 从快捷操作进入目标工作台页面。 */
+function openAction(path: RouteLocationRaw) {
   router.push(path);
 }
 
@@ -119,56 +139,32 @@ onMounted(() => {
 
     <div v-auto-animate="autoAnimateOptions" class="page-scroll-body">
       <section class="hero-panel" v-motion="heroMotion">
-      <div class="hero-copy">
-        <div class="hero-eyebrow">{{ t("dashboard.currentRuntime") }}</div>
-        <div class="hero-version">{{ nodeVersionLabel }}</div>
-        <div class="hero-subtitle">
-          {{ nodeReady ? t("dashboard.runtimeReady") : t("dashboard.runtimeNeedsNvm") }}
-        </div>
-      </div>
-      <div class="hero-status">
-        <n-tag :type="nodeReady ? 'success' : 'warning'" round :bordered="false">
-          {{ nodeReady ? t("common.ready") : t("common.pending") }}
-        </n-tag>
-      </div>
-      </section>
-
-      <section class="dashboard-grid" v-auto-animate="autoAnimateOptions">
-      <n-card
-        v-motion="cardMotion"
-        class="panel-card"
-        :bordered="false"
-        :title="t('dashboard.healthTitle')"
-      >
-        <div class="health-list" v-auto-animate="autoAnimateOptions">
-          <div
-            v-for="item in healthItems"
-            :key="item.label"
-            v-motion="tileMotion"
-            class="health-row"
-          >
-            <div class="health-leading">
-              <div class="status-dot" :class="{ 'is-warning': !item.ready }" />
-              <div>
-                <div class="health-label">{{ item.label }}</div>
-                <div class="health-value">{{ item.value }}</div>
-              </div>
-            </div>
-            <n-tag
-              size="small"
-              round
-              :bordered="false"
-              :type="item.ready ? 'success' : 'warning'"
-            >
-              {{ item.ready ? t("common.success") : t("common.pending") }}
-            </n-tag>
+        <div class="hero-copy">
+          <div class="hero-eyebrow">{{ t("dashboard.currentRuntime") }}</div>
+          <div class="hero-version">{{ nodeVersionLabel }}</div>
+          <div class="hero-subtitle">
+            {{ runtimeState.subtitle }}
           </div>
         </div>
-      </n-card>
+        <div class="hero-status">
+          <n-tag :type="runtimeState.tagType" round :bordered="false">
+            {{ runtimeState.tag }}
+          </n-tag>
+          <n-button
+            v-if="runtimeState.action"
+            v-motion="controlMotion"
+            size="small"
+            type="primary"
+            @click="openAction(runtimeState.action.path)"
+          >
+            {{ runtimeState.action.label }}
+          </n-button>
+        </div>
+      </section>
 
       <n-card
         v-motion="cardMotion"
-        class="panel-card"
+        class="panel-card quick-actions-card"
         :bordered="false"
         :title="t('dashboard.quickActionsTitle')"
       >
@@ -189,7 +185,6 @@ onMounted(() => {
           </button>
         </div>
       </n-card>
-      </section>
     </div>
   </div>
 </template>
@@ -239,46 +234,19 @@ onMounted(() => {
   font-size: 14px;
 }
 
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: minmax(260px, 0.9fr) minmax(320px, 1.1fr);
+.hero-status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   gap: 12px;
 }
 
-.health-list {
-  display: grid;
-  gap: 8px;
-}
-
-.health-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px;
-  border: 1px solid var(--app-border);
-  border-radius: 8px;
-}
-
-.health-leading {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.status-dot.is-warning {
-  background: var(--app-warning);
-  box-shadow: 0 0 0 4px var(--app-warning-soft);
-}
-
-.health-label,
 .action-title {
   color: var(--app-text);
   font-size: 14px;
   font-weight: 750;
 }
 
-.health-value,
 .action-description {
   display: block;
   margin-top: 3px;
@@ -288,7 +256,7 @@ onMounted(() => {
 
 .action-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -312,14 +280,13 @@ onMounted(() => {
 }
 
 @media (max-width: 1100px) {
-  .dashboard-grid {
+  .action-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 760px) {
   .hero-panel,
-  .dashboard-grid,
   .action-grid {
     grid-template-columns: 1fr;
   }
@@ -327,6 +294,12 @@ onMounted(() => {
   .hero-panel {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .hero-status {
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 }
 </style>

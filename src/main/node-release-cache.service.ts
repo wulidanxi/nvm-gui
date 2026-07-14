@@ -3,6 +3,7 @@ import { dirname, join } from 'node:path'
 import type { NodeReleaseRecord } from './release-client'
 import { AsyncMutex } from './async-mutex'
 
+/** 单个发布数据源的缓存内容。 */
 export interface CacheEntry {
   fetchedAt: string
   records: NodeReleaseRecord[]
@@ -13,10 +14,12 @@ interface CacheFile {
   entries: Record<string, CacheEntry>
 }
 
+/** 隔离 Electron app，便于用临时目录测试缓存读写。 */
 export interface NodeReleaseCacheAppAdapter {
   getPath(name: 'userData'): string
 }
 
+/** 按发布 URL 分桶持久化原始 Node.js 发布记录。 */
 export class NodeReleaseCacheService {
   private readonly mutex = new AsyncMutex()
   private cache: CacheFile = { version: 1, entries: {} }
@@ -24,6 +27,7 @@ export class NodeReleaseCacheService {
 
   constructor(private readonly appAdapter: NodeReleaseCacheAppAdapter) {}
 
+  /** 返回指定数据源的缓存，不在此层判断是否过期。 */
   public async get(url: string): Promise<CacheEntry | undefined> {
     return this.mutex.runExclusive(async () => {
       await this.ensureLoaded()
@@ -31,6 +35,7 @@ export class NodeReleaseCacheService {
     })
   }
 
+  /** 更新指定数据源并原子写入完整缓存文件。 */
   public async set(url: string, records: NodeReleaseRecord[], fetchedAt: string): Promise<void> {
     await this.mutex.runExclusive(async () => {
       await this.ensureLoaded()
@@ -43,6 +48,7 @@ export class NodeReleaseCacheService {
     return join(this.appAdapter.getPath('userData'), 'node-release-cache.json')
   }
 
+  /** 首次访问时容错加载；损坏或旧结构会退回空缓存。 */
   private async ensureLoaded(): Promise<void> {
     if (this.loaded)
       return
@@ -57,6 +63,7 @@ export class NodeReleaseCacheService {
     }
   }
 
+  /** 使用临时文件替换，降低进程中断造成半写文件的风险。 */
   private async persist(): Promise<void> {
     const target = this.filePath
     const temp = `${target}.tmp`
@@ -72,6 +79,7 @@ export class NodeReleaseCacheService {
   }
 }
 
+/** 验证磁盘缓存的版本和最小记录结构。 */
 function isCacheFile(value: unknown): value is CacheFile {
   if (!value || typeof value !== 'object')
     return false

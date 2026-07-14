@@ -16,11 +16,16 @@ const staticMotion = {
   leave: { opacity: 1, transition: { duration: 1 } },
 }
 
+/** 检测系统的“减少动态效果”无障碍偏好。 */
 function prefersReducedMotion() {
   return typeof window !== 'undefined'
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
+/**
+ * 提供全局一致的轻量动效预设。
+ * 减少动态效果时退化为近乎静态的过渡，避免组件各自处理媒体查询。
+ */
 export function useAppMotion() {
   const reduceMotion = prefersReducedMotion()
   const autoAnimateOptions: Partial<AutoAnimateOptions> = reduceMotion

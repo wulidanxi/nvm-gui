@@ -9,6 +9,7 @@ interface MessageTree {
   [key: string]: string | MessageTree
 }
 export type I18nParams = Record<string, string | number>
+/** 由中文基准字典推导出的类型安全点路径。 */
 export type I18nKey = Leaves<Messages>
 
 type Leaves<T, Prefix extends string = ''> = {
@@ -29,6 +30,7 @@ export const localeOptions: Array<{ label: string, value: AppLocale }> = [
   { label: enUSMessages.locale.english, value: 'en-US' },
 ]
 
+/** 提供当前语言、切换方法和带参数插值的翻译函数。 */
 export function useI18n() {
   const localeStore = useLocaleStore()
   const locale = computed(() => localeStore.locale)
@@ -44,6 +46,7 @@ export function useI18n() {
   }
 }
 
+/** 按当前语言取值，缺失时回退中文，最后回退键名。 */
 function translate(locale: AppLocale, key: I18nKey, params?: I18nParams) {
   const template = getMessage(messages[locale], key) || getMessage(zhCNMessages, key) || key
 
@@ -55,6 +58,7 @@ function translate(locale: AppLocale, key: I18nKey, params?: I18nParams) {
   })
 }
 
+/** 沿点分隔路径读取嵌套语言字典。 */
 function getMessage(source: MessageTree, key: string): string | undefined {
   const value = key.split('.').reduce<string | MessageTree | undefined>((current, segment) => {
     if (!current || typeof current === 'string')

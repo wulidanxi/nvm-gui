@@ -10,9 +10,11 @@ const OPERATIONS = ['install', 'use', 'uninstall'] as const
 const VERSION = /^v?\d+\.\d+\.\d+$/
 const EXPECTED_INSTALLER_PUBLISHER = 'CN=Author Software Inc.'
 
+/** 在 Windows UAC 边界内执行经过白名单和签名校验的高权限操作。 */
 export class ElevatedExecutor {
   constructor(private readonly commandLog?: CommandLogService) {}
 
+  /** 仅允许对精确版本执行 install、use 或 uninstall。 */
   public async executeNvm(operation: string, version: string): Promise<string> {
     if (process.platform !== 'win32')
       throw new Error('Elevated execution is only supported on Windows')
@@ -25,6 +27,7 @@ export class ElevatedExecutor {
     )
   }
 
+  /** 校验安装包完整性和发布者后，以静默方式安装 nvm-windows。 */
   public async installNvmManager(installerPath: string, expectedHash: string): Promise<string> {
     if (process.platform !== 'win32')
       throw new Error('Elevated execution is only supported on Windows')
@@ -34,6 +37,7 @@ export class ElevatedExecutor {
     )
   }
 
+  /** 从受信任的 NVM_HOME 中解析 nvm.exe，阻止任意路径执行。 */
   private resolveNvmExecutable(): string {
     const home = process.env.NVM_HOME
     if (!home)
@@ -45,6 +49,7 @@ export class ElevatedExecutor {
     return executable
   }
 
+  /** 同时验证 SHA-256 与 Authenticode 发布者。 */
   private async verifyInstaller(filePath: string, expectedHash: string): Promise<void> {
     if (!existsSync(filePath) || !filePath.toLowerCase().endsWith('nvm-setup.exe'))
       throw new Error('Invalid NVM installer path')
@@ -61,6 +66,7 @@ export class ElevatedExecutor {
       throw new Error('NVM installer Authenticode publisher verification failed')
   }
 
+  /** 将受控 PowerShell 正文编码后通过 UAC 启动，减少转义层级。 */
   private async runElevated(body: string): Promise<string> {
     const encoded = Buffer.from(`$ErrorActionPreference = 'Stop'\n${body}`, 'utf16le').toString('base64')
     const command = `$proc = Start-Process -FilePath powershell.exe -ArgumentList '-NoProfile -NonInteractive -EncodedCommand ${encoded}' -PassThru -Verb RunAs -Wait -WindowStyle Hidden; exit $proc.ExitCode`
@@ -70,6 +76,7 @@ export class ElevatedExecutor {
     return stdout
   }
 
+  /** 记录高权限操作结果，但不吞掉原始异常。 */
   private async runLogged(
     category: 'nvm' | 'nvm-manager',
     operation: string,
@@ -91,6 +98,7 @@ export class ElevatedExecutor {
   }
 }
 
+/** 按 PowerShell 单引号规则转义路径。 */
 function escapePs(value: string): string {
   return value.replace(/'/g, "''")
 }

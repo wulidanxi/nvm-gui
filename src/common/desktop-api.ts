@@ -4,6 +4,10 @@ import type {
   NvmManagerStatus, NvmManagerVersionOption, OperationResult,
 } from './types'
 
+/**
+ * 通过 preload 暴露给渲染进程的最小桌面能力集合。
+ * 此接口同时约束 preload 实现和渲染端调用，避免直接暴露 Electron API。
+ */
 export interface DesktopApi {
   nvm: {
     listInstalled: () => Promise<InstalledNodeVersion[]>

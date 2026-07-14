@@ -15,10 +15,12 @@ const MAX_ENTRIES = 500
 const COMPACT_AT_ENTRIES = 600
 const MAX_OUTPUT_LENGTH = 64 * 1024
 
+/** 隔离 Electron app，便于在纯 Node.js 测试中提供 userData 目录。 */
 export interface CommandLogAppAdapter {
   getPath(name: 'userData'): string
 }
 
+/** 写入日志所需的业务字段；标识和时间由服务统一生成。 */
 export interface CommandLogInput {
   category: CommandLogCategory
   operation: string
@@ -29,6 +31,10 @@ export interface CommandLogInput {
   output: string
 }
 
+/**
+ * 维护有界的命令历史，并以 JSONL 追加写降低每次记录的磁盘开销。
+ * 所有文件操作通过互斥锁串行化，达到阈值后压缩为最近 500 条。
+ */
 export class CommandLogService {
   private readonly mutex = new AsyncMutex()
   private entries: CommandLogEntry[] = []
@@ -37,6 +43,7 @@ export class CommandLogService {
 
   constructor(private readonly appAdapter: CommandLogAppAdapter) {}
 
+  /** 记录一次命令，并在文件过大时触发压缩。 */
   public async record(input: CommandLogInput): Promise<void> {
     await this.mutex.runExclusive(async () => {
       await this.ensureLoaded()
@@ -55,6 +62,7 @@ export class CommandLogService {
     })
   }
 
+  /** 按时间倒序筛选并分页返回日志。 */
   public async list(query: CommandLogQuery = {}): Promise<CommandLogPage> {
     return this.mutex.runExclusive(async () => {
       await this.ensureLoaded()
@@ -82,6 +90,7 @@ export class CommandLogService {
     })
   }
 
+  /** 删除指定日志并原子重写持久化文件。 */
   public async remove(id: string): Promise<void> {
     await this.mutex.runExclusive(async () => {
       await this.ensureLoaded()
@@ -90,6 +99,7 @@ export class CommandLogService {
     })
   }
 
+  /** 清空内存和磁盘中的日志。 */
   public async clear(): Promise<void> {
     await this.mutex.runExclusive(async () => {
       await this.ensureLoaded()
@@ -98,6 +108,7 @@ export class CommandLogService {
     })
   }
 
+  /** 以兼容旧版本的 JSON 数组格式导出当前日志。 */
   public async export(): Promise<string> {
     return this.mutex.runExclusive(async () => {
       await this.ensureLoaded()
@@ -105,6 +116,7 @@ export class CommandLogService {
     })
   }
 
+  /** 首次访问时加载 JSONL；损坏的单行会被忽略，不影响其余记录。 */
   private async ensureLoaded(): Promise<void> {
     if (this.loaded)
       return
@@ -139,12 +151,14 @@ export class CommandLogService {
     return join(this.appAdapter.getPath('userData'), 'command-log.json')
   }
 
+  /** 追加单条 JSONL 记录。 */
   private async append(entry: CommandLogEntry): Promise<void> {
     await mkdir(dirname(this.filePath), { recursive: true })
     await appendFile(this.filePath, `${JSON.stringify(entry)}\n`, 'utf-8')
     this.persistedCount += 1
   }
 
+  /** 通过临时文件替换实现完整快照写入，并兼容 Windows 的替换限制。 */
   private async persist(): Promise<void> {
     const target = this.filePath
     const temp = `${target}.tmp`
@@ -161,6 +175,7 @@ export class CommandLogService {
     this.persistedCount = this.entries.length
   }
 
+  /** 将旧版 JSON 数组迁移为 JSONL，并保留原文件备份。 */
   private async migrateLegacyFile(): Promise<void> {
     if (await pathExists(this.filePath) || !await pathExists(this.legacyFilePath))
       return
@@ -188,6 +203,7 @@ async function pathExists(path: string): Promise<boolean> {
   }
 }
 
+/** 限制单条输出大小，避免失败日志长期挤占 userData 空间。 */
 function truncateOutput(value: string): string {
   if (value.length <= MAX_OUTPUT_LENGTH)
     return value
@@ -195,6 +211,7 @@ function truncateOutput(value: string): string {
   return `${value.slice(0, MAX_OUTPUT_LENGTH - suffix.length)}${suffix}`
 }
 
+/** 对磁盘数据做运行时守卫，拒绝结构不完整的历史记录。 */
 function isCommandLogEntry(value: unknown): value is CommandLogEntry {
   if (!value || typeof value !== 'object')
     return false
@@ -212,17 +229,15 @@ function isCommandLogEntry(value: unknown): value is CommandLogEntry {
 
 let sharedCommandLogService: CommandLogService | undefined
 
+/** 延迟创建共享实例，避免模块加载阶段强依赖 Electron。 */
 export function getCommandLogService(): CommandLogService {
   sharedCommandLogService ||= new CommandLogService(getElectronAppAdapter())
   return sharedCommandLogService
 }
 
 function getElectronAppAdapter(): CommandLogAppAdapter {
-  // Delayed loading keeps this filesystem-only service unit-testable without an
-  // installed Electron binary, while production code still receives Electron's userData path.
-  // The main process is bundled as CommonJS, where esbuild cannot preserve
-  // import.meta.url. __filename remains an absolute path in both development
-  // and the packaged app, so createRequire can safely resolve Electron here.
+  // 延迟加载让文件服务在没有 Electron 二进制时仍可测试；生产环境再取得 userData。
+  // 主进程打包为 CommonJS，__filename 在开发和打包后都可供 createRequire 安全解析。
   const loadModule = createRequire(__filename)
   const { app } = loadModule('electron') as typeof import('electron')
   return app

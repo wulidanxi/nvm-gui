@@ -2,6 +2,7 @@ const config = require('../electron-builder.config.js')
 const { version } = require('../package.json')
 const fs = require('node:fs')
 
+// 发布前同时校验 Git 标签、Windows 文件版本和变更日志，避免产物版本分叉。
 const tag = process.env.GITHUB_REF_NAME
 if (tag && tag !== `v${version}`)
   throw new Error(`Release tag ${tag} does not match package version v${version}`)
@@ -16,6 +17,7 @@ if (!changelog.includes(`## [${version}]`))
 
 console.log(`Release version verified: ${version}`)
 
+/** 将 SemVer 预发布序号映射为 Windows 四段式文件版本。 */
 function toWindowsBuildVersion(version) {
   const match = /^(\d+\.\d+\.\d+)(?:-(?:(alpha|beta|rc)\.(\d+)|(\d+|[a-z])))?$/.exec(version)
   if (!match)

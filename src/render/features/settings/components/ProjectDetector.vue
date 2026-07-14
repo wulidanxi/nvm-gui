@@ -104,6 +104,7 @@ interface ProjectInfo {
 
 const currentProject = ref<ProjectInfo | null>(null);
 
+/** 选择目录并保存最近项目，随后解析其 .nvmrc。 */
 const selectProject = async () => {
   try {
     const path = await openDirectoryDialog();
@@ -116,6 +117,7 @@ const selectProject = async () => {
   }
 };
 
+/** 读取项目要求的精确版本，并与本地安装状态对照。 */
 const analyzeProject = async (path: string) => {
   try {
     const version = await checkNvmrc(path);
@@ -154,6 +156,7 @@ onMounted(async () => {
     await analyzeProject(projectStore.lastProjectPath);
 });
 
+/** 切换到项目要求的 Node.js 版本。 */
 const switchToVersion = async (version: string) => {
   try {
     await nvmOperations.use(version);

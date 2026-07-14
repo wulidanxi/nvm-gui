@@ -1,6 +1,7 @@
 const fs = require('node:fs')
 const path = require('node:path')
 
+/** 提取当前标签对应的变更日志章节，供 GitHub Release 正文使用。 */
 function main() {
   const tag = process.env.CHANGELOG_VERSION || process.env.GITHUB_REF_NAME || ''
   const version = tag.replace(/^v/, '')

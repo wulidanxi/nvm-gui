@@ -1,8 +1,10 @@
+/** electron-updater 中与更新通道有关的最小可写接口。 */
 export interface UpdateChannelTarget {
   allowPrerelease: boolean
   allowDowngrade: boolean
 }
 
+/** 从 GitHub Releases API 使用的候选发布字段。 */
 export interface ReleaseCandidate {
   tag_name?: string
   body?: string
@@ -10,6 +12,7 @@ export interface ReleaseCandidate {
   prerelease?: boolean
 }
 
+/** 应用通道偏好，同时明确禁止自动降级到更低版本。 */
 export function applyUpdateChannelPreference(
   updater: UpdateChannelTarget,
   includePrerelease: boolean,
@@ -18,6 +21,7 @@ export function applyUpdateChannelPreference(
   updater.allowDowngrade = false
 }
 
+/** 按当前通道查找第一个高于已安装版本的非草稿发布。 */
 export function findNewerRelease(
   releases: ReleaseCandidate[],
   currentVersion: string,
@@ -34,6 +38,10 @@ export function findNewerRelease(
   return { version: release.tag_name.replace(/^v/, ''), notes: release.body }
 }
 
+/**
+ * 比较稳定版和常见预发布版本。
+ * 缺少预发布段的稳定版高于相同核心版本的 alpha/beta 版本。
+ */
 export function compareVersions(left: string, right: string): number {
   const parse = (value: string) => value.replace(/^v/, '').split(/[.-]/).map(part => /^\d+$/.test(part) ? Number(part) : part)
   const a = parse(left)

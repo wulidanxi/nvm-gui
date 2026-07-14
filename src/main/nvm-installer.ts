@@ -16,13 +16,14 @@ import {
 } from './nvm-manager.shared'
 import { shellQuote } from './nvm-provider'
 
+/** 安装器所需的最小 Electron app 接口，便于单元测试替换。 */
 export interface ElectronAppAdapter {
   isPackaged: boolean
   getPath: (name: 'userData') => string
 }
 
-// Installer logic is isolated because it is the main-process area most likely
-// to require elevation, filesystem writes, and remote downloads.
+// 安装逻辑独立封装，因为它集中涉及提权、文件写入和远程下载。
+/** 为当前平台准备并执行受控的 NVM 管理器安装流程。 */
 export class NvmInstaller {
   constructor(
     private readonly provider: NvmManagerProvider,
@@ -32,6 +33,7 @@ export class NvmInstaller {
     private readonly appAdapter?: ElectronAppAdapter,
   ) {}
 
+  /** 校验版本后分派到 Windows 或 POSIX 安装流程。 */
   public async install(
     version: string,
     source: NvmManagerSource,
@@ -44,6 +46,7 @@ export class NvmInstaller {
       await this.installPosixManager(normalized, writeProfile)
   }
 
+  /** 解析可信的 Windows 安装包，并返回后续签名校验所需的哈希。 */
   public async resolveWindowsInstaller(version: string, source: NvmManagerSource): Promise<{ path: string, hash: string }> {
     const normalized = validateManagerVersion('nvm-windows', version)
     const hash = trustedManagerHash('nvm-windows', normalized)
@@ -55,6 +58,7 @@ export class NvmInstaller {
     return { path, hash }
   }
 
+  /** 根据开发或打包环境定位内置的 nvm-windows 安装包。 */
   public getEmbeddedWindowsInstallerPath(): string | undefined {
     const packagedPath = join(process.resourcesPath, 'nvm-manager', managerAssetName('nvm-windows'))
     if (this.getElectronApp().isPackaged)
@@ -73,6 +77,7 @@ export class NvmInstaller {
     })
   }
 
+  /** 推荐版本优先使用内置资源，缺失时再回退到可信下载。 */
   private async resolveEmbeddedWindowsInstaller(version: string): Promise<string> {
     if (version !== WINDOWS_NVM_RECOMMENDED_VERSION)
       return this.downloadWindowsInstaller(version)
@@ -84,6 +89,7 @@ export class NvmInstaller {
     return this.downloadWindowsInstaller(version)
   }
 
+  /** 仅下载可信清单中存在 SHA-256 的 nvm-windows 版本。 */
   private async downloadWindowsInstaller(version: string, expectedHash?: string): Promise<string> {
     const hash = expectedHash || trustedManagerHash('nvm-windows', version)
     if (!hash)
@@ -94,6 +100,7 @@ export class NvmInstaller {
     return target
   }
 
+  /** 下载 nvm-sh 安装脚本，并按用户选择决定是否允许修改 shell 配置。 */
   private async installPosixManager(version: string, writeProfile: boolean) {
     const installScriptUrl = githubAssetUrl('nvm-sh', version)
     const tmpFile = join(this.getDownloadCacheDir(), `nvm-install-${normalizeManagerVersion('nvm-sh', version)}.sh`)
@@ -117,6 +124,7 @@ export class NvmInstaller {
     })
   }
 
+  /** 限制重定向、超时和文件大小，并在需要时校验 SHA-256 后原子落盘。 */
   private async downloadFile(url: string, target: string, expectedHash?: string): Promise<void> {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 300_000)
@@ -145,6 +153,7 @@ export class NvmInstaller {
     finally { clearTimeout(timeout) }
   }
 
+  /** 返回 userData 下的专用下载缓存目录。 */
   private getDownloadCacheDir(): string {
     const basePath = this.getElectronApp().getPath('userData')
     const target = join(basePath, 'nvm-manager-cache')
@@ -159,6 +168,7 @@ export class NvmInstaller {
     return this.appAdapter
   }
 
+  /** 仅在 macOS zsh 且用户授权写入配置时创建缺失的 .zshrc。 */
   private async ensurePosixProfileFile(writeProfile: boolean): Promise<void> {
     if (!writeProfile || this.platform !== 'darwin')
       return

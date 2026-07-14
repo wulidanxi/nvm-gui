@@ -42,6 +42,7 @@ const pageSize = ref(DEFAULT_TABLE_PAGE_SIZE);
 
 const tableScrollX = 1100;
 
+// 发布记录已在主进程按主版本聚合，此处只负责筛选、分页和展示。
 const summaryItems = computed(() => [
   {
     label: t("available.recommendedMajors"),
@@ -158,6 +159,7 @@ const availableColumns = computed<DataTableColumns<NodeReleaseSummary>>(() => [
   },
 ]);
 
+/** 安装所选主版本的最新补丁版本并重新同步发布状态。 */
 async function installNode(row: NodeReleaseSummary) {
   try {
     await nvmOperations.install(row.version);
@@ -168,6 +170,7 @@ async function installNode(row: NodeReleaseSummary) {
   }
 }
 
+/** 首次进入或安装完成后刷新发布数据。 */
 async function initData() {
   try {
     await refresh();

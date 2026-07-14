@@ -7,6 +7,7 @@ import { markNodeEnvDirty } from '@render/utils/nodeEnvDirty'
 
 export type NvmOperationKind = 'install' | 'use' | 'uninstall'
 export type NvmOperationPhase = 'running' | 'success' | 'error'
+/** 当前 NVM 变更及其反馈内容。 */
 export interface NvmOperationState {
   kind: NvmOperationKind
   version: string
@@ -14,6 +15,7 @@ export interface NvmOperationState {
   message?: string
 }
 
+/** 串联版本变更、运行时刷新和短暂操作反馈。 */
 export const useNvmOperationStore = defineStore('nvm-operation', () => {
   const runtimeStore = useRuntimeStore()
   const operatingVersion = ref<string | null>(null)
@@ -24,6 +26,7 @@ export const useNvmOperationStore = defineStore('nvm-operation', () => {
   const use = (version: string) => run('use', version, () => useNodeVersion(version))
   const uninstall = (version: string) => run('uninstall', version, () => uninstallNodeVersion(version))
 
+  /** 同一时刻只允许一个 NVM 变更，避免界面发出相互冲突的命令。 */
   async function run(kind: NvmOperationKind, version: string, action: () => Promise<OperationResult>) {
     if (operatingVersion.value) throw new Error(`NVM operation already running for ${operatingVersion.value}`)
     operatingVersion.value = version
@@ -44,12 +47,14 @@ export const useNvmOperationStore = defineStore('nvm-operation', () => {
     finally { operatingVersion.value = null }
   }
 
+  /** 重置自动关闭计时并立即展示新状态。 */
   function setState(state: NvmOperationState) {
     if (feedbackTimer) clearTimeout(feedbackTimer)
     feedbackTimer = null
     operationState.value = state
   }
 
+  /** 在用户有足够阅读时间后清除操作反馈。 */
   function scheduleClear() {
     if (feedbackTimer) clearTimeout(feedbackTimer)
     feedbackTimer = setTimeout(() => {

@@ -27,6 +27,7 @@ const {
   feedbackMotion,
 } = useAppMotion()
 
+// 操作种类和阶段共同决定文案，映射由类型系统保证完整。
 const titleKeys = {
   install: {
     running: 'operation.installRunning',
@@ -53,6 +54,7 @@ const runningIcons = {
 
 const operation = computed(() => props.state)
 
+/** 根据阶段选择业务图标或结果图标。 */
 const statusIcon = computed<Component>(() => {
   const current = operation.value
   if (!current) return CloudDownloadOutline
@@ -70,6 +72,7 @@ const title = computed(() => {
   })
 })
 
+/** 失败时展示主进程返回的具体原因，其余阶段使用简短提示。 */
 const description = computed(() => {
   const current = operation.value
   if (!current) return ''

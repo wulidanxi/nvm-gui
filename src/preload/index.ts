@@ -4,6 +4,7 @@ import type { DesktopApi } from '../common/desktop-api'
 
 const invoke = ipcRenderer.invoke.bind(ipcRenderer)
 
+// 只把声明过的业务方法桥接到 window，渲染进程无法直接访问 ipcRenderer。
 const desktopApi = {
   nvm: {
     listInstalled: () => invoke('nvm-list-installed'),
@@ -47,6 +48,7 @@ const desktopApi = {
     onStatus: (listener: (status: AppUpdateStatus) => void) => {
       const handler = (_event: Electron.IpcRendererEvent, status: AppUpdateStatus) => listener(status)
       ipcRenderer.on('app-update-status', handler)
+      // 由调用方在组件卸载时注销监听，避免页面反复进入后重复接收事件。
       return () => ipcRenderer.removeListener('app-update-status', handler)
     },
   },

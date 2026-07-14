@@ -4,6 +4,7 @@ import { listAvailableNodeReleases } from '@render/api'
 import { useNodeURLStore } from '@render/stores/NodeURLStore'
 import { isNvmMissingError } from '@render/utils/nvmErrors'
 
+/** 加载、筛选并标记来源的可用 Node.js 主版本列表。 */
 export function useAvailableNodeReleases() {
   const releases = ref<NodeReleaseSummary[]>([])
   const loading = ref(false)
@@ -28,6 +29,7 @@ export function useAvailableNodeReleases() {
     })
   })
 
+  /** 使用设置中的发布源和缓存策略刷新列表。 */
   async function refresh() {
     loading.value = true
     nvmMissing.value = false

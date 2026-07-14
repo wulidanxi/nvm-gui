@@ -5,6 +5,7 @@ import { desktopApi } from '@render/api/desktop'
 
 export type RuntimeStatus = 'loading' | 'missing' | 'ready'
 
+/** 缓存仪表盘共享的 Node.js、NVM 和系统运行时快照。 */
 export const useRuntimeStore = defineStore('runtime', () => {
   const currentNodeStatus = ref<RuntimeStatus>('loading')
   const nvmManagerStatus = ref<RuntimeStatus>('loading')
@@ -15,6 +16,7 @@ export const useRuntimeStore = defineStore('runtime', () => {
   const system = desktopApi.system
   let refreshPromise: Promise<void> | undefined
 
+  /** 合并并发刷新请求，避免多个页面同时触发重复命令。 */
   function refresh(): Promise<void> {
     if (refreshPromise) return refreshPromise
     refreshPromise = Promise.allSettled([
@@ -32,6 +34,7 @@ export const useRuntimeStore = defineStore('runtime', () => {
   }
 })
 
+/** 加载单个运行时字段，并将异常收敛为 missing 状态。 */
 async function load(
   action: () => Promise<string>,
   value: { value: string },

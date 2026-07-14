@@ -7,6 +7,7 @@ import type { CommandLogService } from './command-log.service'
 import { writeFile } from 'node:fs/promises'
 
 @Controller()
+/** 对渲染进程暴露命令日志查询、清理和导出能力。 */
 export class CommandLogController {
   public constructor(private readonly commandLog: CommandLogService = getCommandLogService()) {}
 
@@ -28,6 +29,7 @@ export class CommandLogController {
     await this.commandLog.clear()
   }
 
+  /** 由主进程显示保存对话框，渲染进程不接触任意文件写入能力。 */
   @IpcHandle('command-log-export')
   public async export(): Promise<string | null> {
     const result = await dialog.showSaveDialog({

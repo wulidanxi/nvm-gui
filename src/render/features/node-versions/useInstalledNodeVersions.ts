@@ -3,6 +3,7 @@ import type { InstalledNodeVersion } from '@common/types'
 import { listInstalledNodeVersions } from '@render/api'
 import { isNvmMissingError } from '@render/utils/nvmErrors'
 
+/** 管理本地 Node.js 版本列表及当前激活版本。 */
 export function useInstalledNodeVersions() {
   const versions = ref<InstalledNodeVersion[]>([])
   const loading = ref(false)
@@ -12,6 +13,7 @@ export function useInstalledNodeVersions() {
     return versions.value.find(item => item.active)?.version || ''
   })
 
+  /** 刷新列表，并单独标记 NVM 缺失以展示安装引导。 */
   async function refresh() {
     loading.value = true
     nvmMissing.value = false

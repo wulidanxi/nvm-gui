@@ -7,6 +7,7 @@ import { VitePluginDoubleshot } from 'vite-plugin-doubleshot'
 type PackageTarget = 'win' | 'mac' | 'linux'
 type ElectronBuilderCliOptions = Record<string, string[] | boolean | 'never'>
 
+/** 仅构建模式 win、mac、linux 会继续触发桌面打包。 */
 function resolvePackageTarget(mode: string): PackageTarget | null {
   if (mode === 'win' || mode === 'mac' || mode === 'linux')
     return mode
@@ -14,6 +15,7 @@ function resolvePackageTarget(mode: string): PackageTarget | null {
   return null
 }
 
+/** 为目标平台生成非发布型 electron-builder CLI 参数。 */
 function resolveElectronBuilderCliOptions(target: PackageTarget | null): ElectronBuilderCliOptions | undefined {
   if (!target)
     return undefined
@@ -77,6 +79,7 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true,
       rollupOptions: {
         output: {
+          // 将大型 UI 库和 Vue 运行时拆为稳定缓存块。
           manualChunks: {
             'naive-ui': ['naive-ui'],
             'vue-vendor': ['vue', 'vue-router', 'pinia', 'pinia-plugin-persistedstate'],

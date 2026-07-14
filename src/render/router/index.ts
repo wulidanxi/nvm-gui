@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 import Layout from '@render/shell/AppShell.vue'
 
+// 页面组件按路由懒加载，缩小首屏渲染包。
 const LocalNode = () => import('@render/features/node-versions/LocalVersionsPage.vue')
 const AvailableNode = () => import('@render/features/node-versions/AvailableVersionsPage.vue')
 const Dashboard = () => import('@render/features/dashboard/DashboardPage.vue')
@@ -44,7 +45,7 @@ const router = createRouter({
       ]
     }
   ],
-  // Keep navigation state deterministic when switching between workbench pages.
+  // 切换工作台页面时统一回到顶部，避免继承上一页滚动位置。
   scrollBehavior() {
     return {
       top: 0,

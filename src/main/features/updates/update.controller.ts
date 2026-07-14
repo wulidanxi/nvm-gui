@@ -4,6 +4,7 @@ import type { AppUpdateService } from './update.service'
 import { assertUpdatePreference } from '../../../common/validation'
 
 @Controller()
+/** 将应用更新状态机暴露为受控 IPC 操作。 */
 export class AppUpdateController {
   public constructor(private readonly updates: AppUpdateService = appUpdateService) {}
 

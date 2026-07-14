@@ -91,6 +91,7 @@ onMounted(() => {
   refreshPackages();
 });
 
+/** 解析当前环境的全局包清单，排除 npm 自身。 */
 const refreshPackages = async () => {
   loading.value = true;
   try {
@@ -109,7 +110,7 @@ const refreshPackages = async () => {
       return;
     }
 
-    // npm returns global packages as a dependency map keyed by package name.
+    // npm 以包名为键返回全局依赖映射，转换为表格行。
     if (json && json.dependencies) {
       packages.value = Object.entries(json.dependencies).map(
         ([name, info]: [string, any]) => ({
@@ -132,6 +133,7 @@ const handleCheck = (rowKeys: (string | number)[]) => {
   checkedRowKeys.value = rowKeys;
 };
 
+/** 将选中的包逐个安装到当前 Node.js 环境并汇总结果。 */
 const migratePackages = async () => {
   if (checkedRowKeys.value.length === 0) return;
 

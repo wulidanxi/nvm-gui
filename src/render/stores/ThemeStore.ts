@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
+/** 应用支持的强调色及其亮暗主题派生色。 */
 export const themeAccentOptions = [
   {
     key: 'node-green',
@@ -67,6 +68,7 @@ export const themeAccentOptions = [
 export type ThemeMode = 'light' | 'dark'
 export type ThemeAccentKey = typeof themeAccentOptions[number]['key']
 
+/** 返回有效强调色；持久化值失效时回退到 Node Green。 */
 export function getThemeAccent(value?: string) {
   return themeAccentOptions.find(item => item.key === value) || themeAccentOptions[0]
 }
@@ -79,6 +81,7 @@ function normalizeAccent(value: string): ThemeAccentKey {
   return getThemeAccent(value).key
 }
 
+/** 持久化界面主题和强调色。 */
 export const useThemeStore = defineStore('theme', () => {
   const theme = ref<ThemeMode>('light')
   const accent = ref<ThemeAccentKey>('node-green')

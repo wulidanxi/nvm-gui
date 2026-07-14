@@ -141,6 +141,7 @@ type ViewTransitionDocument = Document & {
 
 const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
+/** 记录用户点击位置，让主题扩散动画从实际控件原点开始。 */
 function rememberThemeTransitionOrigin(event: PointerEvent) {
   themeTransitionOrigin.value = {
     x: event.clientX,
@@ -148,6 +149,7 @@ function rememberThemeTransitionOrigin(event: PointerEvent) {
   };
 }
 
+/** 在键盘操作或缺少指针事件时回退到开关中心。 */
 function resolveThemeTransitionOrigin() {
   if (themeTransitionOrigin.value.x || themeTransitionOrigin.value.y) {
     return themeTransitionOrigin.value;
@@ -167,6 +169,7 @@ function resolveThemeTransitionOrigin() {
   };
 }
 
+/** 使用 View Transition 切换主题；不支持或减少动态效果时直接切换。 */
 function updateThemeMode(value: boolean) {
   const nextTheme = value ? "dark" : "light";
   if (themeStore.theme === nextTheme) return;
@@ -202,6 +205,7 @@ function updateThemeMode(value: boolean) {
   transition.finished.then(finishTransition, finishTransition);
 }
 
+/** 避免重复导航造成不必要的路由生命周期。 */
 function go(path: string) {
   if (route.path !== path) {
     router.push(path);
@@ -221,6 +225,7 @@ function onOpenOffice() {
 }
 
 onMounted(() => {
+  // 外壳只触发共享快照刷新，各页面复用 RuntimeStore 结果。
   runtimeStore.refresh();
 });
 </script>

@@ -11,6 +11,7 @@ import type {
 } from '@common/types'
 import { desktopApi } from './desktop'
 
+// 该模块是渲染层唯一的桌面能力入口：页面不直接读取 window.nvmGui。
 export function listInstalledNodeVersions(): Promise<InstalledNodeVersion[]> {
   return invokeGui(() => getNvmGui().nvm.listInstalled())
 }
@@ -139,6 +140,7 @@ export function onAppUpdateStatus(listener: (status: AppUpdateStatus) => void) {
   return getNvmGui().updates.onStatus(listener)
 }
 
+/** 校验操作名和精确版本后执行 NVM 命令，供通用交互复用。 */
 export async function executeNvmSafely(
   command: string,
   version: string,
@@ -159,6 +161,7 @@ export async function executeNvmSafely(
   }
 }
 
+/** 统一清理 Electron IPC 包装错误，使界面只展示真正的业务错误。 */
 async function invokeGui<T>(action: () => Promise<T>): Promise<T> {
   try {
     return await action()
@@ -172,6 +175,7 @@ function getNvmGui() {
   return desktopApi
 }
 
+/** 去掉 Electron 为远程调用附加的通道前缀。 */
 function formatIpcError(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error || '')
   return message

@@ -122,6 +122,7 @@ onMounted(async () => {
   await Promise.all([loadStatus(), loadVersions()])
 })
 
+/** 探测当前平台的管理器状态和路径。 */
 async function loadStatus() {
   detecting.value = true
   try {
@@ -135,6 +136,7 @@ async function loadStatus() {
   }
 }
 
+/** 获取可安装版本，并优先选中推荐项。 */
 async function loadVersions() {
   versionsLoading.value = true
   try {
@@ -150,6 +152,7 @@ async function loadVersions() {
   }
 }
 
+/** 在真正安装前展示来源、版本和权限影响。 */
 function confirmInstall() {
   if (!selectedVersion.value)
     return
@@ -168,6 +171,7 @@ function confirmInstall() {
   })
 }
 
+/** 提交选中版本，完成后重新探测环境。 */
 async function installSelectedVersion() {
   const target = selectedVersion.value
   if (!target)
@@ -191,6 +195,7 @@ async function installSelectedVersion() {
   }
 }
 
+/** 组合来源和版本，避免内置与远程同版本选项键冲突。 */
 function optionKey(option: NvmManagerVersionOption) {
   return `${option.source}:${option.version}`
 }

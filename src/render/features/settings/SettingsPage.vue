@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import {
   BuildOutline,
   CodeSlashOutline,
@@ -21,7 +22,19 @@ interface SettingsExpose {
   saveSettings?: () => void;
 }
 
-const activeKey = ref("general");
+const settingSectionKeys = [
+  "general",
+  "advanced",
+  "registry",
+  "migration",
+  "project",
+  "nvm-manager",
+] as const;
+type SettingSectionKey = typeof settingSectionKeys[number];
+
+const route = useRoute();
+const router = useRouter();
+const activeKey = ref<SettingSectionKey>(normalizeSection(route.query.section));
 const generalSettingsRef = ref<SettingsExpose | null>(null);
 const advancedSettingsRef = ref<SettingsExpose | null>(null);
 const { t } = useI18n();
@@ -76,6 +89,30 @@ const activeGroup = computed(() => {
   return settingGroups.value.find((item) => item.key === activeKey.value) || settingGroups.value[0];
 });
 
+watch(
+  () => route.query.section,
+  section => {
+    activeKey.value = normalizeSection(section);
+  },
+);
+
+/** 将路由查询参数收敛到已注册的设置分组。 */
+function normalizeSection(section: unknown): SettingSectionKey {
+  const value = Array.isArray(section) ? section[0] : section;
+  return settingSectionKeys.includes(value as SettingSectionKey)
+    ? value as SettingSectionKey
+    : "general";
+}
+
+/** 切换分组并同步 URL，便于刷新后恢复当前位置。 */
+function selectSetting(key: string) {
+  const section = normalizeSection(key);
+  activeKey.value = section;
+  if (route.query.section === section) return;
+  router.replace({ query: { ...route.query, section } });
+}
+
+/** 由页面统一触发当前设置面板的保存入口。 */
 function saveAllSettings() {
   generalSettingsRef.value?.saveSettings?.();
   advancedSettingsRef.value?.saveSettings?.();
@@ -108,7 +145,7 @@ function saveAllSettings() {
           class="settings-nav-item"
           :class="{ 'is-active': activeKey === item.key }"
           type="button"
-          @click="activeKey = item.key"
+          @click="selectSetting(item.key)"
         >
           <n-icon size="20"><component :is="item.icon" /></n-icon>
           <span>

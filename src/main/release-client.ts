@@ -14,14 +14,14 @@ import {
 
 export const DEFAULT_NODE_RELEASE_ORIGINS = ['https://nodejs.org', 'https://npmmirror.com']
 
-// Keeps remote metadata access in the main process. Renderer code receives
-// normalized DTOs and does not need to fetch or merge release data itself.
+// 远程元数据只在主进程访问；渲染进程仅接收规范化 DTO。
 interface GithubRelease {
   tag_name?: string
   draft?: boolean
   prerelease?: boolean
 }
 
+/** Node.js index.json 中本模块实际使用的字段。 */
 export interface NodeReleaseRecord {
   version: string
   npm?: string
@@ -29,9 +29,11 @@ export interface NodeReleaseRecord {
   date?: string
 }
 
+/** 获取 NVM 和 Node.js 上游发布元数据，并执行网络边界检查。 */
 export class ReleaseClient {
   constructor(private readonly provider: NvmManagerProvider) {}
 
+  /** 获取管理器正式版本；网络失败时保留一个可用的推荐选项。 */
   public async listManagerVersions(): Promise<NvmManagerVersionOption[]> {
     const fallback = this.provider === 'nvm-windows'
       ? [recommendedManagerOption(this.provider, 'embedded')]
@@ -55,6 +57,7 @@ export class ReleaseClient {
     }
   }
 
+  /** 获取并聚合 Node.js 发布记录。 */
   public async listNodeReleaseSummaries(
     releaseUrl: string,
     installedVersions: InstalledNodeVersion[],
@@ -63,6 +66,7 @@ export class ReleaseClient {
     return summarizeNodeReleases(records, installedVersions)
   }
 
+  /** 从经过校验的 HTTPS 地址读取 Node.js 发布索引。 */
   public async fetchNodeReleaseRecords(releaseUrl: string): Promise<NodeReleaseRecord[]> {
     const url = validateNodeReleaseUrl(releaseUrl)
     const response = await safeFetch(url, {
@@ -88,6 +92,10 @@ export class ReleaseClient {
   }
 }
 
+/**
+ * 按 Node.js 主版本聚合发布历史：保留最早发布日期和最新补丁版本，
+ * 再结合本地安装状态及生命周期规则生成界面行。
+ */
 export function summarizeNodeReleases(
   records: NodeReleaseRecord[],
   installedVersions: InstalledNodeVersion[],
@@ -141,6 +149,7 @@ export function summarizeNodeReleases(
       .sort((a, b) => b.major - a.major)
 }
 
+/** 解析并限制为 HTTP(S) URL，供通用调用方复用。 */
 export function validateHttpUrl(value: string): string {
   let url: URL
   try {
@@ -156,6 +165,7 @@ export function validateHttpUrl(value: string): string {
   return url.toString()
 }
 
+/** Node.js 发布数据只允许 HTTPS，避免元数据被中间人篡改。 */
 export function validateNodeReleaseUrl(value: string): string {
   const url = new URL(validateHttpUrl(value))
   if (url.protocol !== 'https:')
@@ -163,11 +173,15 @@ export function validateNodeReleaseUrl(value: string): string {
   return url.toString()
 }
 
+/** 判断地址是否属于无需额外确认的内置发布源。 */
 export function isDefaultNodeReleaseUrl(value: string): boolean {
   const url = new URL(value)
   return DEFAULT_NODE_RELEASE_ORIGINS.includes(url.origin)
 }
 
+/**
+ * 执行受限网络请求：拒绝私网地址、重定向、超时和超大响应，降低 SSRF 风险。
+ */
 async function safeFetch(url: string, options: RequestInit): Promise<Response> {
   const parsed = new URL(url)
   if (parsed.protocol !== 'https:')
@@ -195,6 +209,7 @@ async function safeFetch(url: string, options: RequestInit): Promise<Response> {
   finally { clearTimeout(timeout) }
 }
 
+/** 流式读取 JSON，并在服务端未提供 Content-Length 时仍执行 10 MB 上限。 */
 async function parseJson<T>(response: Response): Promise<T> {
   if (!response.body)
     throw new Error('Response body is empty')
@@ -220,6 +235,7 @@ async function parseJson<T>(response: Response): Promise<T> {
   return JSON.parse(new TextDecoder().decode(body))
 }
 
+/** 解析主机的全部地址；DNS 失败按不可信处理。 */
 async function resolvePublicAddresses(host: string): Promise<string[]> {
   try {
     const addresses = await new Promise<Array<{ address: string }>>((resolve, reject) => {
@@ -237,6 +253,7 @@ async function resolvePublicAddresses(host: string): Promise<string[]> {
   }
 }
 
+/** 识别 IPv4/IPv6 的本机、链路本地、私网和运营商级 NAT 地址段。 */
 function isPrivateAddress(ip: string): boolean {
   if (isIPv6(ip)) {
     const value = ip.toLowerCase()
@@ -285,6 +302,7 @@ function resolveReleaseStatus(
   return summary.major === newestMajor ? 'current' : 'eol'
 }
 
+/** 根据发布日期和奇偶主版本近似计算 Node.js 生命周期状态。 */
 function hasReachedEndOfLife(major: number, firstReleased: string | undefined, now: Date): boolean {
   const releasedAt = Date.parse(firstReleased || '')
   if (!Number.isFinite(releasedAt))

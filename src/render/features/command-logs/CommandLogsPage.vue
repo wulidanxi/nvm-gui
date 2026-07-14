@@ -46,6 +46,7 @@ const columns = computed<DataTableColumns<CommandLogEntry>>(() => [
   { title: t('common.action'), key: 'action', width: 92, render: row => h('button', { class: 'log-link', onClick: () => selected.value = row }, t('commandLog.details')) },
 ])
 
+/** 使用当前分页和筛选条件读取命令日志。 */
 async function load() {
   loading.value = true
   try {
@@ -59,6 +60,7 @@ async function load() {
   }
 }
 
+/** 二次确认后清空全部历史。 */
 async function clearLogs() {
   dialog.warning({
     title: t('commandLog.clearTitle'), content: t('commandLog.clearConfirm'),
@@ -71,6 +73,7 @@ async function clearLogs() {
   })
 }
 
+/** 请求主进程选择路径并导出日志文件。 */
 async function exportLogs() {
   const path = await exportCommandLogs()
   if (path) message.success(t('commandLog.exported'))
@@ -81,6 +84,7 @@ async function changePageSize() {
   await load()
 }
 
+/** 删除抽屉中正在查看的记录并返回列表。 */
 async function deleteSelected() {
   if (!selected.value) return
   await removeCommandLog(selected.value.id)
@@ -88,6 +92,7 @@ async function deleteSelected() {
   await load()
 }
 
+/** 将当前日志输出复制到系统剪贴板。 */
 function copyOutput() {
   if (selected.value) navigator.clipboard.writeText(selected.value.output).then(() => message.success(t('commandLog.copied')))
 }

@@ -32,8 +32,8 @@ import type { CacheEntry } from './node-release-cache.service'
 
 const DEFAULT_NODE_RELEASE_URL = 'https://nodejs.org/dist/index.json'
 
-// Facade for NVM/NPM workflows. Controllers call this service, while platform
-// details stay in providers, installers, release clients, and command runners.
+// NVM/npm 工作流门面：控制器只调用此服务，平台细节由 Provider、安装器和客户端承担。
+/** 协调 NVM 探测、安装、版本操作、发布缓存和命令日志。 */
 export class NvmManagerService {
   private readonly platform: NodeJS.Platform
   private readonly providerName: NvmManagerProvider
@@ -71,6 +71,7 @@ export class NvmManagerService {
     this.elevated = new ElevatedExecutor(getCommandLogService())
   }
 
+  /** 探测管理器是否可用，并始终返回已发现的路径以辅助诊断。 */
   public async detect(): Promise<NvmManagerStatus> {
     const paths = await this.getPaths()
     try {
@@ -94,6 +95,7 @@ export class NvmManagerService {
     }
   }
 
+  /** 返回适用于当前平台的可安装管理器版本。 */
   public async listManagerVersions(): Promise<NvmManagerVersionOption[]> {
     return this.releaseClient.listManagerVersions()
   }
@@ -102,6 +104,7 @@ export class NvmManagerService {
     return this.provider.currentManagerVersion()
   }
 
+  /** 收集平台特有的管理器路径，不假定环境变量一定完整。 */
   public async getPaths(): Promise<NvmManagerPaths> {
     if (this.providerName === 'nvm-windows') {
       const envHome = process.env.NVM_HOME
@@ -121,6 +124,7 @@ export class NvmManagerService {
     }
   }
 
+  /** 串行安装管理器；Windows 安装必须经过 UAC 执行器。 */
   public async installManager(options: NvmManagerInstallOptions): Promise<NvmManagerStatus> {
     return this.mutationMutex.runExclusive(async () => {
       if (this.platform === 'win32') {
@@ -137,6 +141,7 @@ export class NvmManagerService {
     return this.detect()
   }
 
+  /** 列出有效的本地版本，并把“未安装 NVM”转换为可操作提示。 */
   public async listInstalledVersions(): Promise<InstalledNodeVersion[]> {
     try {
       return await this.provider.listInstalledVersions()
@@ -149,6 +154,10 @@ export class NvmManagerService {
     }
   }
 
+  /**
+   * 优先使用有效缓存，否则请求网络并回写缓存；网络失败时可降级到过期缓存。
+   * 自定义来源在每次联网前都要求用户确认，且请求仍受主进程 SSRF 防护约束。
+   */
   public async listAvailableNodeReleases(request: NodeReleaseRequest = {}): Promise<NodeReleaseResult> {
     const startedAt = Date.now()
     const cacheHours = normalizeCacheHours(request.cacheHours)
@@ -215,6 +224,7 @@ export class NvmManagerService {
     }
   }
 
+  /** 记录发布元数据请求；日志失败不能反向中断主要业务。 */
   private async recordReleaseRequest(
     status: 'success' | 'error',
     startedAt: number,
@@ -230,6 +240,7 @@ export class NvmManagerService {
     })
   }
 
+  /** 串行安装 Node.js，Windows 操作走提权白名单。 */
   public async installNodeVersion(version: string): Promise<OperationResult> {
     return this.mutationMutex.runExclusive(async () => {
       if (this.platform === 'win32')
@@ -239,6 +250,7 @@ export class NvmManagerService {
     })
   }
 
+  /** 串行切换 Node.js，避免与安装或卸载并发修改 NVM 目录。 */
   public async useNodeVersion(version: string): Promise<OperationResult> {
     return this.mutationMutex.runExclusive(async () => {
       if (this.platform === 'win32')
@@ -248,6 +260,7 @@ export class NvmManagerService {
     })
   }
 
+  /** 串行卸载 Node.js，保持管理器状态一致。 */
   public async uninstallNodeVersion(version: string): Promise<OperationResult> {
     return this.mutationMutex.runExclusive(async () => {
       if (this.platform === 'win32')
@@ -257,6 +270,7 @@ export class NvmManagerService {
     })
   }
 
+  /** 统一 NVM 命令的缺失提示和平台错误文本。 */
   public async runNvmCommand(args: string[]): Promise<string> {
     try {
       return await this.provider.runNvmCommand(args)
@@ -269,6 +283,7 @@ export class NvmManagerService {
     }
   }
 
+  /** 执行 npm 命令并隐藏底层进程错误结构。 */
   public async runNpmCommand(args: string[]): Promise<string> {
     try {
       return await this.runner.run('npm', args)
@@ -278,6 +293,7 @@ export class NvmManagerService {
     }
   }
 
+  /** 请求一个小型包元数据端点，以往返耗时衡量镜像可用性。 */
   public async testRegistrySpeed(registry: string): Promise<number> {
     let url: URL
     try {
@@ -314,6 +330,7 @@ export class NvmManagerService {
   }
 }
 
+/** 规范缓存时长；0 表示禁用读写缓存。 */
 function normalizeCacheHours(value: number | undefined): number {
   if (value === undefined)
     return 24

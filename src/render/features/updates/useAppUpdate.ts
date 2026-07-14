@@ -7,6 +7,7 @@ import {
 import { useI18n } from '@render/i18n'
 import { useUpdateStore } from './UpdateStore'
 
+/** 协调更新状态订阅、自动检查、对话框和下载/安装动作。 */
 export function useAppUpdate() {
   const { t } = useI18n()
   const preferences = useUpdateStore()
@@ -23,6 +24,7 @@ export function useAppUpdate() {
     if (status.value.phase === 'error') window.$message.error(t('update.failed', { message: status.value.error || '-' }))
   }
 
+  /** 根据当前状态决定打开详情、安装已下载版本或开始新检查。 */
   async function handle() {
     if (status.value.phase === 'available') return void (dialogVisible.value = true)
     if (status.value.phase === 'downloading') return void (dialogVisible.value = true)
@@ -33,6 +35,7 @@ export function useAppUpdate() {
     await check()
   }
 
+  /** Windows 走应用内下载，其他平台跳转到 Releases 手动下载。 */
   async function downloadAndInstall() {
     if (status.value.manualDownload) {
       await openUrl('projectReleases')
@@ -60,6 +63,7 @@ export function useAppUpdate() {
   })
 
   onMounted(() => {
+    // 先订阅增量状态，再读取快照，避免挂载期间漏掉 updater 事件。
     removeListener = onAppUpdateStatus((value) => {
       status.value = value
       if (value.phase === 'available' || value.phase === 'downloading' || value.phase === 'downloaded')

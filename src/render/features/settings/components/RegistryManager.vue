@@ -97,7 +97,7 @@ const registries = ref<Registry[]>([
   { name: "yarn", url: "https://registry.yarnpkg.com/" },
   { name: "tencent", url: "https://mirrors.cloud.tencent.com/npm/" },
   { name: "npmmirror", url: "https://registry.npmmirror.com/" },
-  // Kept for users with old npm configurations, although npmmirror is preferred.
+  // 为旧 npm 配置保留淘宝源，但新设置优先建议 npmmirror。
   { name: "taobao", url: "https://registry.npm.taobao.org/" },
 ]);
 
@@ -105,6 +105,7 @@ onMounted(async () => {
   await fetchCurrentRegistry();
 });
 
+/** 读取 npm 当前镜像并更新选中状态。 */
 const fetchCurrentRegistry = async () => {
   loading.value = true;
   try {
@@ -120,6 +121,7 @@ const fetchCurrentRegistry = async () => {
   }
 };
 
+/** 切换镜像；失败时重新读取真实配置以回滚界面。 */
 const handleRegistrySelect = async (item: Registry) => {
   if (currentRegistry.value === item.url) return;
 
@@ -135,6 +137,7 @@ const handleRegistrySelect = async (item: Registry) => {
   }
 };
 
+/** 测量单个镜像端点的请求往返时间。 */
 const testSpeed = async (item: Registry) => {
   try {
     item.speed = await testRegistrySpeed(item.url);
@@ -143,6 +146,7 @@ const testSpeed = async (item: Registry) => {
   }
 };
 
+/** 依次测速，避免同时请求导致结果互相干扰。 */
 const testAllSpeeds = async () => {
   testingAll.value = true;
   const promises = registries.value.map((item) => testSpeed(item));

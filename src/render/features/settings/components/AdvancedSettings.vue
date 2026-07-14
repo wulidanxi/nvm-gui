@@ -45,6 +45,7 @@ const message = window.$message
 const { t } = useI18n()
 
 // Keep invalid release sources out of the persisted store.
+/** 验证发布索引必须是可解析的 HTTP(S) 地址。 */
 function validateUrl() {
   const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/
 
@@ -55,6 +56,7 @@ function validateUrl() {
   nodejsUrl.value = store.nodeUrl
 }
 
+/** 验证通过后一次性保存数据源和缓存时长。 */
 function saveSettings() {
   store.toggleNodeUrl(nodejsUrl.value)
   store.setCacheHours(Math.min(168, Math.max(0, Math.round(cacheHours.value ?? 24))))

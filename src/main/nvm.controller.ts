@@ -4,6 +4,7 @@ import { assertNodeVersion } from '../common/validation'
 import { NvmManagerService } from './nvm-manager.service'
 
 @Controller()
+/** 将渲染进程的 NVM IPC 请求转发到服务层，并在边界校验输入。 */
 export class NvmController {
   public constructor(private readonly nvmManager: NvmManagerService = new NvmManagerService()) {}
 
@@ -73,6 +74,7 @@ export class NvmController {
 
 }
 
+/** 校验发布列表请求，限制缓存时长并阻止异常类型穿过 IPC 边界。 */
 function assertNodeReleaseRequest(value: unknown): asserts value is NodeReleaseRequest | undefined {
   if (value === undefined)
     return

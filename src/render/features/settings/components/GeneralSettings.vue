@@ -27,6 +27,7 @@ const themeOptions = [
 ]
 const selectedTheme = ref<string>(store.theme || 'light')
 
+/** 预览主题选择，并在保存时持久化最终值。 */
 function handleThemeChange(value: string) {
   selectedTheme.value = value
 }

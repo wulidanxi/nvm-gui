@@ -32,6 +32,7 @@ const accent = computed(() => getThemeAccent(store.accent))
 
 const accentClass = computed(() => `app-accent-${accent.value.key}`)
 
+// 将强调色映射为应用自有 CSS 变量，供非 Naive UI 区域复用。
 const themeStyle = computed<Record<string, string>>(() => {
   const current = accent.value
   const isDark = store.theme === 'dark'
@@ -46,6 +47,7 @@ const themeStyle = computed<Record<string, string>>(() => {
   }
 })
 
+// 同步覆盖 Naive UI 设计令牌，保证亮暗主题与自有样式使用同一套颜色。
 const themeOverrides = computed<GlobalThemeOverrides>(() => {
   const isDark = store.theme === 'dark'
   const current = accent.value

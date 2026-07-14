@@ -4,6 +4,7 @@
  */
 const buildTarget = process.env.NVM_GUI_BUILD_TARGET || platformToTarget(process.platform)
 
+// nvm-windows 安装包只进入 Windows 产物，许可证资源进入所有平台。
 const windowsExtraResources = [
   {
     from: 'resources/nvm-windows/nvm-setup.exe',
@@ -70,6 +71,7 @@ const config = {
 
 module.exports = config
 
+/** 将 Node.js 平台名转换为 electron-builder 的目标键。 */
 function platformToTarget(platform) {
   if (platform === 'win32')
     return 'win'

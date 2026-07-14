@@ -113,7 +113,7 @@ npm run lint      通过
 
 | 路由         | 组件                         | 说明                                  |
 | ------------ | ---------------------------- | ------------------------------------- |
-| `/dashboard` | `features/dashboard/DashboardPage.vue`               | 当前 Node 运行时、环境健康和快捷操作  |
+| `/dashboard` | `features/dashboard/DashboardPage.vue`               | 当前 Node 运行时、异常引导和快捷操作  |
 | `/local`     | `features/node-versions/LocalVersionsPage.vue`        | 查看本地 Node 版本，搜索、切换和卸载  |
 | `/available` | `features/node-versions/AvailableVersionsPage.vue`    | 查看 Node.js 发行记录，筛选和安装版本 |
 | `/setting`   | `features/settings/SettingsPage.vue`                  | 设置中心，包含多个子功能              |
@@ -166,9 +166,8 @@ Windows 下 `nvm-list` 会过滤缺少 `node.exe` 的不完整版本目录，`nv
 
 职责：
 
-- 展示当前 Node 运行时和环境健康状态。
-- 聚合 Node、NVM 管理器、Electron 运行壳状态。
-- 提供本地版本、可安装版本、项目检测和 NVM 管理器的快捷入口。
+- 展示当前 Node 运行时，并在 NVM 未检测到或 Node 未激活时提供对应处理入口。
+- 提供本地版本、可安装版本、项目检测和 NVM 管理器的快捷入口，设置类入口可直接定位到目标分类。
 
 ### 本机 Node 环境
 
@@ -223,6 +222,8 @@ https://nodejs.org/dist/index.json
 | 全局包迁移 | `MigrationHelper.vue`           | 全局包读取与批量安装            |
 | 项目检测   | `ProjectDetector.vue`           | 选择目录并读取 `.nvmrc`         |
 | NVM 管理器 | `NvmManager.vue`                | 检测、安装和升级底层 NVM 管理器 |
+
+设置页支持通过 `/setting?section=<分类>` 直接定位功能分区，分类值包括 `general`、`advanced`、`registry`、`migration`、`project` 和 `nvm-manager`；无效值回退到通用设置。
 
 项目检测用于多项目开发场景：选择项目目录后读取 `.nvmrc`，对比当前激活的 Node 版本，并在不匹配时提供切换/安装入口。
 

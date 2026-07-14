@@ -36,6 +36,7 @@ const pageSize = ref(DEFAULT_TABLE_PAGE_SIZE);
 
 const tableScrollX = 760;
 
+// 筛选和分页均在本地完成，数据刷新时再校正越界页码。
 const currentVersionLabel = computed(() => currentVersion.value || t("local.inactive"));
 
 const filteredData = computed(() => {
@@ -151,9 +152,11 @@ onMounted(() => {
 });
 
 onActivated(() => {
+  // keep-alive 页面仅在其他页面改变过 Node 环境时重新请求。
   if (consumeNodeEnvDirty()) detail();
 });
 
+/** 卸载非活动版本并刷新表格。 */
 async function uninstallNode(row: InstalledNodeVersion) {
   try {
     await nvmOperations.uninstall(row.version);
@@ -164,6 +167,7 @@ async function uninstallNode(row: InstalledNodeVersion) {
   }
 }
 
+/** 刷新安装列表，并同步单选行为所需的活动行。 */
 async function detail(showSuccess = false) {
   try {
     await refresh();
@@ -180,6 +184,7 @@ async function detail(showSuccess = false) {
   }
 }
 
+/** 将表格单选变化转换为 NVM use 操作。 */
 async function handleCheck(rowKeys: string[]) {
   const targetVersion = Array.isArray(rowKeys) ? rowKeys[0] : rowKeys;
   if (!targetVersion) return;

@@ -61,6 +61,7 @@ const updateStore = useUpdateStore();
 const { t } = useI18n();
 const { autoAnimateOptions, tileMotion } = useAppMotion();
 
+// 表单使用本地草稿，只有点击保存后才写入持久化 Store。
 const selectedAccent = ref<ThemeAccentKey>(store.accent || "node-green");
 const selectedLocale = ref<AppLocale>(localeStore.locale);
 const autoCheck = ref(updateStore.autoCheck);
@@ -74,6 +75,7 @@ watch(() => localeStore.locale, (value) => {
   selectedLocale.value = value;
 });
 
+/** 将外观、语言和更新偏好作为一个设置单元提交。 */
 const saveSettings = () => {
   store.setAccent(selectedAccent.value);
   localeStore.setLocale(selectedLocale.value);

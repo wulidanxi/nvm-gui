@@ -3,14 +3,15 @@ import { dirname, join } from 'node:path'
 import type { InstalledNodeVersion } from '../common/types'
 import type { CommandRunner } from './command-runner'
 
-// Providers own platform-specific NVM behavior. The rest of the app should not
-// need to know whether commands are backed by nvm-windows or nvm-sh.
+// Provider 封装平台差异，使其余模块无需区分 nvm-windows 和 nvm-sh。
+/** NVM 平台适配器统一提供版本查询、命令执行和安装列表。 */
 export interface NvmProvider {
   currentManagerVersion(): Promise<string>
   runNvmCommand(args: string[]): Promise<string>
   listInstalledVersions(): Promise<InstalledNodeVersion[]>
 }
 
+/** nvm-windows 适配器，并额外过滤残缺的 Node.js 安装。 */
 export class WindowsNvmProvider implements NvmProvider {
   constructor(
     private readonly runner: CommandRunner,
@@ -37,6 +38,7 @@ export class WindowsNvmProvider implements NvmProvider {
     return parseNvmList(stdout)
   }
 
+  /** 优先使用 NVM_HOME，无法命中时再通过 PATH 查找 nvm.exe。 */
   public async findExecutable(envHome?: string): Promise<string | undefined> {
     const envPath = envHome ? join(envHome, 'nvm.exe') : undefined
     if (envPath && existsSync(envPath))
@@ -51,6 +53,7 @@ export class WindowsNvmProvider implements NvmProvider {
     }
   }
 
+  /** 隐藏缺少 node.exe 的残留版本，避免界面将其显示为可切换版本。 */
   private async filterNvmList(stdout: string): Promise<string> {
     const lines = stdout.split(/\r?\n/)
     const filtered: string[] = []
@@ -91,6 +94,7 @@ export class WindowsNvmProvider implements NvmProvider {
   }
 }
 
+/** nvm-sh 适配器，通过登录 shell 加载 nvm.sh 后执行函数式命令。 */
 export class PosixNvmProvider implements NvmProvider {
   constructor(
     private readonly runner: CommandRunner,
@@ -119,6 +123,7 @@ export class PosixNvmProvider implements NvmProvider {
   }
 }
 
+/** 将不同 NVM 实现的文本输出解析为统一的已安装版本列表。 */
 export function parseNvmList(stdout: string): InstalledNodeVersion[] {
   if (!stdout)
     return []
@@ -138,11 +143,12 @@ export function parseNvmList(stdout: string): InstalledNodeVersion[] {
 }
 
 export function extractNvmListVersion(line: string): string | null {
-  // Matches both nvm-windows (`* 20.11.1`) and nvm-sh (`-> v20.11.1`) output.
+  // 同时匹配 nvm-windows 的“* 20.11.1”和 nvm-sh 的“-> v20.11.1”。
   const match = line.match(/(?:->)?\s*\*?\s*(v?\d+\.\d+\.\d+)/)
   return match?.[1] || null
 }
 
+/** 按 POSIX 单引号规则转义单个命令参数。 */
 export function shellQuote(value: string): string {
   return `'${value.replace(/'/g, `'\\''`)}'`
 }
