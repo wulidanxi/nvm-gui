@@ -1,3 +1,5 @@
+import { compare, valid } from 'semver'
+
 /** electron-updater 中与更新通道有关的最小可写接口。 */
 export interface UpdateChannelTarget {
   allowPrerelease: boolean
@@ -39,21 +41,11 @@ export function findNewerRelease(
 }
 
 /**
- * 比较稳定版和常见预发布版本。
- * 缺少预发布段的稳定版高于相同核心版本的 alpha/beta 版本。
+ * 按 SemVer 比较版本；loose 兼容旧标签 0.0.8b（等价于 0.0.8-b）。
+ * 无效版本返回 NaN，使更新筛选的 > 0 判断失败，避免误报升级。
  */
 export function compareVersions(left: string, right: string): number {
-  const parse = (value: string) => value.replace(/^v/, '').split(/[.-]/).map(part => /^\d+$/.test(part) ? Number(part) : part)
-  const a = parse(left)
-  const b = parse(right)
-  for (let index = 0; index < Math.max(a.length, b.length); index++) {
-    const first = a[index]
-    const second = b[index]
-    if (first === second) continue
-    if (first === undefined) return second === undefined ? 0 : 1
-    if (second === undefined) return -1
-    if (typeof first === 'number' && typeof second === 'number') return first > second ? 1 : -1
-    return String(first).localeCompare(String(second))
-  }
-  return 0
+  const a = valid(left, { loose: true })
+  const b = valid(right, { loose: true })
+  return a && b ? compare(a, b) : Number.NaN
 }

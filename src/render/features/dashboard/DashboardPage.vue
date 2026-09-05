@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { createTimeline, stagger } from "animejs";
+import { computed, nextTick, onMounted, ref } from "vue";
 import { storeToRefs } from "pinia";
 import { useRouter } from "vue-router";
 import type { RouteLocationRaw } from "vue-router";
@@ -13,6 +14,7 @@ import {
 import { useI18n } from "@render/i18n";
 import { getCommandLogStatistics } from "@render/api";
 import { useAppMotion } from "@render/utils/motionPresets";
+import { useAnimeScope } from "@render/utils/useAnimeScope";
 import { useRuntimeStore } from "@render/stores/RuntimeStore";
 
 const router = useRouter();
@@ -36,6 +38,62 @@ const {
 const statistics = ref<CommandLogStatistics | null>(null);
 const statisticsLoading = ref(true);
 const statisticsFailed = ref(false);
+const dashboardRoot = ref<HTMLElement | null>(null);
+const dashboardEntrance = useAnimeScope(dashboardRoot);
+const statisticsMotion = useAnimeScope(dashboardRoot);
+
+/** 使用一条缓和的时间线组织首屏层级，避免各卡片同时跳入视野。 */
+function playDashboardEntrance() {
+  dashboardEntrance.play(() => {
+    createTimeline({ defaults: { ease: "out(3)" } })
+      .add(".page-heading", { opacity: [0, 1], y: [10, 0], duration: 520 })
+      .add(".hero-panel", { opacity: [0, 1], y: [14, 0], duration: 620 }, "-=340")
+      .add(".quick-actions-card", { opacity: [0, 1], y: [16, 0], duration: 640 }, "-=390")
+      .add(
+        ".action-tile",
+        { opacity: [0, 1], x: [-8, 0], duration: 480, delay: stagger(55) },
+        "-=430",
+      )
+      .add(".statistics-card", { opacity: [0, 1], y: [18, 0], duration: 680 }, "-=360");
+  });
+}
+
+/** 统计数据到达后单独播放指标和柱图，刷新时不会重播整个页面。 */
+function playStatisticsEntrance() {
+  statisticsMotion.play(() => {
+    createTimeline({ defaults: { ease: "out(3)" } })
+      .add(
+        ".statistics-metric",
+        { opacity: [0, 1], y: [9, 0], duration: 460, delay: stagger(45) },
+      )
+      .add(
+        ".trend-column",
+        { opacity: [0, 1], y: [7, 0], duration: 420, delay: stagger(35) },
+        "-=250",
+      )
+      .add(
+        ".trend-segment",
+        { scaleY: [0, 1], duration: 620, delay: stagger(30) },
+        "-=330",
+      );
+  });
+}
+
+/** 刷新时只强调发生变化的数据，不再让整张统计卡片重新入场。 */
+function playStatisticsRefresh() {
+  statisticsMotion.play(() => {
+    createTimeline({ defaults: { ease: "out(3)" } })
+      .add(
+        ".statistics-metric-value",
+        { opacity: [0.55, 1], y: [4, 0], duration: 360, delay: stagger(40) },
+      )
+      .add(
+        ".trend-segment",
+        { scaleY: [0.72, 1], duration: 520, delay: stagger(30) },
+        "-=250",
+      );
+  });
+}
 
 const statisticsMetrics = computed(() => {
   const data = statistics.value;
@@ -92,10 +150,14 @@ function formatTrendDate(date: string) {
 }
 
 async function loadStatistics() {
+  const isInitialLoad = statistics.value === null;
   statisticsLoading.value = true;
   statisticsFailed.value = false;
   try {
     statistics.value = await getCommandLogStatistics();
+    await nextTick();
+    if (isInitialLoad) playStatisticsEntrance();
+    else playStatisticsRefresh();
   } catch {
     statisticsFailed.value = true;
   } finally {
@@ -189,11 +251,12 @@ function openAction(path: RouteLocationRaw) {
 onMounted(() => {
   runtimeStore.refresh();
   loadStatistics();
+  nextTick(playDashboardEntrance);
 });
 </script>
 
 <template>
-  <div class="app-page dashboard-page">
+  <div ref="dashboardRoot" class="app-page dashboard-page">
     <div class="page-heading" v-motion="headingMotion">
       <div>
         <div class="page-kicker">{{ t("dashboard.kicker") }}</div>
@@ -210,7 +273,7 @@ onMounted(() => {
       </n-button>
     </div>
 
-    <div v-auto-animate="autoAnimateOptions" class="page-scroll-body">
+    <div class="page-scroll-body">
       <section class="hero-panel" v-motion="heroMotion">
         <div class="hero-copy">
           <div class="hero-eyebrow">{{ t("dashboard.currentRuntime") }}</div>
@@ -629,6 +692,7 @@ onMounted(() => {
 
 .trend-segment {
   min-height: 2px;
+  transform-origin: center bottom;
 }
 
 .trend-day {

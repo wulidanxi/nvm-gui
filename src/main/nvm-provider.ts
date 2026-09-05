@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
+import { stripVTControlCharacters } from 'node:util'
 import type { InstalledNodeVersion } from '../common/types'
 import type { CommandRunner } from './command-runner'
 
@@ -128,12 +129,13 @@ export function parseNvmList(stdout: string): InstalledNodeVersion[] {
   if (!stdout)
     return []
 
-  return stdout
+  return stripVTControlCharacters(stdout)
     .split(/\r?\n/)
     .map(line => line.trim())
     .filter(Boolean)
     .map((line) => {
-      const active = line.includes('*') || line.startsWith('->')
+      // nvm-sh 行尾的 * 仅表示已安装；激活标记是行首 ->（Windows 为行首 *）。
+      const active = line.startsWith('*') || line.startsWith('->')
       const version = extractNvmListVersion(line)
       return version
         ? { version, active, valid: true }
@@ -143,8 +145,8 @@ export function parseNvmList(stdout: string): InstalledNodeVersion[] {
 }
 
 export function extractNvmListVersion(line: string): string | null {
-  // 同时匹配 nvm-windows 的“* 20.11.1”和 nvm-sh 的“-> v20.11.1”。
-  const match = line.match(/(?:->)?\s*\*?\s*(v?\d+\.\d+\.\d+)/)
+  // 仅匹配版本行，排除 default、node、lts/* 等别名中的目标版本。
+  const match = line.match(/^\s*(?:->|\*)?\s*(v?\d+\.\d+\.\d+)(?=\s|$)/)
   return match?.[1] || null
 }
 
