@@ -602,6 +602,7 @@ Electron Builder 配置：
 
 ## 34. v0.0.19-alpha.1 macOS 状态修复与动效优化
 
+- 升级 PostCSS、js-yaml 与 nanoid 的依赖约束，修复发布审计发现的安全问题。
 - 修复 macOS/Linux 将 nvm-sh 行尾已安装标记误判为使用中，仅行首箭头表示当前版本；过滤别名并兼容颜色控制字符。
 - 更新检测采用 SemVer 比较，兼容 `0.0.8b` 等历史标签，避免将旧版本或无效标签提示为更新。
 - Dashboard 入场、统计刷新及 Node 操作反馈使用 Anime.js 时间线，组件卸载时清理动画并支持减少动态效果偏好。
