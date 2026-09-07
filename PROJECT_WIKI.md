@@ -17,7 +17,7 @@
 - 记录受控 NVM/NPM/NVM 管理器操作，支持筛选、导出与清理命令日志。
 - 检查应用更新；Windows 支持下载并重启安装，macOS/Linux 跳转 Release 页面下载。
 
-当前版本：`0.0.19-alpha.1`。
+当前版本：`0.0.19-alpha.2`。
 
 ## 2. 技术栈
 
@@ -607,3 +607,9 @@ Electron Builder 配置：
 - 更新检测采用 SemVer 比较，兼容 `0.0.8b` 等历史标签，避免将旧版本或无效标签提示为更新。
 - Dashboard 入场、统计刷新及 Node 操作反馈使用 Anime.js 时间线，组件卸载时清理动画并支持减少动态效果偏好。
 - 当前应用版本为 `0.0.19-alpha.1`，Windows 资源版本映射为 `0.0.19.1`。
+
+## 35. v0.0.19-alpha.2 macOS 设置中心 npm 环境修复
+
+- macOS/Linux 执行 npm 前，在同一个登录 shell 中加载 nvm.sh，修复从图形界面启动后获取 npm 源和全局包失败的问题。
+- 隔离 NVM 初始化输出，避免污染 npm registry 和全局包 JSON；没有 nvm.sh 时仍允许使用系统 npm。
+- 当前应用版本为 `0.0.19-alpha.2`，Windows 资源版本映射为 `0.0.19.2`。

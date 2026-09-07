@@ -9,6 +9,7 @@ import type { CommandRunner } from './command-runner'
 export interface NvmProvider {
   currentManagerVersion(): Promise<string>
   runNvmCommand(args: string[]): Promise<string>
+  runNpmCommand(args: string[]): Promise<string>
   listInstalledVersions(): Promise<InstalledNodeVersion[]>
 }
 
@@ -21,6 +22,10 @@ export class WindowsNvmProvider implements NvmProvider {
 
   public async currentManagerVersion(): Promise<string> {
     return this.runner.run('nvm', ['version'])
+  }
+
+  public async runNpmCommand(args: string[]): Promise<string> {
+    return this.runner.run('npm', args)
   }
 
   public async runNvmCommand(args: string[]): Promise<string> {
@@ -104,6 +109,18 @@ export class PosixNvmProvider implements NvmProvider {
 
   public async currentManagerVersion(): Promise<string> {
     return this.runNvmCommand(['--version'])
+  }
+
+  /** 图形界面进程未必继承 Node PATH；在同一个 shell 中加载 NVM 后执行 npm。 */
+  public async runNpmCommand(args: string[]): Promise<string> {
+    const script = [
+      `export NVM_DIR=${shellQuote(this.nvmDir())}`,
+      // 没有 nvm.sh 时仍允许使用系统 npm；初始化输出不能混入 registry 或 JSON。
+      `if [ -s "$NVM_DIR/nvm.sh" ]; then . "$NVM_DIR/nvm.sh" > /dev/null; fi`,
+      `npm ${args.map(shellQuote).join(' ')}`,
+    ].join(' && ')
+
+    return this.runner.runShell(script)
   }
 
   public async runNvmCommand(args: string[]): Promise<string> {

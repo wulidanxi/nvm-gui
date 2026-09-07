@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.19-alpha.2] - 2026-09-07
+
+### Changed
+- 应用升级至预览版 `0.0.19-alpha.2`；Windows 资源版本映射为 `0.0.19.2`。
+
+### Fixed
+- 修复 macOS/Linux 从图形界面启动后，设置中心因未加载 NVM 的 Node 环境而获取 npm 源和全局包失败的问题。
+- 隔离 NVM 初始化输出，避免污染 npm 源地址和全局包 JSON，并兼容未安装 NVM 时使用系统 npm。
+
 ## [0.0.19-alpha.1] - 2026-09-05
 
 ### Changed

@@ -286,7 +286,7 @@ export class NvmManagerService {
   /** 执行 npm 命令并隐藏底层进程错误结构。 */
   public async runNpmCommand(args: string[]): Promise<string> {
     try {
-      return await this.runner.run('npm', args)
+      return await this.provider.runNpmCommand(args)
     }
     catch (error) {
       throw new Error(this.runner.formatError(error))
